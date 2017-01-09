@@ -71,9 +71,7 @@ public:
     double k_mean;                             // Conveyance coefficient
     double eci;                                // Energy coefficient related to channel form drag
 
-    void chArea();                             // Calculate x-sec area for a given depth
-
-    void chPerim();                            // Channel/fp perimeter
+    void chGeom();                             // Calculate x-sec area for a given depth
 
     void chCentr();                            // Elevation of xsec centre of mass
 };

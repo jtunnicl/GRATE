@@ -165,15 +165,27 @@ NodeCHObject::NodeCHObject()
     eci = 0.;
 }
 
-void NodeCHObject::chArea()
+void NodeCHObject::chGeom()
 {   // Update channel cross-section area
     // This is only for the channel itself. Overbank flows are handled in the NodeXSObject
     float theta_rad = theta * PI / 180;               // theta is always in degrees
 
     if ( depth <= ( bankHeight - Hmax ) )                 // w.s.l. is below sloping bottom edges
         flowArea = width * depth + pow ( depth, 2 ) / tan( theta_rad );
+        flowPerim = width + 2 * depth / sin ( theta_rad );
+
     else
+    {
         flowArea = b2b * depth - pow ( ( bankHeight - Hmax ), 2 ) / tan( theta_rad );
+        flowPerim = width + 2 * ( bankHeight - Hmax ) / sin ( theta_rad ) + 2 * ( depth - (bankHeight - Hmax) );
+
+        if (depth > bankHeight)
+            ovBank = 1;
+        else
+            ovBank = 0;
+    }
+
+    hydRadius = flowArea / flowPerim;
 }
 
 NodeXSObject::NodeXSObject()                  //Initialize list
@@ -189,7 +201,7 @@ NodeXSObject::NodeXSObject()                  //Initialize list
 }
 
 void NodeXSObject::xsArea()
-{   // Update X-Section area at a given node, including overbank flows
+{   // Update flow X-Section area at a given node, including overbank flows
 
     double ovFp = 0.;                                 // Overtopping elevation, above topmost floodplain height
     double ovBank = 0.;                               // Overtopping elevation, above bank height
