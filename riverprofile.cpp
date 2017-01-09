@@ -28,12 +28,12 @@ double gammln2(double xx)
             0.1208650973866179e-2,-0.5395239384953e-5};
   int j;
 
-  y=x=xx;
-  tmp=x+5.5;
+  y = x = xx;
+  tmp = x+5.5;
   tmp -= (x+0.5)*log(tmp);
-  ser=1.000000000190015;
-  for (j=0;j<=5;j++) ser += cof[j]/++y;
-  return -tmp+log(2.5066282746310005*ser/x);
+  ser = 1.000000000190015;
+  for (j = 0; j <= 5; j++) ser += cof[j] / ++y;
+  return -tmp + log( 2.5066282746310005 * ser / x);
 }
 
 NodeGSDObject::NodeGSDObject()
@@ -134,21 +134,18 @@ void NodeGSDObject::dg_and_std()
 
 NodeCHObject::NodeCHObject()
 {
+    flowProp = 1.;
     depth = 0.;
     width = 0.;
     wsl = 0.0;
     b2b = 0.0;
+    flowArea = 0.0;
+    flowPerim = 0.0;
+
     velocity = 0.;
     ustar = 0.;
-    theta = 30.;
-    bankHeight = 3.;
-    Hmax = 0.5;
-    mu = 1.5;
-    hydRadius = 0;
-    centr = 0.;
-    k_mean = 0.;
-    eci = 0.;
     critdepth = 0.;
+    ovBank = 0;
     rough = 0.;
     omega = 0.;
     Tbed = 20.;
@@ -156,19 +153,27 @@ NodeCHObject::NodeCHObject()
     Qb_cap = 0.2;
     comp_D = 0.005;
     K = 0;
+
+    bankHeight = 3.;
+    Hmax = 0.5;
+    mu = 1.5;
+    theta = 30.;
+
+    hydRadius = 0;
+    centr = 0.;
+    k_mean = 0.;
+    eci = 0.;
 }
 
 void NodeCHObject::chArea()
 {   // Update channel cross-section area
-    // This is only the channel itself. Overbank flows are handled in the NodeXSObject
+    // This is only for the channel itself. Overbank flows are handled in the NodeXSObject
+    float theta_rad = theta * PI / 180;               // theta is always in degrees
 
     if ( depth <= ( bankHeight - Hmax ) )                 // w.s.l. is below sloping bottom edges
-        flow_area[0] = width * depth + pow ( depth, 2 ) / tan( theta_rad );
+        flowArea = width * depth + pow ( depth, 2 ) / tan( theta_rad );
     else
-        flow_area[0] = b2b * depth - pow ( ( bankHeight - Hmax ), 2 ) / tan( theta_rad );
-
-    flow_area[1] = 0;
-
+        flowArea = b2b * depth - pow ( ( bankHeight - Hmax ), 2 ) / tan( theta_rad );
 }
 
 NodeXSObject::NodeXSObject()                  //Initialize list
@@ -181,18 +186,11 @@ NodeXSObject::NodeXSObject()                  //Initialize list
      fpWidth = 0.;
      chSinu = 0.;
      topW = 0.;
-     for (int i=0; i<3; i++)
-     {
-         flow_area[i] = 0;
-         flow_perim[i] = 0;
-     }
-
 }
 
 void NodeXSObject::xsArea()
 {   // Update X-Section area at a given node, including overbank flows
 
-    float theta_rad = theta * PI / 180;               // theta is always in degrees
     double ovFp = 0.;                                 // Overtopping elevation, above topmost floodplain height
     double ovBank = 0.;                               // Overtopping elevation, above bank height
 
@@ -204,9 +202,9 @@ void NodeXSObject::xsArea()
         ovFp = depth - topFp;
         ovBank = 1.5;
 
-        flow_area[0] = b2b * bankHeight - pow ( ( bankHeight - Hmax ), 2 ) / tan( theta_rad ) +       // Lower trapezoidal portion
+        xsFlowArea[0] = b2b * bankHeight - pow ( ( bankHeight - Hmax ), 2 ) / tan( theta_rad ) +       // Lower trapezoidal portion
                 ( ovBank + ovFp ) * b2b;                                   // Upper 'between-bank' flow (both ovBank & ovFp)
-        flow_area[1] = 0.5 * ( ovBank * fpSlope * 1.5 ) + 0.5 * ( ovBank * 1.5 ) +      // Over-bank contribution
+        xsFlowArea[1] = 0.5 * ( ovBank * fpSlope * 1.5 ) + 0.5 * ( ovBank * 1.5 ) +      // Over-bank contribution
                 ( ovFp * ( fpWidth - b2b) )  + (ovFp * ovFp / valleyWallSlp );          // Over-floodplain contribution
     }
 
@@ -214,18 +212,17 @@ void NodeXSObject::xsArea()
     {
         ovBank = depth - bankHeight;
 
-        flow_area[0] = b2b * bankHeight - pow ( ( bankHeight - Hmax ), 2 ) / tan( theta_rad ) +     // Lower trapezoidal portion
+        xsFlowArea[0] = b2b * bankHeight - pow ( ( bankHeight - Hmax ), 2 ) / tan( theta_rad ) +     // Lower trapezoidal portion
                 ovBank * ( b2b + 0.5 * ovBank );            // Upper channel flow, plus wedge against valley wall
-        flow_area[1] = 0.5 * ovBank * ovBank * fpSlope;
+        xsFlowArea[1] = 0.5 * ovBank * ovBank * fpSlope;
     }
 
-    flow_area[2] = flow_area[0] + flow_area[1];
+    xsFlowArea[2] = xsFlowArea[0] + xsFlowArea[1];
 }
 
 void NodeXSObject::xsPerim()
 {                 // Perimenter at a single node: This could be merged with Area, above.
 
-    float theta_rad = theta * PI / 180;
     double ovFp = 0.;            // Overtopping elevation, above topmost floodplain height
     double ovBank = 0.;          // Overtopping elevation, above bank height
     double b2b = width + (2 * ( bankHeight - Hmax) / tan( theta_rad ));    // Bank-to-bank width (top of in-channel flow section)
@@ -236,8 +233,8 @@ void NodeXSObject::xsPerim()
         ovFp = depth - topFp;
         ovBank = 1.5;
 
-        flow_perim[0] = width + 2 * Hmax + 2 * ( bankHeight - Hmax ) / tan( theta_rad );       // Trapezoidal portion
-        flow_perim[1] = ovBank * ( fpSlope + 1.4142 ) + fpWidth -                      // Above bank top
+        xsFlowPerim[0] = width + 2 * Hmax + 2 * ( bankHeight - Hmax ) / tan( theta_rad );       // Trapezoidal portion
+        xsFlowPerim[1] = ovBank * ( fpSlope + 1.4142 ) + fpWidth -                      // Above bank top
                 ( fpSlope * ovBank + b2b + ovBank + 2 * ovFp / valleyWallSlp );
     }
 
@@ -245,21 +242,21 @@ void NodeXSObject::xsPerim()
     {
         ovBank = depth - bankHeight;
 
-        flow_perim[0] = width + 2 * Hmax + 2 * ( bankHeight - Hmax ) / tan( theta_rad );      // Trapezoidal portion
-        flow_perim[1] = ovBank * ( fpSlope + 1.4142 );           // Above bank top
+        xsFlowPerim[0] = width + 2 * Hmax + 2 * ( bankHeight - Hmax ) / tan( theta_rad );      // Trapezoidal portion
+        xsFlowPerim[1] = ovBank * ( fpSlope + 1.4142 );           // Above bank top
     }
 
     else                                                                // W.s.l. is within banks.
     {
         if ( depth <= ( bankHeight - Hmax ) )                     // w.s.l. is above sloping bottom edges
-            flow_perim[0] = width + 2 * depth / sin ( theta_rad );
+            xsFlowPerim[0] = width + 2 * depth / sin ( theta_rad );
         else
-            flow_perim[0] = width + 2 * ( bankHeight - Hmax ) / sin ( theta_rad ) + 2 * ( depth - (bankHeight - Hmax) );
-        flow_perim[1] = 0;
+            xsFlowPerim[0] = width + 2 * ( bankHeight - Hmax ) / sin ( theta_rad ) + 2 * ( depth - (bankHeight - Hmax) );
+        xsFlowPerim[1] = 0;
     }
 
-    flow_perim[2] = flow_perim[0] + flow_perim[1];
-    hydRadius = flow_area[2] / flow_perim[2];
+    xsFlowPerim[2] = xsFlowPerim[0] + xsFlowPerim[1];
+    hydRadius = xsFlowArea[2] / xsFlowPerim[2];
 }
 
 void NodeXSObject::xsCentr()
@@ -310,17 +307,17 @@ void NodeXSObject::xsECI(NodeGSDObject F)
     if (rough <= 0)         // indicates problems with previous F calcs
         rough = 0.01;
     omega = 2.5 * log( 11.0 * ( depth / rough ) );                          // Parker (1991), Dingman 6.25, p.224
-    double K_ch = flow_area[0] * omega * sqrt( 9.81 * depth );              // Dingman, (2009) 8B2.3C, p.300
+    double K_ch = xsFlowArea[0] * omega * sqrt( 9.81 * depth );              // Dingman, (2009) 8B2.3C, p.300
     double K_fp = 0;
     k_mean = 0;
     double ovBank = depth - bankHeight;
 
     if (ovBank > 0)
     {
-        K_fp = flow_area[1] * rough * sqrt( 9.81 * ovBank * 0.5 );   // Depth halfway across the floodplain
+        K_fp = xsFlowArea[1] * rough * sqrt( 9.81 * ovBank * 0.5 );   // Depth halfway across the floodplain
         k_mean = K_ch + K_fp;
-        eci = ( pow(K_ch,3) / pow(flow_area[0],2) + pow(K_fp,3) / pow(flow_area[1],2) ) /
-                ( pow(k_mean,3) / pow(flow_area[2],2) );                   // Dingman, (2009) 8B2.4, Chaudhry (2nd ed) 4-41
+        eci = ( pow(K_ch,3) / pow(xsFlowArea[0],2) + pow(K_fp,3) / pow(xsFlowArea[1],2) ) /
+                ( pow(k_mean,3) / pow(xsFlowArea[2],2) );                   // Dingman, (2009) 8B2.4, Chaudhry (2nd ed) 4-41
     }
     else
     {

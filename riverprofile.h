@@ -41,21 +41,18 @@ public:
 
     NodeCHObject();
 
+    double flowProp;                           // Proportion of total flow going into this channel
     double depth;                              // Flow depth (m)
     double wsl;                                // Water surface level (m above sea level)
     double width;                              // Nominal channel width (m) at bottom of trapezoid for each node
     double b2b;                                // Bank-to-bank width (top of in-channel flow section)
+    double flowArea;                           // Flow area within the channel
+    double flowPerim;                          // Perimeter, within the channel
+
     double velocity;                           // Mean velocity (m/s) at each node
     double ustar;                              // Shear velocity
-    double theta;                              // Bank sideslope angle (degrees)
-    double bankHeight;                         // Characteristic bank height above channel bottom (m)
-    double Hmax;                               // Bank strength as a vertical upper bank section (m)
-    double mu;                                 // Bank strength, relative to bed (afer Millar, 2005)
-    double hydRadius;                          // Hydraulic radius
-    double centr;                              // Vertical centroid of flow
-    double k_mean;                             // Conveyance coefficient
-    double eci;                                // Energy coefficient related to channel form drag
     double critdepth;                          // Critical depth
+    int ovBank;                                // Flow has gone overbank
     double rough;                              // Grain roughness height
     double omega;                              // Reciprocal of Dingman's Omega (~prop u*/U), Eqn. 6.17
     double Tbed;                               // Shear stress acting on the channel bed (Pa)
@@ -63,6 +60,16 @@ public:
     double Qb_cap;                             // Transport capacity (m3/s)
     double comp_D;                             // The largest grain that the flow can move
     double K;                                  // Estimated division between key stones and bed material load
+
+    double bankHeight;                         // Characteristic bank height above channel bottom (m)
+    double Hmax;                               // Bank strength as a vertical upper bank section (m)
+    double mu;                                 // Bank strength, relative to bed (afer Millar, 2005)
+    double theta;                              // Bank sideslope angle (degrees)
+
+    double hydRadius;                          // Hydraulic radius
+    double centr;                              // Vertical centroid of flow
+    double k_mean;                             // Conveyance coefficient
+    double eci;                                // Energy coefficient related to channel form drag
 
     void chArea();                             // Calculate x-sec area for a given depth
 
@@ -82,15 +89,14 @@ public:
 
     int node;
     int numChannels;                           // Number of channels
-    NodeCHObject CHList[];                     // Vector containing channel characteristics
-
+    vector<NodeCHObject> CHList;               // Vector containing channel characteristics
     double fpSlope;                            // Lateral floodplain slope, from valley wall to channel (m/m)
     double valleyWallSlp;                      // Valley wall slope (m/m)
     double fpWidth;                            // Floodplain width (m)
     double chSinu;                             // Sinuosity (>1, channel length/valley length)
     double topW;                               // Total width of water surface, across all channels
-    double flow_area[3];                       // [1] Channel [2] Floodplain [3] Total area
-    double flow_perim[3];                      // [1] Channel [2] Floodplain [3] Total perimeter
+    double xsFlowArea[3];                       // [1] Channel [2] Floodplain [3] Total area
+    double xsFlowPerim[3];                      // [1] Channel [2] Floodplain [3] Total perimeter
 
     void xsArea();                             // Calculate x-sec area for a given depth
 
