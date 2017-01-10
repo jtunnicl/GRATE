@@ -44,7 +44,7 @@ public:
     double flowProp;                           // Proportion of total flow going into this channel
     double depth;                              // Flow depth (m)
     double wsl;                                // Water surface level (m above sea level)
-    double width;                              // Nominal channel width (m) at bottom of trapezoid for each node
+    double width;                              // Channel width (m) at bottom of trapezoid for each node
     double b2b;                                // Bank-to-bank width (top of in-channel flow section)
     double flowArea;                           // Flow area within the channel
     double flowPerim;                          // Perimeter, within the channel
@@ -53,23 +53,18 @@ public:
     double ustar;                              // Shear velocity
     double critdepth;                          // Critical depth
     int ovBank;                                // Flow has gone overbank
-    double rough;                              // Grain roughness height
-    double omega;                              // Reciprocal of Dingman's Omega (~prop u*/U), Eqn. 6.17
     double Tbed;                               // Shear stress acting on the channel bed (Pa)
     double Tbank;                              // Shear stress acting on the channel banks (Pa)
     double Qb_cap;                             // Transport capacity (m3/s)
     double comp_D;                             // The largest grain that the flow can move
     double K;                                  // Estimated division between key stones and bed material load
-
     double bankHeight;                         // Characteristic bank height above channel bottom (m)
     double Hmax;                               // Bank strength as a vertical upper bank section (m)
     double mu;                                 // Bank strength, relative to bed (afer Millar, 2005)
     double theta;                              // Bank sideslope angle (degrees)
 
     double hydRadius;                          // Hydraulic radius
-    double centr;                              // Vertical centroid of flow
-    double k_mean;                             // Conveyance coefficient
-    double eci;                                // Energy coefficient related to channel form drag
+
 
     void chGeom();                             // Calculate x-sec area for a given depth
 
@@ -88,34 +83,38 @@ public:
     int node;
     int numChannels;                           // Number of channels
     vector<NodeCHObject> CHList;               // Vector containing channel characteristics
-    double fpSlope;                            // Lateral floodplain slope, from valley wall to channel (m/m)
-    double valleyWallSlp;                      // Valley wall slope (m/m)
     double fpWidth;                            // Floodplain width (m)
     double chSinu;                             // Sinuosity (>1, channel length/valley length)
     double topW;                               // Total width of water surface, across all channels
-    double xsFlowArea[3];                       // [1] Channel [2] Floodplain [3] Total area
-    double xsFlowPerim[3];                      // [1] Channel [2] Floodplain [3] Total perimeter
+    double xsDepth;                            // Total flow depth, including overbank, in reach
+    int mainChannel;                           // Channel with deepest flow
+    double xsFlowArea[3];                      // [0] Channel [1] Floodplain [2] Total area
+    double xsFlowPerim[3];                     // [0] Channel [1] Floodplain [2] Total perimeter
+    double centr;                              // Vertical centroid of flow
+    double rough;                              // Grain roughness height
+    double omega;                              // Reciprocal of Dingman's Omega (~prop u*/U), Eqn. 6.17
+    double k_mean;                             // Conveyance coefficient
+    double eci;                                // Energy coefficient related to channel form drag
 
-    void xsArea();                             // Calculate x-sec area for a given depth
-
-    void xsPerim();                            // Channel/fp perimeter
+    void xsGeom();                             // Calculate x-sec area for a given depth
 
     void xsCentr();                            // Elevation of xsec centre of mass
 
     void xsECI(NodeGSDObject F);               // Energy coefficient
+
 };
 
 class TS_Object
 {
-            // Generic Time Series Object for either water or sediment inputs
+                                               // Generic Time Series Object for either water or sediment inputs
 public:
 
     TS_Object();
 
-    QDateTime date_time;       // Date and time of inputs (see QDateTime doc)
-    double Q;                  // m3/s (Qw) for water, m3/s (Qs) for sediment
-    int Coord;                  // Stream-wise coordinate of input (m)
-    int GRP;                       // For sediment : sed group
+    QDateTime date_time;                       // Date and time of inputs (see QDateTime doc)
+    double Q;                                  // m3/s (Qw) for water, m3/s (Qs) for sediment
+    int Coord;                                 // Stream-wise coordinate of input (m)
+    int GRP;                                   // For sediment: # of sed group
 };
 
 class RiverProfile
@@ -135,8 +134,8 @@ public:
     int yearCounter;
     int dt;                                    // Delta t in seconds
     float dx;                                  // Delta x - distance between cross-sections
-    vector<double> xx;                        // Chainage (m) at each node (ordered, increasing)
-    vector<double> eta;                       // Elevation (m) at each node (high z to low)
+    vector<double> xx;                         // Chainage (m) at each node (ordered, increasing)
+    vector<double> eta;                        // Elevation (m) at each node (high z to low)
 
     // Sedimentary Elements
 
@@ -159,11 +158,11 @@ public:
     vector<float> bedrock;                     // Elevation of bedrock at each node (m)
     vector<float> rand_nums;                   // 10 random nums for Monte-Carlo run. Uses rand1().
 
-    vector<NodeXSObject> RiverXS;              // Array of river cross-sectional details
+    vector<NodeXSObject> RiverXS;              // Array of river cross-section objects
 
     // Randomizers
     vector<float> tweakArray;
-    float qsTweak;                           // Augment the rate of tributary Qs, Qw inputs
+    float qsTweak;                             // Augment the rate of tributary Qs, Qw inputs
     float qwTweak;
     float substrDial;
     float feedQw;

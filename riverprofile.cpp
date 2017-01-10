@@ -46,7 +46,7 @@ NodeGSDObject::NodeGSDObject()
          for (int j = 0; j < 15; j++)
          {
              tmp.push_back(0);
-             psi.push_back(-3 + j );            // psi -3 to 11 .. should be 9, but ngsz+1,2 is required throughout
+             psi.push_back(-3 + j );           // psi -3 to 11 .. should be 9, but ngsz+1,2 is required throughout
          }
 
          for (int k = 0; k < 3; k++)
@@ -74,7 +74,7 @@ void NodeGSDObject::norm_frac()
     {
         ktot[j] = 0.0;
         for ( int k = 0; k < nlith; k++ )
-            if (pct[k][j] > 0)              // Solves problems with rounding
+            if (pct[k][j] > 0)                 // Solves problems with rounding
                 ktot[j] += pct[k][j];
             else
                 pct[k][j] = 0;
@@ -134,8 +134,8 @@ void NodeGSDObject::dg_and_std()
 
 NodeCHObject::NodeCHObject()
 {
-    flowProp = 1.;
-    depth = 0.;
+    flowProp = 0.;                             // Proportion of total flow directed to this channel
+    depth = 0.;                                // Given the proportion of flow in the channel, this is the computed depth - modified later in xsGeom()
     width = 0.;
     wsl = 0.0;
     b2b = 0.0;
@@ -146,139 +146,102 @@ NodeCHObject::NodeCHObject()
     ustar = 0.;
     critdepth = 0.;
     ovBank = 0;
-    rough = 0.;
-    omega = 0.;
     Tbed = 20.;
     Tbank = 20.;
     Qb_cap = 0.2;
     comp_D = 0.005;
     K = 0;
 
-    bankHeight = 3.;
+    bankHeight = 3.;                          // Measured relative to channel bottom
     Hmax = 0.5;
-    mu = 1.5;
+    mu = 1.5;                                 // Not used - perhaps in future versions
     theta = 30.;
-
     hydRadius = 0;
-    centr = 0.;
-    k_mean = 0.;
-    eci = 0.;
 }
 
 void NodeCHObject::chGeom()
-{   // Update channel cross-section area
+{   // Update channel cross-section area and perimeter
     // This is only for the channel itself. Overbank flows are handled in the NodeXSObject
-    float theta_rad = theta * PI / 180;               // theta is always in degrees
+    float theta_rad = theta * PI / 180;        // theta is always in degrees
 
-    if ( depth <= ( bankHeight - Hmax ) )                 // w.s.l. is below sloping bottom edges
+    if ( depth <= ( bankHeight - Hmax ) )      // w.s.l. is below sloping bottom edges
+    {
         flowArea = width * depth + pow ( depth, 2 ) / tan( theta_rad );
         flowPerim = width + 2 * depth / sin ( theta_rad );
-
+    }
     else
     {
         flowArea = b2b * depth - pow ( ( bankHeight - Hmax ), 2 ) / tan( theta_rad );
         flowPerim = width + 2 * ( bankHeight - Hmax ) / sin ( theta_rad ) + 2 * ( depth - (bankHeight - Hmax) );
-
-        if (depth > bankHeight)
-            ovBank = 1;
-        else
-            ovBank = 0;
     }
+
+    if (depth > bankHeight)
+        ovBank = 1;
+    else
+        ovBank = 0;
 
     hydRadius = flowArea / flowPerim;
 }
 
-NodeXSObject::NodeXSObject()                  //Initialize list
+NodeXSObject::NodeXSObject()                   // Initialize object
 {
+     NodeCHObject tmp;
+
      node = 0;
      numChannels = 1;
-     // initialise CHList[] here
-     fpSlope = 0.001;
-     valleyWallSlp = 0.;
      fpWidth = 0.;
-     chSinu = 0.;
-     topW = 0.;
+     chSinu = 1.05;
+     topW = 10.;
+     xsDepth = 1.;
+
+     for (int i = 0; i < 10; i++)              // Max 10 dummy channel objects initiated, all with flowProp '0'.
+         CHList.push_back(tmp);
 }
 
-void NodeXSObject::xsArea()
-{   // Update flow X-Section area at a given node, including overbank flows
+void NodeXSObject::xsGeom()                    // Update flow X-Section area at a given node, including overbank flows
+{
+    int i, ovBankFlag = 0;
+    double maxDepth = 0;
+    topW = 0;
 
-    double ovFp = 0.;                                 // Overtopping elevation, above topmost floodplain height
-    double ovBank = 0.;                               // Overtopping elevation, above bank height
-
-    b2b = width + 2 * ( bankHeight - Hmax) / tan( theta_rad );    // Bank-to-bank width (top of in-channel flow section)
-    double topFp = bankHeight + 1.5;                  // fpSlope = 1:28.5 =~ 2 deg; assume Fp has 1.5m elevation
-                                                      // Elevation at point where floodplain meets valley wall
-    if (depth > topFp)                                // W.s.l topping floodplain, i.e. wall-to-wall across valley
+    for (i = 0; i < 3; i++)                // Clear out old data
     {
-        ovFp = depth - topFp;
-        ovBank = 1.5;
-
-        xsFlowArea[0] = b2b * bankHeight - pow ( ( bankHeight - Hmax ), 2 ) / tan( theta_rad ) +       // Lower trapezoidal portion
-                ( ovBank + ovFp ) * b2b;                                   // Upper 'between-bank' flow (both ovBank & ovFp)
-        xsFlowArea[1] = 0.5 * ( ovBank * fpSlope * 1.5 ) + 0.5 * ( ovBank * 1.5 ) +      // Over-bank contribution
-                ( ovFp * ( fpWidth - b2b) )  + (ovFp * ovFp / valleyWallSlp );          // Over-floodplain contribution
+        xsFlowArea[i] = 0.;
+        xsFlowPerim[i] = 0.;
     }
 
-    else if (depth > bankHeight)                            // Is w.s.l. over-bank?
+    for (i = 0; i < numChannels; i++)          // Add up in-channel flow, area and perimeter
     {
-        ovBank = depth - bankHeight;
+        xsFlowArea[0] += CHList[i].flowArea;
+        xsFlowPerim[0] += CHList[i].flowPerim;
+        topW += CHList[i].b2b;
 
-        xsFlowArea[0] = b2b * bankHeight - pow ( ( bankHeight - Hmax ), 2 ) / tan( theta_rad ) +     // Lower trapezoidal portion
-                ovBank * ( b2b + 0.5 * ovBank );            // Upper channel flow, plus wedge against valley wall
-        xsFlowArea[1] = 0.5 * ovBank * ovBank * fpSlope;
+        if (CHList[i].ovBank == 1)             // If flows go overbank..
+        {
+            ovBankFlag = 1;
+            xsFlowArea[1] += (CHList[i].depth - CHList[i].bankHeight) * CHList[i].b2b;    // Sum up total flow area out of channel
+        }
+
+        if (CHList[i].depth > maxDepth)
+        {
+            maxDepth = CHList[i].depth;         // identify deepest, 'main' channel
+            mainChannel = i;
+        }
     }
 
-    xsFlowArea[2] = xsFlowArea[0] + xsFlowArea[1];
-}
+    xsDepth = maxDepth + (xsFlowArea[1] / fpWidth);
 
-void NodeXSObject::xsPerim()
-{                 // Perimenter at a single node: This could be merged with Area, above.
+    if (ovBankFlag == 1)
+            xsFlowPerim[1] += fpWidth + 2 * (xsFlowArea[1] / fpWidth);
 
-    double ovFp = 0.;            // Overtopping elevation, above topmost floodplain height
-    double ovBank = 0.;          // Overtopping elevation, above bank height
-    double b2b = width + (2 * ( bankHeight - Hmax) / tan( theta_rad ));    // Bank-to-bank width (top of in-channel flow section)
-    double topFp = bankHeight + 1.5;
-                                                                     // Elevation at point where floodplain meets valley wall
-    if (depth > topFp)                                               // W.s.l topping floodplain, i.e. wall-to-wall across valley
-    {
-        ovFp = depth - topFp;
-        ovBank = 1.5;
-
-        xsFlowPerim[0] = width + 2 * Hmax + 2 * ( bankHeight - Hmax ) / tan( theta_rad );       // Trapezoidal portion
-        xsFlowPerim[1] = ovBank * ( fpSlope + 1.4142 ) + fpWidth -                      // Above bank top
-                ( fpSlope * ovBank + b2b + ovBank + 2 * ovFp / valleyWallSlp );
-    }
-
-    else if (depth > bankHeight)                                 // W.s.l. is over-bank
-    {
-        ovBank = depth - bankHeight;
-
-        xsFlowPerim[0] = width + 2 * Hmax + 2 * ( bankHeight - Hmax ) / tan( theta_rad );      // Trapezoidal portion
-        xsFlowPerim[1] = ovBank * ( fpSlope + 1.4142 );           // Above bank top
-    }
-
-    else                                                                // W.s.l. is within banks.
-    {
-        if ( depth <= ( bankHeight - Hmax ) )                     // w.s.l. is above sloping bottom edges
-            xsFlowPerim[0] = width + 2 * depth / sin ( theta_rad );
-        else
-            xsFlowPerim[0] = width + 2 * ( bankHeight - Hmax ) / sin ( theta_rad ) + 2 * ( depth - (bankHeight - Hmax) );
-        xsFlowPerim[1] = 0;
-    }
-
-    xsFlowPerim[2] = xsFlowPerim[0] + xsFlowPerim[1];
-    hydRadius = xsFlowArea[2] / xsFlowPerim[2];
+    xsFlowArea[2] = xsFlowArea[0] + xsFlowArea[1];       // Sum total area and perim for the cross-section
+    xsFlowPerim[2] = xsFlowPerim[0] + xsFlowPerim[1] - topW;
 }
 
 void NodeXSObject::xsCentr()
 {
     // Compute centroid of flow
-    float theta_rad = theta * PI / 180;
-    double ovBank = 0.;                                                     // Overtopping elevation, above bank height
-    double b2b = width + (2 * ( bankHeight - Hmax) / tan( theta_rad ));     // Bank-to-bank width (top of trapezoid)
-    double topFp = bankHeight + 1.5;
-                                                                            // Elevation at point where floodplain meets valley wall
+                                                                        // Elevation at point where floodplain meets valley wall
     /* The formula for a trapezoid with base (a), top width (b),
        and height (h) - arbitrary side slope length - is:
 
@@ -286,24 +249,8 @@ void NodeXSObject::xsCentr()
            (h/3)  *  | --------  |
                       \  a + b  /                             */
 
-    if (depth > topFp)
-    {
-        topW = fpWidth;
-    }
-    else if ( depth > bankHeight )
-    {
-        ovBank = depth - bankHeight;
-        topW = b2b + ovBank * (valleyWallSlp + fpSlope);
-    }
-    else
-    {
-            if ( depth < ( bankHeight - Hmax ) )                     // w.s.l. is above sloping bottom edges
-                topW = width + 2 * depth / tan ( theta );
-            else
-                topW = width + 2 * ( bankHeight - Hmax ) / tan ( theta );
-    }
 
-    centr = (depth / 3) * ( (2 * width + topW ) / (width + topW) );         // Slightly inaccurate... 3-part approach would be better
+    centr = 1;         // Need to figure out computation scheme, here.
 
     // NEED TO DIVIDE BY TOTAL AREA (e.g. n.xs_area()) AFTER GETTING THIS ARRAY (?)
 
@@ -318,11 +265,11 @@ void NodeXSObject::xsECI(NodeGSDObject F)
     rough = 2 * pow( 2, F.dsg ) / 1000. * pow( F.stdv, 1.28 );              // roughness height, ks, 2*D90
     if (rough <= 0)         // indicates problems with previous F calcs
         rough = 0.01;
-    omega = 2.5 * log( 11.0 * ( depth / rough ) );                          // Parker (1991), Dingman 6.25, p.224
-    double K_ch = xsFlowArea[0] * omega * sqrt( 9.81 * depth );              // Dingman, (2009) 8B2.3C, p.300
+    omega = 2.5 * log( 11.0 * ( CHList[mainChannel].depth / rough ) );                          // Parker (1991), Dingman 6.25, p.224
+    double K_ch = xsFlowArea[0] * omega * sqrt( 9.81 * CHList[mainChannel].depth );              // Dingman, (2009) 8B2.3C, p.300
     double K_fp = 0;
     k_mean = 0;
-    double ovBank = depth - bankHeight;
+    double ovBank = CHList[mainChannel].depth - CHList[0].bankHeight;
 
     if (ovBank > 0)
     {
@@ -352,7 +299,7 @@ TS_Object::TS_Object()
 RiverProfile::RiverProfile()
     {
 
-    NodeXSObject tmp;       // to initialize RiverXS
+    NodeXSObject tmp;                          // Initialize RiverXS Object
     nnodes = 0;
     npts = 0;
     dt = 0;
@@ -370,7 +317,7 @@ RiverProfile::RiverProfile()
 
     RiverXS.push_back(tmp);
 
-    cTime.setDate(QDate(2002,12,5));
+    cTime.setDate(QDate(2002,12,5));           // Arbitrary date initialisation
     cTime.setTime(QTime(12,0,0,0));
     startTime.setDate(QDate(2002,12,5));
     startTime.setTime(QTime(12,0,0,0));
@@ -378,23 +325,23 @@ RiverProfile::RiverProfile()
     endTime.setTime(QTime(12,0,0,0));
 
     counter = 0;
-    yearCounter = 0;        // Counter that resets every 5 days
-			// e.g. 5d * 24hr * 60 * 60 / ( dt )
+    yearCounter = 0;                           // Model 'year' counter that resets every 5 days
+                                               //          e.g. 5d * 24hr * 60 * 60 / ( dt )
 
     for (int i = 0; i < 5; i++)
-	    N.push_back(0);                   // Substrate shift matrix
+        N.push_back(0);                        // Substrate shift matrix
     for (int i = 0; i < 10; i++)
 	    rand_nums.push_back(0);
-                                                 // Random tweak variables are based on logarithmic (e) scaled values
-                                                 // Augment the rate of tributary Qs, Qw inputs
-    tweakArray = hydroGraph();                        // A gamma-distribution that simulates hydrograph form
-    qsTweak = 1;                                      //rand_nums[1] * 1.5 + 0.5;        // qs between 0.5 and 2
-    qwTweak = 1;                                      // Hydrograph multiplier
-    substrDial = 0;                                   // rand_nums[3]  * 3.8 - 1.9;      // Positive (up to +2) makes finer mix, negative (down to -2) coarsens all grain groups
-    feedQw =  1;                                      // rand_nums[4]  * 0.5 + 0.75;     // between 0.75 and 1.25
-    feedQs =  1;                                      // rand_nums[5] + 0.5;                     // between 0.5 and 1.5
-    HmaxTweak = 1;                                    // See line ~750ff
-    randAbr = 0.00001;                               // between 10^-4 and 10^-7
+                                               // Random tweak variables are based on logarithmic (e) scaled values
+                                               // Augment the rate of tributary Qs, Qw inputs
+    tweakArray = hydroGraph();                 // A gamma-distribution that simulates hydrograph form
+    qsTweak = 1;                               // rand_nums[1] * 1.5 + 0.5;        // qs between 0.5 and 2
+    qwTweak = 1;                               // Hydrograph multiplier
+    substrDial = 0;                            // rand_nums[3]  * 3.8 - 1.9;      // Positive (up to +2) makes finer mix, negative (down to -2) coarsens all grain groups
+    feedQw =  1;                               // rand_nums[4]  * 0.5 + 0.75;     // between 0.75 and 1.25
+    feedQs =  1;                               // rand_nums[5] + 0.5;                     // between 0.5 and 1.5
+    HmaxTweak = 1;                             // See line ~750ff
+    randAbr = 0.00001;                         // between 10^-4 and 10^-7
 
     // Set up substrate shift matrix
 
@@ -505,23 +452,23 @@ void RiverProfile::initData()
     f = getNextParam(inDatFile, "LAYER");
     for (i = 0; i < 8; i++) g[i] = *(f++);
     layer = atof(g);
-    toplayer.assign(nnodes, layer);               // Thickness of the top storage layer; starts at 5 and erodes down
+    toplayer.assign(nnodes, layer);            // Thickness of the top storage layer; starts at 5 and erodes down
 
     f = getNextParam(inDatFile, "LA");
     for (i = 0; i < 8; i++) g[i] = *(f++);
     default_la = atof(g);
-    la.assign(nnodes, default_la);                // Default active layer thickness
+    la.assign(nnodes, default_la);             // Default active layer thickness
 
     f = getNextParam(inDatFile, "NLAYER");
     for (i = 0; i < 8; i++) g[i] = *(f++);
     nlayer = atoi(g);
-    ntop.assign(nnodes, nlayer-15);                // Indicates # of layers remaining, below current (couple of layers left for aggradation)
+    ntop.assign(nnodes, nlayer-15);            // Indicates # of layers remaining, below current (couple of layers left for aggradation)
 
     f = getNextParam(inDatFile, "PORO");
     for (i = 0; i < 8; i++) g[i] = *(f++);
-    poro = atof(g);                               // Default deposit porosity
+    poro = atof(g);                            // Default deposit porosity
 
-    for (i = 0; i < nlayer; i++)                  // Init storedf stratigraphy matrix
+    for (i = 0; i < nlayer; i++)               // Init storedf stratigraphy matrix
         tmp2.push_back(tmp);
 
     for (i = 0; i < nnodes; i++)
@@ -551,21 +498,9 @@ void RiverProfile::initData()
 
     for (i = 0; i < nnodes; i++)
     {
-        RiverXS[i].depth = 1.5;
-        RiverXS[i].width = 30.;
-        RiverXS[i].wsl = eta[i] + RiverXS[i].depth;
-        RiverXS[i].velocity = 0.;
+        RiverXS[i].xsDepth = 1.5;
+        RiverXS[i].wsl = eta[i] + RiverXS[i].xsDepth;
         RiverXS[i].node = i;
-        RiverXS[i].fpSlope = 28.5;
-        RiverXS[i].valleyWallSlp = 0.6;
-        RiverXS[i].chSinu = 1.05;
-        algrp[i] = 1;
-        toplayer[i] = 5;
-        stgrp[i] = 1;
-        if (stgrp[i] == 0)                           // This is used for knickpoint control
-            bedrock[i] = eta[i];
-        else
-            bedrock[i] = eta[i] - ( nlayer * layer );
     }
 
     f = getNextParam(inDatFile, "NPTS");
@@ -610,15 +545,15 @@ const char *RiverProfile::getNextParam(std::ifstream &openFile, const char *next
 
 void RiverProfile::getGrainSizeLibrary(ifstream &openFile)
 {
-    const char* token[40] = {};              // initialize to 0; 40 tokens max
-    char buf[512];                           // Max 512 chars per line
+    const char* token[40] = {};                // initialize to 0; 40 tokens max
+    char buf[512];                             // Max 512 chars per line
     int Found = 0;
     int n, grpCount = 0;
 
-    while (Found == 0)                       // Skip through comments
+    while (Found == 0)                         // Skip through comments
     {
         openFile.getline(buf, 512);
-        token[0] = strtok( buf, " " );                    // first token
+        token[0] = strtok( buf, " " );         // first token
         if (token[0] == NULL || strcmp(token[0], "!") == 0)       // zero if line is blank or "!"
             continue;
         else
@@ -630,7 +565,7 @@ void RiverProfile::getGrainSizeLibrary(ifstream &openFile)
         for (n = 0; n < 50; n++)
         {
             token[n] = strtok(0, " ");
-            if (!token[n]) break;            // no more tokens
+            if (!token[n]) break;              // no more tokens
         }
 
         for (grpCount = 0; grpCount < (ngrp); grpCount++)
@@ -640,7 +575,7 @@ void RiverProfile::getGrainSizeLibrary(ifstream &openFile)
                 grp[grpCount].pct[2][gsCount] = atof(token[grpCount]);
             }
 
-        openFile.getline(buf, 512);         // proceed to next line
+        openFile.getline(buf, 512);            // proceed to next line
         token[0] = strtok( buf, " " );
     }
 }
@@ -732,8 +667,8 @@ void RiverProfile::getLibraryLith(ifstream &openFile)
 void RiverProfile::getLongProfile(ifstream &openFile)
 {
 
-    const char* token[40] = {};              // initialize to 0; 40 tokens max
-    char buf[512];                           // Max 512 chars per line
+    const char* token[40] = {};                // initialize to 0; 40 tokens max
+    char buf[512];                             // Max 512 chars per line
     int m, n = 0;
     int Found = 0;
 
@@ -758,8 +693,10 @@ void RiverProfile::getLongProfile(ifstream &openFile)
                 bedrock[m] = atof(token[2]);
                 if (bedrock[m] > eta[m])
                         (bedrock[m] = eta[m]);       // bedrock must be at, or lower than, initial bed
+
+                RiverXS[m].node = m;
                 RiverXS[m].width = atof(token[3]);
-                RiverXS[m].fpWidth = atof(token[4]) * RiverXS[m].width;
+                RiverXS[m].fpWidth = atof(token[4]);
 /*                if ( HmaxTweak < 0.5 )
                     RiverXS[m].Hmax = atof(token[4]) + ( HmaxTweak * 2 - 0.5 );    // Add height in the range [-0.5 to +0.5]
                 else
@@ -768,7 +705,7 @@ void RiverProfile::getLongProfile(ifstream &openFile)
                 RiverXS[m].bankHeight = RiverXS[m].Hmax + 1;  // initial guess
                 RiverXS[m].theta = atof(token[6]);
                 algrp[m] = atof(token[7]) - 1;
-                stgrp[m] = atof(token[8]) - 1;  // Ignoring STGRP for now
+                stgrp[m] = atof(token[8]) - 1;      // Ignoring STGRP for now
 
                 openFile.getline(buf, 512);         // proceed to next line
                 token[0] = strtok( buf, " " );
