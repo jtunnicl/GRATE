@@ -137,12 +137,10 @@ NodeCHObject::NodeCHObject()
     flowProp = 0.;                             // Proportion of total flow directed to this channel
     depth = 0.;                                // Given the proportion of flow in the channel, this is the computed depth - modified later in xsGeom()
     width = 0.;
-    wsl = 0.0;
     b2b = 0.0;
     flowArea = 0.0;
     flowPerim = 0.0;
 
-    velocity = 0.;
     ustar = 0.;
     critdepth = 0.;
     ovBank = 0;
@@ -192,6 +190,7 @@ NodeXSObject::NodeXSObject()                   // Initialize object
      fpWidth = 0.;
      chSinu = 1.05;
      topW = 10.;
+     velocity = 0.;
      xsDepth = 1.;
 
      for (int i = 0; i < 10; i++)              // Max 10 dummy channel objects initiated, all with flowProp '0'.
@@ -341,7 +340,7 @@ RiverProfile::RiverProfile()
     feedQw =  1;                               // rand_nums[4]  * 0.5 + 0.75;     // between 0.75 and 1.25
     feedQs =  1;                               // rand_nums[5] + 0.5;                     // between 0.5 and 1.5
     HmaxTweak = 1;                             // See line ~750ff
-    randAbr = 0.00001;                         // between 10^-4 and 10^-7
+    randAbr = 1e-5;                            // between 10^-4 and 10^-7
 
     // Set up substrate shift matrix
 
@@ -409,7 +408,7 @@ vector<float> RiverProfile::hydroGraph()
     factor = alpha*log(beta)-gammln2(alpha);
     fac[i] = exp(-beta * xx[i] + ( alpha - 1. ) * log( xx[i] ) + factor);
     if (fac[i] < 0.001)
-      fac[i] = 0.001;
+      fac[i] = 1e-3;
     fac[i] = (fac[i]) * (max_flow - min_flow) + min_flow;
     // std::cout << x[i] << ":\t" << fac[i] << endl;
   }
@@ -695,15 +694,15 @@ void RiverProfile::getLongProfile(ifstream &openFile)
                         (bedrock[m] = eta[m]);       // bedrock must be at, or lower than, initial bed
 
                 RiverXS[m].node = m;
-                RiverXS[m].width = atof(token[3]);
+                RiverXS[m].CHList[0].width = atof(token[3]);
                 RiverXS[m].fpWidth = atof(token[4]);
 /*                if ( HmaxTweak < 0.5 )
                     RiverXS[m].Hmax = atof(token[4]) + ( HmaxTweak * 2 - 0.5 );    // Add height in the range [-0.5 to +0.5]
                 else
                     RiverXS[m].Hmax = (HmaxTweak - 0.5) * 3.5 + 0.75; */             // Uniform range from 0.75 to 2.5
-                RiverXS[m].Hmax = atof(token[5]);
-                RiverXS[m].bankHeight = RiverXS[m].Hmax + 1;  // initial guess
-                RiverXS[m].theta = atof(token[6]);
+                RiverXS[m].CHList[0].Hmax = atof(token[5]);
+                RiverXS[m].CHList[0].bankHeight = RiverXS[m].CHList[0].Hmax + 1;  // initial guess
+                RiverXS[m].CHList[0].theta = atof(token[6]);
                 algrp[m] = atof(token[7]) - 1;
                 stgrp[m] = atof(token[8]) - 1;      // Ignoring STGRP for now
 

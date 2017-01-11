@@ -42,14 +42,12 @@ public:
     NodeCHObject();
 
     double flowProp;                           // Proportion of total flow going into this channel
-    double depth;                              // Flow depth (m)
-    double wsl;                                // Water surface level (m above sea level)
+    double depth;                              // Flow depth (m from channel bottom)
     double width;                              // Channel width (m) at bottom of trapezoid for each node
     double b2b;                                // Bank-to-bank width (top of in-channel flow section)
     double flowArea;                           // Flow area within the channel
     double flowPerim;                          // Perimeter, within the channel
 
-    double velocity;                           // Mean velocity (m/s) at each node
     double ustar;                              // Shear velocity
     double critdepth;                          // Critical depth
     int ovBank;                                // Flow has gone overbank
@@ -82,11 +80,13 @@ public:
 
     int node;
     int numChannels;                           // Number of channels
+    double wsl;                                // Water surface level (m above sea level)
     vector<NodeCHObject> CHList;               // Vector containing channel characteristics
     double fpWidth;                            // Floodplain width (m)
     double chSinu;                             // Sinuosity (>1, channel length/valley length)
     double topW;                               // Total width of water surface, across all channels
-    double xsDepth;                            // Total flow depth, including overbank, in reach
+    double velocity;                           // Mean velocity (m/s) at each node
+    double xsDepth;                            // Total (maximum) flow depth, including overbank, in reach
     int mainChannel;                           // Channel with deepest flow
     double xsFlowArea[3];                      // [0] Channel [1] Floodplain [2] Total area
     double xsFlowPerim[3];                     // [0] Channel [1] Floodplain [2] Total perimeter

@@ -76,7 +76,7 @@ void MainWindow::setupChart(){
     {
         x[i] = rn->RiverXS[i].node;
         eta[i] = rn->eta[i];
-        WSL[i] = rn -> eta[i] + rn->RiverXS[i].depth * 8;    // x8 exaggeration for display
+        WSL[i] = rn -> eta[i] + rn->RiverXS[i].CHList[0].depth * 8;    // x8 exaggeration for display
         Froude[i] = rn->ntop[i];                             // RiverXS[i].ustar;
         Bedload[i] = sd->Qs[i];
         Qw_Plot[i] = wl->QwCumul[i] / 100;
@@ -97,19 +97,19 @@ void MainWindow::setupChart(){
 
     // Setup cross-section graph
     n = ui->spinNode->value();
-    theta_rad = rn->RiverXS[n].theta * PI / 180;
-    a = rn->RiverXS[n].bankHeight - rn->RiverXS[n].Hmax;  // Vert & Horiz triangle segments at lower channel.
+    theta_rad = rn->RiverXS[n].CHList[0].theta * PI / 180;
+    a = rn->RiverXS[n].bankHeight - rn->RiverXS[n].CHList[0].Hmax;  // Vert & Horiz triangle segments at lower channel.
     b = a / tan(theta_rad);
 
-    XsPlotX[2] = -1.5 * rn->RiverXS[n].fpSlope;
+    XsPlotX[2] = 0;
     XsPlotY[2] = 0;
     XsPlotX[3] = 0;
     XsPlotY[3] = -1.5;
     XsPlotX[4] = 0.001;
-    XsPlotY[4] = -1.5 - rn->RiverXS[n].Hmax;
+    XsPlotY[4] = -1.5 - rn->RiverXS[n].CHList[0].Hmax;
     XsPlotX[5] = b;
-    XsPlotY[5] = -1.5 - rn->RiverXS[n].bankHeight;
-    XsPlotX[6] = b + rn->RiverXS[n].width;
+    XsPlotY[5] = -1.5 - rn->RiverXS[n].CHList[0].bankHeight;
+    XsPlotX[6] = b + rn->RiverXS[n].CHList[0].width;
     XsPlotY[6] = XsPlotY[5];
     XsPlotX[7] = XsPlotX[6] + b;
     XsPlotY[7] = XsPlotY[4];
@@ -117,12 +117,12 @@ void MainWindow::setupChart(){
     XsPlotY[8] = -1.5;
     XsPlotX[9] = XsPlotX[8] + 1.5;
     XsPlotY[9] = 0;
-    XsPlotX[10] = XsPlotX[9] + 5 * rn->RiverXS[n].valleyWallSlp;
+    XsPlotX[10] = XsPlotX[9] + 5;
     XsPlotY[10] = 5;
 
     XsPlotX[1] = XsPlotX[9] - rn->RiverXS[n].fpWidth;
     XsPlotY[1] = 0;
-    XsPlotX[0] = XsPlotX[1] - ( 5 * rn->RiverXS[n].valleyWallSlp );
+    XsPlotX[0] = XsPlotX[1] - 5;
     XsPlotY[0] = 5;
 
     wsXS_X[0] = 0;
@@ -277,13 +277,13 @@ void MainWindow::setupChart(){
     ui->reportStep->setValue(rn->counter);
     ui->reportYear->setValue(rn->yearCounter);
 
-    ui->spinBankHt->setValue(rn->RiverXS[n].bankHeight);
-    ui->spinTheta->setValue(rn->RiverXS[n].theta);
-    ui->spinDepth->setValue(rn->RiverXS[n].depth);
+    ui->spinBankHt->setValue(rn->RiverXS[n].CHList[0].bankHeight);
+    ui->spinTheta->setValue(rn->RiverXS[n].CHList[0].theta);
+    ui->spinDepth->setValue(rn->RiverXS[n].CHList[0].depth);
     ui->spinTopW->setValue(rn->RiverXS[n].topW);
     ui->spinD50->setValue(pow(2, rn->F[n].dsg));
-    ui->spinDcomp->setValue(pow(2, rn->RiverXS[n].comp_D));
-    ui->spinHmax->setValue(rn->RiverXS[n].Hmax);
+    ui->spinDcomp->setValue(pow(2, rn->RiverXS[n].CHList[0].comp_D));
+    ui->spinHmax->setValue(rn->RiverXS[n].CHList[0].Hmax);
 
     ui->VectorPlot->replot();
     ui->BedloadPlot->replot();
@@ -365,15 +365,15 @@ void MainWindow::modelUpdate(){
     {
         x[i] = rn->RiverXS[i].node;
         eta[i] = rn->eta[i];
-        WSL[i] = rn->eta[i] + rn->RiverXS[i].depth * 8;
+        WSL[i] = rn->eta[i] + rn->RiverXS[i].CHList[0].depth * 8;
         Froude[i] = rn->ntop[i];               // RiverXS[i].ustar;
         Bedload[i] = sd->Qs[i];
 
-        LeftBankLower[i] = rn->RiverXS[i].width/2;
-        RightBankLower[i] = -rn->RiverXS[i].width/2;
-        theta_rad = rn->RiverXS[i].theta * PI / 180;
-        LeftBankTop[i] = ( rn->RiverXS[i].width + (2 * ( rn->RiverXS[i].bankHeight - rn->RiverXS[i].Hmax) / tan( theta_rad ) ) ) / 2;
-        RightBankTop[i] = rn->RiverXS[i].depth * 100;
+        LeftBankLower[i] = rn->RiverXS[i].CHList[0].width/2;
+        RightBankLower[i] = -rn->RiverXS[i].CHList[0].width/2;
+        theta_rad = rn->RiverXS[i].CHList[0].theta * PI / 180;
+        LeftBankTop[i] = ( rn->RiverXS[i].CHList[0].width + (2 * ( rn->RiverXS[i].CHList[0].bankHeight - rn->RiverXS[i].CHList[0].Hmax) / tan( theta_rad ) ) ) / 2;
+        RightBankTop[i] = rn->RiverXS[i].CHList[0].depth * 100;
         Sinuosity[i] = ( rn->RiverXS[i].chSinu - 1 ) * 100;
 
         Qw_Plot[i] = wl->QwCumul[i] / 100;
@@ -390,24 +390,24 @@ void MainWindow::modelUpdate(){
 
     // Setup cross-section graph
     n = ui->spinNode->value();
-    theta_rad = rn->RiverXS[n].theta * PI / 180;
-    a = rn->RiverXS[n].bankHeight - rn->RiverXS[n].Hmax;  // Vert & Horiz triangle segments at lower channel.
+    theta_rad = rn->RiverXS[n].CHList[0].theta * PI / 180;
+    a = rn->RiverXS[n].CHList[0].bankHeight - rn->RiverXS[n].Hmax;  // Vert & Horiz triangle segments at lower channel.
     c = tan(theta_rad);
     b = a / c;              // aka dW, horizontal distance between bed and bank, under toe of channel edge
 
-    XsPlotX[2] = -1.5 * rn->RiverXS[n].fpSlope;
+    XsPlotX[2] = -1.5;
     XsPlotY[2] = 0;
 
     XsPlotX[3] = 0;
     XsPlotY[3] = -1.5;
 
     XsPlotX[4] = 0.01;
-    XsPlotY[4] = (-1.5) - rn->RiverXS[n].Hmax;
+    XsPlotY[4] = (-1.5) - rn->RiverXS[n].CHList[0].Hmax;
 
     XsPlotX[5] = b;
-    XsPlotY[5] = -1.5 - rn->RiverXS[n].bankHeight;
+    XsPlotY[5] = -1.5 - rn->RiverXS[n].CHList[0].bankHeight;
 
-    XsPlotX[6] = b + rn->RiverXS[n].width;
+    XsPlotX[6] = b + rn->RiverXS[n].CHList[0].width;
     XsPlotY[6] = XsPlotY[5];
 
     XsPlotX[7] = XsPlotX[6] + b;
@@ -419,47 +419,47 @@ void MainWindow::modelUpdate(){
     XsPlotX[9] = XsPlotX[8] + 1.5;
     XsPlotY[9] = 0;
 
-    XsPlotX[10] = XsPlotX[9] + 5 * rn->RiverXS[n].valleyWallSlp;
+    XsPlotX[10] = XsPlotX[9] + 5;
     XsPlotY[10] = 5;
 
     XsPlotX[1] = XsPlotX[9] - rn->RiverXS[n].fpWidth;
     XsPlotY[1] = 0;
 
-    XsPlotX[0] = XsPlotX[1] - ( 5 * rn->RiverXS[n].valleyWallSlp );
+    XsPlotX[0] = XsPlotX[1] - 5;
     XsPlotY[0] = 5;
 
-    wsXS_Y[0] = rn->RiverXS[n].depth;
+    wsXS_Y[0] = rn->RiverXS[n].CHList[0].depth;
 
-    topFp = rn->RiverXS[n].bankHeight + 1.5;
-    if (rn->RiverXS[n].depth > topFp)
+    topFp = rn->RiverXS[n].CHList[0].bankHeight + 1.5;
+    if (rn->RiverXS[n].CHList[0].depth > topFp)
     {
-        ovFp = rn->RiverXS[n].depth - topFp;
+        ovFp = rn->RiverXS[n].CHList[0].depth - topFp;
         ovBank = 1.5;
-        wsXS_X[0] = XsPlotX[1] - ( ovFp * rn->RiverXS[n].valleyWallSlp );
-        wsXS_X[1] = XsPlotX[9] + ( ovFp * rn->RiverXS[n].valleyWallSlp );
+        wsXS_X[0] = XsPlotX[1] - ( ovFp );
+        wsXS_X[1] = XsPlotX[9] + ( ovFp );
         wsXS_Y[0] = ovFp;               // Floodplain elev. is '0' datum
         wsXS_Y[1] = wsXS_Y[0];
     }
-    else if (rn->RiverXS[n].depth > rn->RiverXS[n].bankHeight)
+    else if (rn->RiverXS[n].CHList[0].depth > rn->RiverXS[n].CHList[0].bankHeight)
     {
-        ovBank = rn->RiverXS[n].depth - rn->RiverXS[n].bankHeight;
-        wsXS_X[0] = - ( ovBank * rn->RiverXS[n].fpSlope );
+        ovBank = rn->RiverXS[n].CHList[0].depth - rn->RiverXS[n].CHList[0].bankHeight;
+        wsXS_X[0] = - ( ovBank );
         wsXS_X[1] = XsPlotX[8] + ovBank;
         wsXS_Y[0] = -1.5 + ovBank;
         wsXS_Y[1] = wsXS_Y[0];
     }
-    else if (rn->RiverXS[n].depth > a)   // 'a' is computed, above, as bottom of vertical banks
+    else if (rn->RiverXS[n].CHList[0].depth > a)   // 'a' is computed, above, as bottom of vertical banks
     {
         wsXS_X[0] = 0;
         wsXS_X[1] = XsPlotX[8];
-        wsXS_Y[0] = -1.5 - (rn->RiverXS[n].bankHeight - rn->RiverXS[n].depth);
+        wsXS_Y[0] = -1.5 - (rn->RiverXS[n].CHList[0].bankHeight - rn->RiverXS[n].CHList[0].depth);
         wsXS_Y[1] = wsXS_Y[0];
     }
     else   // otherwise, within the lower trapezoid
     {
         wsXS_X[0] = c;
         wsXS_X[1] = XsPlotX[8] - c;
-        wsXS_Y[0] = -1.5 - (rn->RiverXS[n].bankHeight - rn->RiverXS[n].depth);
+        wsXS_Y[0] = -1.5 - (rn->RiverXS[n].CHList[0].bankHeight - rn->RiverXS[n].CHList[0].depth);
         wsXS_Y[1] = wsXS_Y[0];
     }
 
@@ -557,15 +557,15 @@ void MainWindow::modelUpdate(){
     ui->reportStep->setValue(rn->counter);
     ui->reportYear->setValue(rn->yearCounter);
 
-    ui->spinBankHt->setValue(rn->RiverXS[n].bankHeight);
-    ui->spinTheta->setValue(rn->RiverXS[n].theta);
-    ui->spinDepth->setValue(rn->RiverXS[n].depth);
-    ui->spinWidth->setValue(rn->RiverXS[n].width);
+    ui->spinBankHt->setValue(rn->RiverXS[n].CHList[0].bankHeight);
+    ui->spinTheta->setValue(rn->RiverXS[n].CHList[0].theta);
+    ui->spinDepth->setValue(rn->RiverXS[n].CHList[0].depth);
+    ui->spinWidth->setValue(rn->RiverXS[n].CHList[0].width);
     ui->spinTopW->setValue(rn->RiverXS[n].topW);
     ui->spinD50->setValue(pow(2, rn->F[n].dsg));
-    ui->spinDcomp->setValue(rn->RiverXS[n].comp_D);
+    ui->spinDcomp->setValue(rn->RiverXS[n].CHList[0].comp_D);
     ui->spinD90->setValue(pow(2, rn->F[n].d90));
-    ui->spinHmax->setValue(rn->RiverXS[n].Hmax);
+    ui->spinHmax->setValue(rn->RiverXS[n].CHList[0].Hmax);
 
     if (rn->counter % 10000 == 0)
         writeResults(rn->counter);
@@ -612,10 +612,10 @@ void MainWindow::writeResults(int count){
     {
 		outDatFile << rn->xx[i] << '\t' <<
 		rn->eta[i] << '\t' <<
-		rn->RiverXS[i].depth << '\t' <<
-		rn->RiverXS[i].width << '\t' <<
-		rn->RiverXS[i].theta << '\t' <<
-		rn->RiverXS[i].ustar << '\t' <<
+        rn->RiverXS[i].CHList[0].depth << '\t' <<
+        rn->RiverXS[i].CHList[0].width << '\t' <<
+        rn->RiverXS[i].CHList[0].theta << '\t' <<
+        rn->RiverXS[i].CHList[0].ustar << '\t' <<
 		rn->storedf[i][rn->ntop[i]].dsg << '\t' <<
 		rn->F[i].dsg << '\t' <<
 		rn->F[i].stdv << '\t' <<
@@ -648,10 +648,10 @@ void MainWindow::writeResults(int count){
 		{
 		    outDatFile << rn->xx[i] << '\t' <<
 			rn->eta[i] << '\t' <<
-			rn->RiverXS[i].depth << '\t' <<
-			rn->RiverXS[i].width << '\t' <<
-			rn->RiverXS[i].theta << '\t' <<
-			rn->RiverXS[i].ustar << '\t' <<
+            rn->RiverXS[i].CHList[0].depth << '\t' <<
+            rn->RiverXS[i].CHList[0].width << '\t' <<
+            rn->RiverXS[i].CHList[0].theta << '\t' <<
+            rn->RiverXS[i].CHList[0].ustar << '\t' <<
 			rn->storedf[i][rn->ntop[i]].dsg << '\t' <<
 			rn->F[i].dsg << '\t' <<
 			rn->F[i].stdv << '\t' <<
