@@ -49,7 +49,6 @@ public:
     double flowPerim;                          // Perimeter, within the channel
 
     double ustar;                              // Shear velocity
-    double critdepth;                          // Critical depth
     int ovBank;                                // Flow has gone overbank
     double Tbed;                               // Shear stress acting on the channel bed (Pa)
     double Tbank;                              // Shear stress acting on the channel banks (Pa)
@@ -60,9 +59,6 @@ public:
     double Hmax;                               // Bank strength as a vertical upper bank section (m)
     double mu;                                 // Bank strength, relative to bed (afer Millar, 2005)
     double theta;                              // Bank sideslope angle (degrees)
-
-    double hydRadius;                          // Hydraulic radius
-
 
     void chGeom();                             // Calculate x-sec area for a given depth
 
@@ -90,6 +86,8 @@ public:
     int mainChannel;                           // Channel with deepest flow
     double xsFlowArea[3];                      // [0] Channel [1] Floodplain [2] Total area
     double xsFlowPerim[3];                     // [0] Channel [1] Floodplain [2] Total perimeter
+    double hydRadius;                          // Hydraulic radius
+    double critdepth;                          // Critical depth
     double centr;                              // Vertical centroid of flow
     double rough;                              // Grain roughness height
     double omega;                              // Reciprocal of Dingman's Omega (~prop u*/U), Eqn. 6.17

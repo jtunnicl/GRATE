@@ -142,7 +142,6 @@ NodeCHObject::NodeCHObject()
     flowPerim = 0.0;
 
     ustar = 0.;
-    critdepth = 0.;
     ovBank = 0;
     Tbed = 20.;
     Tbank = 20.;
@@ -154,7 +153,6 @@ NodeCHObject::NodeCHObject()
     Hmax = 0.5;
     mu = 1.5;                                 // Not used - perhaps in future versions
     theta = 30.;
-    hydRadius = 0;
 }
 
 void NodeCHObject::chGeom()
@@ -177,8 +175,6 @@ void NodeCHObject::chGeom()
         ovBank = 1;
     else
         ovBank = 0;
-
-    hydRadius = flowArea / flowPerim;
 }
 
 NodeXSObject::NodeXSObject()                   // Initialize object
@@ -192,6 +188,8 @@ NodeXSObject::NodeXSObject()                   // Initialize object
      topW = 10.;
      velocity = 0.;
      xsDepth = 1.;
+     hydRadius = 0;
+     critdepth = 0.;
 
      for (int i = 0; i < 10; i++)              // Max 10 dummy channel objects initiated, all with flowProp '0'.
          CHList.push_back(tmp);

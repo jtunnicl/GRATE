@@ -36,11 +36,11 @@ public:
 
     vector<double> matsol(int N, vector<vector<double>> EQN);      // Matrix solver
 
-    void regimeModel(int n, RiverProfile *r);                           // Compute Millar-Eaton equilibrium channel width
+    void regimeModel(int n, int ch_idx, RiverProfile *r);                           // Compute Millar-Eaton equilibrium channel width
 
-    void channelState(int n, RiverProfile *r);
+    void channelState(int n, int ch_idx, RiverProfile *r);
 
-    void findStable(int n, RiverProfile *r);
+    void findStable(int n, int ch_idx, RiverProfile *r);
 
     void setRegimeWidth( RiverProfile *r );
 

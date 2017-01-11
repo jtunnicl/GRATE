@@ -221,7 +221,7 @@ void hydro::xsCritDepth(int n, RiverProfile *r, double Q){
     int itmax = 50;                        // Max iterations
     double toler = 0.0005;                 // Convergence criteria
     double ymin = 0.15;
-    double ymax = r->RiverXS[n].bankHeight + 1.5;           //
+    double ymax = r->RiverXS[n].CHList[0].bankHeight + 1.5;           //
     double dy = 0;
     double y1 = 0;
     double y2 = 0;                         // dummy variables
@@ -237,7 +237,7 @@ void hydro::xsCritDepth(int n, RiverProfile *r, double Q){
 
         r->RiverXS[n].xsDepth = ymax;
         r->RiverXS[n].xsGeom();                          // Update statistics at node
-        r->RiverXS[n].xsPerim();
+        r->RiverXS[n].hydRadius = r->RiverXS[n].xsFlowArea[2] / r->RiverXS[n].xsFlowPerim[2];
         r->RiverXS[n].xsCentr();                         // re-calc topW
 
         ff = Q / r->RiverXS[n].xsFlowArea[2] / sqrt( 9.81 * r->RiverXS[n].hydRadius ) - 1.0;
@@ -257,7 +257,7 @@ void hydro::xsCritDepth(int n, RiverProfile *r, double Q){
     {
         r->RiverXS[n].xsDepth = y1;
         r->RiverXS[n].xsGeom();
-        r->RiverXS[n].xsPerim();
+        r->RiverXS[n].hydRadius = r->RiverXS[n].xsFlowArea[2] / r->RiverXS[n].xsFlowPerim[2];
         r->RiverXS[n].xsCentr();
 
         ff = Q / r->RiverXS[n].xsFlowArea[2] / sqrt( 9.81 * r->RiverXS[n].hydRadius ) - 1.0;
@@ -308,12 +308,12 @@ int hydro::energyConserve(int n, RiverProfile *r)
 
     XSu.xsGeom();               // update area
     r->RiverXS[n].velocity = QwCumul[n] / XSu.xsFlowArea[2];
-    XSu.xsPerim();              // update perim
+
     XSu.xsECI(r->F[n]);       // update eci
 
     XSd.xsGeom();               // update area
     r->RiverXS[n+1].velocity = QwCumul[n+1] / XSd.xsFlowArea[2];
-    XSd.xsPerim();              // update perim
+
     XSd.xsECI(r->F[n+1]);         // update eci
 
     //Sf2 = bedSlope[n+1];       // slope gradient between n and n+1
@@ -331,7 +331,6 @@ int hydro::energyConserve(int n, RiverProfile *r)
         XSu.xsDepth = h2;             // Update section data based on new depth
         XSu.xsGeom();
         r->RiverXS[n].velocity = QwCumul[n] / XSu.xsFlowArea[2];
-        XSu.xsPerim();
         if ( XSu.xsDepth > 0 )
             XSu.xsECI(r->F[n+1]);
         Sf = QwCumul[n] / XSu.k_mean;
@@ -351,7 +350,6 @@ int hydro::energyConserve(int n, RiverProfile *r)
     {
         XSu.xsGeom();    // Update section data based on new depth
         r->RiverXS[n].velocity = QwCumul[n] / XSu.xsFlowArea[2];
-        XSu.xsPerim();
         if ( XSu.xsDepth > 0 )
             XSu.xsECI(r->F[n+1]);
 
@@ -414,7 +412,7 @@ int hydro::quasiNormal(int n, RiverProfile *r){
     int iter, maxiter;
     double error;
 
-    NodeXSObject& XS = r->RiverXS[n];           // Cross-section object to be calculated
+    NodeXSObject& XS = r->RiverXS[n];          // Cross-section object to be calculated
     NodeGSDObject& f = r->F[n];
     f.norm_frac();
     f.dg_and_std();
@@ -426,7 +424,6 @@ int hydro::quasiNormal(int n, RiverProfile *r){
     while ( error > 0.0001 )
     {
         XS.xsGeom();    // Update section data based on new depth
-        XS.xsPerim();
         XS.xsCentr();
         if ( XS.xsDepth > 0 )
             XS.xsECI(f);
@@ -450,7 +447,6 @@ int hydro::quasiNormal(int n, RiverProfile *r){
     }
 
     XS.xsGeom();    // Update section data based on new depth
-    XS.xsPerim();
     XS.xsCentr();
     XS.xsECI(f);
 
@@ -525,14 +521,12 @@ void hydro::fullyDynamic(RiverProfile *r){
         if (i==0){
             r->RiverXS[i].xsGeom();
             r->RiverXS[i].velocity = Q[i] / r->RiverXS[i].xsFlowArea[2];
-            r->RiverXS[i].xsPerim();
             r->RiverXS[i].xsCentr();
             r->RiverXS[i].xsECI(r->F[i]);
         }
 
         r->RiverXS[i+1].xsGeom();                         // update area, cross-section params for d/s node
         r->RiverXS[i+1].velocity = Q[i+1] / r->RiverXS[i+1].xsFlowArea[2];
-        r->RiverXS[i+1].xsPerim();
         r->RiverXS[i+1].xsCentr();
         r->RiverXS[i+1].xsECI(r->F[i+1]);
 
@@ -609,14 +603,14 @@ void hydro::fullyDynamic(RiverProfile *r){
             if (i==0){
                 r->RiverXS[i].xsGeom();
                 r->RiverXS[i].velocity = Q[i] / r->RiverXS[i].xsFlowArea[2];
-                r->RiverXS[i].xsPerim();
+                r->RiverXS[i].hydRadius = r->RiverXS[i].xsFlowArea[2] / r->RiverXS[i].xsFlowPerim[2];
                 r->RiverXS[i].xsCentr();
                 r->RiverXS[i].xsECI(r->F[i]);
             }
 
             r->RiverXS[i+1].xsGeom();                     // update area, cross-section params for d/s node
             r->RiverXS[i+1].velocity = Q[i+1] / r->RiverXS[i+1].xsFlowArea[2];
-            r->RiverXS[i+1].xsPerim();
+            r->RiverXS[i+1].hydRadius = r->RiverXS[i+1].xsFlowArea[2] / r->RiverXS[i+1].xsFlowPerim[2];
             r->RiverXS[i+1].xsCentr();
             r->RiverXS[i+1].xsECI(r->F[i+1]);
 
@@ -624,8 +618,8 @@ void hydro::fullyDynamic(RiverProfile *r){
             ARIP1 = r->RiverXS[i+1].xsFlowArea[2];
             AM = ( ARI + ARIP1 ) / 2;
 
-            PERI = r->RiverXS[i].flow_perim[2];           // Wetted Perimeter at node I
-            PERIP1 = r->RiverXS[i+1].flow_perim[2];       // Wetted Perimeter at node I+1
+            PERI = r->RiverXS[i].xsFlowPerim[2];           // Wetted Perimeter at node I
+            PERIP1 = r->RiverXS[i+1].xsFlowPerim[2];       // Wetted Perimeter at node I+1
 
             HRI2 = pow( r->RiverXS[i].hydRadius, 0.667 );     // Hyd Radius^0.667 at node I
             HRIP12 = pow( r->RiverXS[i+1].hydRadius, 0.667 ); // Hyd Radius^0.667 at node I+1
@@ -813,11 +807,11 @@ vector<double> hydro::matsol(int N, vector<vector<double>> A){
 
 // New Routines:   *********************************************************************
 
-void hydro::regimeModel( int n, RiverProfile *r )
+void hydro::regimeModel( int n, int ch_idx, RiverProfile *r )
 {
-    NodeXSObject& XS = r->RiverXS[n];
+    NodeCHObject& CH = r->RiverXS[n].CHList[ch_idx];
     double Tol = 0.00001;
-    double Q = QwCumul[n];
+    double Q = QwCumul[n] * CH.flowProp;
     double test_plus, test_minus = 0;
     double p, p1, p2, p_upper, p_lower = 0;
     double converg, gradient = 0;
@@ -825,15 +819,15 @@ void hydro::regimeModel( int n, RiverProfile *r )
     double gradient_2 = 0;
 
     p = 4 * pow( Q, 0.5 );
-    XS.width = p * 1.001;
+    CH.width = p * 1.001;
     energyConserve( n, r );                 // Update section data based on new theta
-    findStable( n, r );
-    test_plus = XS.Qb_cap;
+    findStable( n, ch_idx, r );
+    test_plus = CH.Qb_cap;
 
-    XS.width = p * 0.999;
+    CH.width = p * 0.999;
     energyConserve( n, r );
-    findStable( n, r );
-    test_minus = XS.Qb_cap;
+    findStable( n, ch_idx, r );
+    test_minus = CH.Qb_cap;
     gradient_1 = test_plus - test_minus;
     p1 = p;
 
@@ -842,15 +836,15 @@ void hydro::regimeModel( int n, RiverProfile *r )
         p = p + 0.25 * p;
     else
         p = p - 0.25 * p;
-    XS.width = p * 1.001;
+    CH.width = p * 1.001;
     energyConserve( n, r );
-    findStable( n, r );
-    test_plus = XS.Qb_cap;
+    findStable( n, ch_idx, r );
+    test_plus = CH.Qb_cap;
 
-    XS.width = p * 0.999;
+    CH.width = p * 0.999;
     energyConserve( n, r );
-    findStable( n, r );
-    test_minus = XS.Qb_cap;
+    findStable( n, ch_idx, r );
+    test_minus = CH.Qb_cap;
 
     gradient_1 = test_plus - test_minus;
     p2 = p;
@@ -864,15 +858,15 @@ void hydro::regimeModel( int n, RiverProfile *r )
             p = p + 0.25 * p;
         else
             p = p - 0.25 * p;
-        XS.width = p * 1.001;
+        CH.width = p * 1.001;
         energyConserve( n, r );
-        findStable( n, r );
-        test_plus = XS.Qb_cap;
+        findStable( n, ch_idx, r );
+        test_plus = CH.Qb_cap;
 
-        XS.width = p * 0.999;
+        CH.width = p * 0.999;
         energyConserve( n, r );
-        findStable( n, r );
-        test_minus = XS.Qb_cap;
+        findStable( n, ch_idx, r );
+        test_minus = CH.Qb_cap;
 
         gradient_2 = test_plus - test_minus;
         p2 = p;
@@ -885,16 +879,15 @@ void hydro::regimeModel( int n, RiverProfile *r )
 
     while(converg > Tol)
     {
-        XS.width = p * 1.001;
-        XS.xsGeom();
-        XS.xsPerim();
-        findStable( n, r );
-        test_plus = XS.Qb_cap;
+        CH.width = p * 1.001;
+        CH.chGeom();
+        findStable( n, ch_idx, r );
+        test_plus = CH.Qb_cap;
 
-        XS.width = p * 0.999;
+        CH.width = p * 0.999;
         energyConserve( n, r );
-        findStable( n, r );
-        test_minus = XS.Qb_cap;
+        findStable( n, ch_idx, r );
+        test_minus = CH.Qb_cap;
 
         gradient = test_plus - test_minus;
         if ( gradient > 0 )
@@ -905,18 +898,18 @@ void hydro::regimeModel( int n, RiverProfile *r )
         converg = ( p_upper - p_lower ) / p;
     }
 
-    r->RiverXS[n].width = p;
-    r->RiverXS[n].bankHeight = r->RiverXS[n].Hmax +
-            sin( r->RiverXS[n].theta * PI / 180 ) *
-            ( (r->RiverXS[n].b2b - r->RiverXS[n].width) / 2 );
+    r->RiverXS[n].CHList[ch_idx].width = p;
+    r->RiverXS[n].CHList[ch_idx].bankHeight = r->RiverXS[n].CHList[ch_idx].Hmax +
+            sin( r->RiverXS[n].CHList[ch_idx].theta * PI / 180 ) *
+            ( (r->RiverXS[n].CHList[ch_idx].b2b - r->RiverXS[n].CHList[ch_idx].width) / 2 );
     energyConserve( n, r );
-    findStable( n, r );
+    findStable( n, ch_idx, r );
 }
 
-void hydro::channelState( int n, RiverProfile *r )
+void hydro::channelState( int n, int ch_idx, RiverProfile *r )
 {
     // Compute stresses, transport capacity
-    NodeXSObject& XS = r->RiverXS[n];
+    NodeCHObject& CH = r->RiverXS[n].CHList[ch_idx];
     double X;
     double SFbank = 0;
     double tau_star_ref, tau_ref, totstress, W_star;
@@ -927,54 +920,54 @@ void hydro::channelState( int n, RiverProfile *r )
 
     NodeGSDObject bankMaterial = r->storedf[n][r->ntop[n]];
     bankMaterial.dg_and_std();
-    float theta_rad = XS.theta * PI / 180;
+    float theta_rad = CH.theta * PI / 180;
 
     // use Ferguson 2007 to calculate the stream velocity
-    // Res = a1 * a2 * ( XS.hydRadius / D50 ) / pow( ( pow( a1, 2 ) + pow( a2, 2 ) *
-    //    pow(( XS.hydRadius / D84 ),( 5 / 3 ))),( 1 / 2 ));
+    // Res = a1 * a2 * ( CH.hydRadius / D50 ) / pow( ( pow( a1, 2 ) + pow( a2, 2 ) *
+    //    pow(( CH.hydRadius / D84 ),( 5 / 3 ))),( 1 / 2 ));
     // use the Keulegan Equation
     // Res = (1/0.4)*log(12.2*R/(D84))
-    // XS.velocity = Res * pow((G * XS.hydRadius * bedSlope[n]),(1/2));
+    // CH.velocity = Res * pow((G * CH.hydRadius * bedSlope[n]),(1/2));
 
     // use the equations from Knight and others to partition stress
 
-    SFbank = pow( 10.0, ( -1.4026 * log10( XS.width /
-            ( XS.flow_perim[2] - XS.width ) + 1.5 ) + 0.247 ) );    // partioning equation, M&Q93 Eqn.8, E&M04 Eqn.2
-    totstress = G * RHO * XS.xsDepth * bedSlope[n];
-    XS.Tbed =  totstress * (1 - SFbank) *
-            ( XS.b2b / (2 * XS.width) + 0.5 );           // bed_str = stress acting on the bed, M&Q93 Eqn.10, E&M04 Eqn.4
-    XS.Tbank =  totstress * SFbank *
-            ( XS.b2b + XS.width ) * sin( theta_rad ) / (4 * XS.xsDepth );
+    SFbank = pow( 10.0, ( -1.4026 * log10( CH.width /
+            ( CH.flowPerim[2] - CH.width ) + 1.5 ) + 0.247 ) );    // partioning equation, M&Q93 Eqn.8, E&M04 Eqn.2
+    totstress = G * RHO * CH.depth * bedSlope[n];
+    CH.Tbed =  totstress * (1 - SFbank) *
+            ( CH.b2b / (2 * CH.width) + 0.5 );           // bed_str = stress acting on the bed, M&Q93 Eqn.10, E&M04 Eqn.4
+    CH.Tbank =  totstress * SFbank *
+            ( CH.b2b + CH.width ) * sin( theta_rad ) / (4 * CH.depth );
 
     // estimate the largest grain that the flow can move
-    XS.comp_D = XS.Tbed / (0.02 * G * RHO * Gs );
+    CH.comp_D = CH.Tbed / (0.02 * G * RHO * Gs );
 
     // estimate the division between key stones and bed material load
     //   (this corresponds to the approximate limit of full mobility)
-    XS.K = XS.Tbed / (0.04 * G * RHO * Gs);
+    CH.K = CH.Tbed / (0.04 * G * RHO * Gs);
 
     // use Wilcock and Crowe to estimate the sediment transport rate
     tau_star_ref = 0.021 + 0.015 * exp (-20 * f.sand_pct);
     tau_ref = tau_star_ref * G * RHO * Gs * D50;
-    X = XS.Tbed / tau_ref;
+    X = CH.Tbed / tau_ref;
 
     if (X < 1.35)
         W_star = 0.002 * pow( X, 7.5 );
     else
         W_star = 14 * pow( ( 1 - ( 0.894 / pow( X, 0.5 ) ) ), ( 4.5 ) );
 
-    XS.Qb_cap = XS.width * ( W_star / ( 1.65 * G ) ) * pow( ( XS.Tbed / RHO ), ( 3 / 2 ) );
+    CH.Qb_cap = CH.width * ( W_star / ( 1.65 * G ) ) * pow( ( CH.Tbed / RHO ), ( 3 / 2 ) );
 }
 
-void hydro::findStable( int n, RiverProfile *r )
+void hydro::findStable( int n, int ch_idx, RiverProfile *r )
 {
     // find the stable channel shape for the specified Q and relative bank strength, mu
-    NodeXSObject& XS = r->RiverXS[n];
+    NodeCHObject& CH = r->RiverXS[n].CHList[ch_idx];
     NodeGSDObject& f = r->F[n];
 
     // specify constants and set mu to an equivalent phi
     double phi = 40;
-    // double mod_phi = atan( XS.mu * tan( phi * PI / 180) ) * 180 / PI;
+    // double mod_phi = atan( CH.mu * tan( phi * PI / 180) ) * 180 / PI;
     double Tol = 0.00001;
     double deltaX = 0.00001 * phi;
     double tau_star = 0.02;
@@ -985,34 +978,34 @@ void hydro::findStable( int n, RiverProfile *r )
     // set the upper and lower angle limits
     double b_upper = phi - deltaX;
     double b_lower = deltaX;
-    XS.theta = 0.67 * phi;
+    CH.theta = 0.67 * phi;
 
     // calculate the bank stability index
     bank_crit = G * RHO * Gs * D90 * tau_star *
-              pow( 1 - ( pow( sin ( XS.theta * PI / 180 ), 2) /
+              pow( 1 - ( pow( sin ( CH.theta * PI / 180 ), 2) /
               pow( sin( phi * PI / 180 ), 2) ), 0.5 );
 
     energyConserve( n, r );                 // Update section data based on new theta
-    channelState( n, r );                   // Update stresses, transport capacity
-    converg = ( XS.Tbank - bank_crit ) / bank_crit;
+    channelState( n, ch_idx, r );                   // Update stresses, transport capacity
+    converg = ( CH.Tbank - bank_crit ) / bank_crit;
 
     while( ( abs( converg ) > Tol ) && ( iter < 50 ) )
     {
         if( converg > 0 )
-            b_upper = XS.theta;
+            b_upper = CH.theta;
         else
-            b_lower = XS.theta;
-        XS.theta = 0.5 * (b_upper + b_lower);
+            b_lower = CH.theta;
+        CH.theta = 0.5 * (b_upper + b_lower);
 
         energyConserve( n, r );            // Update section data based on new theta
-        channelState( n, r );              // Update stresses, transport capacity
-        converg = ( XS.Tbank - bank_crit ) / bank_crit;
+        channelState( n, ch_idx, r );              // Update stresses, transport capacity
+        converg = ( CH.Tbank - bank_crit ) / bank_crit;
 
         bank_crit = G * RHO * Gs * D90 * tau_star *
-                  pow( 1 - ( pow( sin ( XS.theta * PI / 180 ), 2) /
+                  pow( 1 - ( pow( sin ( CH.theta * PI / 180 ), 2) /
                   pow( sin( phi * PI / 180 ), 2) ), 0.5 );
 
-        converg = (XS.Tbank - bank_crit) / bank_crit;
+        converg = (CH.Tbank - bank_crit) / bank_crit;
 
         iter++;
     }
