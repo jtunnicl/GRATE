@@ -48,8 +48,7 @@ public:
     double flowArea;                           // Flow area within the channel
     double flowPerim;                          // Perimeter, within the channel
 
-    double ustar;                              // Shear velocity
-    int ovBank;                                // Flow has gone overbank
+    int ovBank;                                // Flag; flow has gone overbank
     double Tbed;                               // Shear stress acting on the channel bed (Pa)
     double Tbank;                              // Shear stress acting on the channel banks (Pa)
     double Qb_cap;                             // Transport capacity (m3/s)
@@ -67,7 +66,7 @@ public:
 
 class NodeXSObject
 {
-    // This object holds info on the cross-section as a whole;
+    // This object holds info on the reach cross-section as a whole;
     // channels and grain size are encompassed within this parent object.
 
 public:
@@ -79,18 +78,20 @@ public:
     double wsl;                                // Water surface level (m above sea level)
     vector<NodeCHObject> CHList;               // Vector containing channel characteristics
     double fpWidth;                            // Floodplain width (m)
-    double chSinu;                             // Sinuosity (>1, channel length/valley length)
+    double chSinu;                             // Reach sinuosity (>1, channel length/valley length)
     double topW;                               // Total width of water surface, across all channels
-    double velocity;                           // Mean velocity (m/s) at each node
+    double velocity;                           // Mean flow velocity (m/s) within reach
+    double ustar;                              // Shear velocity
     double xsDepth;                            // Total (maximum) flow depth, including overbank, in reach
+    int ovBankFlag;                            // Flag indicating overbank flow
     int mainChannel;                           // Channel with deepest flow
     double xsFlowArea[3];                      // [0] Channel [1] Floodplain [2] Total area
-    double xsFlowPerim[3];                     // [0] Channel [1] Floodplain [2] Total perimeter
+    double xsFlowPerim[3];                     // [0] Channel [1] Floodplain [2] Total wetted perimeter
     double hydRadius;                          // Hydraulic radius
     double critdepth;                          // Critical depth
     double centr;                              // Vertical centroid of flow
     double rough;                              // Grain roughness height
-    double omega;                              // Reciprocal of Dingman's Omega (~prop u*/U), Eqn. 6.17
+    double omega;                              // Reach resistance: reciprocal of Dingman's Omega (~prop u*/U), Eqn. 6.17
     double k_mean;                             // Conveyance coefficient
     double eci;                                // Energy coefficient related to channel form drag
 

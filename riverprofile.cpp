@@ -137,11 +137,10 @@ NodeCHObject::NodeCHObject()
     flowProp = 0.;                             // Proportion of total flow directed to this channel
     depth = 0.;                                // Given the proportion of flow in the channel, this is the computed depth - modified later in xsGeom()
     width = 0.;
+    bankHeight = 3.;                           // Measured relative to channel bottom
     b2b = 0.0;
     flowArea = 0.0;
     flowPerim = 0.0;
-
-    ustar = 0.;
     ovBank = 0;
     Tbed = 20.;
     Tbank = 20.;
@@ -149,7 +148,6 @@ NodeCHObject::NodeCHObject()
     comp_D = 0.005;
     K = 0;
 
-    bankHeight = 3.;                          // Measured relative to channel bottom
     Hmax = 0.5;
     mu = 1.5;                                 // Not used - perhaps in future versions
     theta = 30.;
@@ -187,6 +185,7 @@ NodeXSObject::NodeXSObject()                   // Initialize object
      chSinu = 1.05;
      topW = 10.;
      velocity = 0.;
+     ustar = 0.;
      xsDepth = 1.;
      hydRadius = 0;
      critdepth = 0.;
@@ -197,11 +196,12 @@ NodeXSObject::NodeXSObject()                   // Initialize object
 
 void NodeXSObject::xsGeom()                    // Update flow X-Section area at a given node, including overbank flows
 {
-    int i, ovBankFlag = 0;
+    int i;
     double maxDepth = 0;
+    ovBankFlag = 0;
     topW = 0;
 
-    for (i = 0; i < 3; i++)                // Clear out old data
+    for (i = 0; i < 3; i++)                    // Clear out old data
     {
         xsFlowArea[i] = 0.;
         xsFlowPerim[i] = 0.;
@@ -233,6 +233,7 @@ void NodeXSObject::xsGeom()                    // Update flow X-Section area at 
 
     xsFlowArea[2] = xsFlowArea[0] + xsFlowArea[1];       // Sum total area and perim for the cross-section
     xsFlowPerim[2] = xsFlowPerim[0] + xsFlowPerim[1] - topW;
+    hydRadius = xsFlowArea[2] / xsFlowPerim[2];
 }
 
 void NodeXSObject::xsCentr()

@@ -113,7 +113,8 @@ void hydro::backWater(RiverProfile *r)
                + (1 - hydUpw) * ( r->eta[n] - r->eta[n+1] ) / r->dx)
                    / r->RiverXS[n].chSinu; // note inclusion of sinuosity
 
-    bedSlope[0] = ( r->eta[0] - r->eta[1] ) / r->dx;             // Slope at upstream/downstream nodes
+    // Set slope at upstream/downstream boundary nodes
+    bedSlope[0] = ( r->eta[0] - r->eta[1] ) / r->dx;
     bedSlope[r->nnodes-1] = ( r->eta[r->nnodes-2] - r->eta[r->nnodes-1] ) / r->dx;
 
     // Boundary nodes: fixed or computed (default)
@@ -143,7 +144,6 @@ void hydro::backWater(RiverProfile *r)
 
         if ( ( Fr2[n] < FrN2 ) || ( bedSlope[n] <= 0 ) || ( n == 0 ) ) // Not super-crit; use energy eqn
             iret = energyConserve(n, r);
-
         else
         {                                                              // else - recalculate using quasi-normal assumption
             if (bQuasiNormal == 0)
@@ -412,7 +412,7 @@ int hydro::quasiNormal(int n, RiverProfile *r){
     int iter, maxiter;
     double error;
 
-    NodeXSObject& XS = r->RiverXS[n];          // Cross-section object to be calculated
+    NodeXSObject& XS = r->RiverXS[n];          // Reach cross-section object to be calculated
     NodeGSDObject& f = r->F[n];
     f.norm_frac();
     f.dg_and_std();
@@ -423,15 +423,15 @@ int hydro::quasiNormal(int n, RiverProfile *r){
 
     while ( error > 0.0001 )
     {
-        XS.xsGeom();    // Update section data based on new depth
+        XS.xsGeom();                           // Update section data based on new depth
         XS.xsCentr();
-        if ( XS.xsDepth > 0 )
+        if ( XS.hydRadius > 0 )
             XS.xsECI(f);
 
-        ff = QwCumul[n] / XS.topW - XS.xsDepth * sqrt( 9.81 * abs( XS.xsDepth ) * bedSlope[n] ) * XS.omega;
+        ff = QwCumul[n] / XS.topW - XS.hydRadius * sqrt( 9.81 * abs( XS.hydRadius ) * bedSlope[n] ) * XS.omega;
 
-        fp = -2.5 * sqrt( 9.81 * abs( XS.xsDepth ) * bedSlope[n] )
-                * ( 1.5 * log(11.0 * abs ( XS.xsDepth ) / XS.rough) + 1.0 );
+        fp = -2.5 * sqrt( 9.81 * abs( XS.hydRadius ) * bedSlope[n] )
+                * ( 1.5 * log(11.0 * abs ( XS.hydRadius ) / XS.rough) + 1.0 );
 
         error = -ff / fp;
         XS.xsDepth += error / 2;
@@ -1021,10 +1021,10 @@ void hydro::setRegimeWidth(RiverProfile *r)
     float reachDrop = 0;                     // Drop in elevation over reach river length
     float oldBankHeight = 0;
 
-    oldBankHeight = r->RiverXS[regimeCounter].bankHeight;
-    oldArea = r->RiverXS[regimeCounter].xsFlowArea[2];
+    // oldBankHeight = r->RiverXS[regimeCounter].bankHeight;
+    // oldArea = r->RiverXS[regimeCounter].xsFlowArea[2];
 
-    regimeModel( regimeCounter, r );         // This is a call to the Regime Functions.
+    regimeModel( regimeCounter, n, r );         // This is a call to the Regime Functions.
 
     if ( (r->counter > 260 ) )
     {

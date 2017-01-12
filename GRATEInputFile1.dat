@@ -120,7 +120,7 @@
   NPTS = 83  ! No of coordinate pairs
 ! Initial (single) channel
 ! X (m)     Y (m)   Bedrock Elev (m)    Width  FldPlainWidth    Hmax   Theta (deg)   ALGRP     STGRP
-0     397.97     395.97     11.7     2     0.75     30     4     4
+0       397.97     395.97     11.70     2     0.75     30     4     4
 100     395.35     393.35     11.71     2     0.75     30     4     4
 200     392.72     390.72     11.72     2     0.75     30     4     4
 300     389.67     387.67     11.75     2     0.75     30     4     4
