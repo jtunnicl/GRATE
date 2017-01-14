@@ -56,7 +56,7 @@ void hydro::initHydro(int nodes)
     //tmp.push_back(NewEntry);
 
     inHydroFile.open("hydro_series.dat");
-    if (!inHydroFile) cout << "file couldn't open properly" << endl;
+    if (!inHydroFile) cout << "hydro file couldn't open properly" << endl;
 
     while(!inHydroFile.eof() )
     {
@@ -202,7 +202,7 @@ void hydro::setQuasiSteadyNodalFlows(RiverProfile *r){
     QwCumul[0] = Qw_Ct[0];
 
     i = 0;
-    for (j = 1; j < QwCumul.size(); j++)
+    for ( j = 1; j < QwCumul.size(); j++ )
     {
         QwCumul[j] = QwCumul[j-1];
         if ( i < (Qw.size()-1) && ( r->xx[j] > Qw[i + 1][0].Coord ) )
@@ -215,7 +215,60 @@ void hydro::setQuasiSteadyNodalFlows(RiverProfile *r){
 
 void hydro::xsCritDepth(int n, RiverProfile *r, double Q){
 
+    double i,j,k;
+    double y_star;                 // Following Chaudhry's technique, Section 3-7, in 2nd Ed. 2008
+    // y_f = r-> RiverXS[n].bankHeight
+    double y_r = r->RiverXS[n].bankHeight;
+    double b_r = r->RiverXS[n].fpWidth / r->RiverXS[n].xsBedWidth;
+    double b_f = r->RiverXS[n].fpWidth / r->RiverXS[n].bankHeight;
+    double n_r = 0.05;                         // Needs Keulegan equivalent
+    double m = 1 / ( 1 + 2 * n_r *
+            pow( r->RiverXS[n].xsFlowArea[1] / r->RiverXS[n].xsFlowArea[0], 1.6667 ) *
+            pow( r->RiverXS[n].xsFlowPerim[0] / r->RiverXS[n].xsFlowPerim[1], 1.6667 ) );
+
+    double C = 1 / ( y_r + 2 * b_r * ( y_r - 1 ) ) * ( pow ( m / y_r, 2 ) + pow ( ( 1 - m ) / ( y_r - 1 ), 2 ) * ( 1 / 2 * b_r ) )
+            + 2 * m * ( 1 -  m ) / 3 * ( y_r + 2 * b_r * ( y_r - 1 ) ) * ( 5 / ( y_r * ( y_r - 1 )) - 2 / ( b_f + y_r - 1 ) ) *
+            ( ( m / y_r ) - ( ( 1 - m ) / ( y_r - 1 ) ) * 1 / 2 * b_r );
+
     // Compute critical depth, given a flow
+
+    k = G * pow( r->RiverXS[n].xsBedWidth, 2 ) * pow ( r->RiverXS[n].bankHeight, 3 );
+
+    if ( k < 1 )                            // Critical depth cannot occur when the flow is only in the main channel
+    {
+
+        y_star = (2 * b_r) / (2 * b_r + 1) + 1 / C * ( 2 * b_r + 1 ) *
+                ( pow ( m / r->RiverXS[n].maxDepth, 2 ) + pow ( ( ( 1 - m ) / ( y_r -1) ), 2 ) *
+                  ( 1 / 2 * b_r ) ) + ( 2 * m * ( 1 - m ) ) / 3 * C * ( 2 * b_r + 1 ) *
+                ( 5 / y_r * ( y_r - 1 ) - 2 / ( b_f + y_r - 1 ) ) * ( m / y_r -  ( 1 - m ) / (y_r - 1 ) * 1 / ( 2 * b_r ));
+
+
+    }
+
+
+
+
+
+    else                                       // Case of flow within channel(s)
+        for ( i = 1; i < r->RiverXS[n].numChannels; i++)
+        {
+
+
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     int it = 0;
     int itmax = 50;                        // Max iterations
@@ -229,7 +282,6 @@ void hydro::xsCritDepth(int n, RiverProfile *r, double Q){
     // Make sure ymax is subcritical (ff <= 0); keep increasing ymax until this is so.
 
     double ff = 1;
-
     while (ff > 0)
     {
         if (it > 0)

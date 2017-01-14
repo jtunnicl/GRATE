@@ -16,9 +16,9 @@ public:
                                                //   --> Q[Coord][TimeStep]
     vector<double> Fr2;                        // Froude #, squared
     vector<double> QwCumul;
-    vector<double> bedSlope;                   // Bedslope
+    vector<double> bedSlope;                   // Bed slope
 
-    hydro(RiverProfile *r);                                   // Constructor
+    hydro(RiverProfile *r);                    // Constructor
 
     void backWater(RiverProfile *r);           // Principal Hydro routine: calculate water surface profile
 

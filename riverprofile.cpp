@@ -197,9 +197,10 @@ NodeXSObject::NodeXSObject()                   // Initialize object
 void NodeXSObject::xsGeom()                    // Update flow X-Section area at a given node, including overbank flows
 {
     int i;
-    double maxDepth = 0;
+    maxDepth = 0.;
     ovBankFlag = 0;
-    topW = 0;
+    xsBedWidth = 0.;
+    topW = 0.;
 
     for (i = 0; i < 3; i++)                    // Clear out old data
     {
@@ -207,11 +208,13 @@ void NodeXSObject::xsGeom()                    // Update flow X-Section area at 
         xsFlowPerim[i] = 0.;
     }
 
-    for (i = 0; i < numChannels; i++)          // Add up in-channel flow, area and perimeter
+    for (i = 0; i < numChannels; i++)          // Add up in-channel flow, area, perimeter and bed width
     {
         xsFlowArea[0] += CHList[i].flowArea;
         xsFlowPerim[0] += CHList[i].flowPerim;
+        xsBedWidth += CHList[i].width;
         topW += CHList[i].b2b;
+
 
         if (CHList[i].ovBank == 1)             // If flows go overbank..
         {

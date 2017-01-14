@@ -41,14 +41,15 @@ public:
 
     NodeCHObject();
 
-    double flowProp;                           // Proportion of total flow going into this channel
+    double QProp;                              // Proportion of total flow going into this channel
     double depth;                              // Flow depth (m from channel bottom)
     double width;                              // Channel width (m) at bottom of trapezoid for each node
     double b2b;                                // Bank-to-bank width (top of in-channel flow section)
     double flowArea;                           // Flow area within the channel
     double flowPerim;                          // Perimeter, within the channel
+    double chVelocity;                         // Flow velocity (m/s) within the channel
 
-    int ovBank;                                // Flag; flow has gone overbank
+    int ovBank;                                // Flag; flow has gone overbank, for this channel
     double Tbed;                               // Shear stress acting on the channel bed (Pa)
     double Tbank;                              // Shear stress acting on the channel banks (Pa)
     double Qb_cap;                             // Transport capacity (m3/s)
@@ -80,15 +81,16 @@ public:
     double fpWidth;                            // Floodplain width (m)
     double chSinu;                             // Reach sinuosity (>1, channel length/valley length)
     double topW;                               // Total width of water surface, across all channels
-    double velocity;                           // Mean flow velocity (m/s) within reach
+    double xsBedWidth;                         // Summed channel bed width within the reach (m)
+    double meanVeloc;                          // Mean flow velocity (m/s) within reach
     double ustar;                              // Shear velocity
-    double xsDepth;                            // Total (maximum) flow depth, including overbank, in reach
+    double maxDepth;                            // Total (maximum) flow depth, including overbank, in reach
     int ovBankFlag;                            // Flag indicating overbank flow
     int mainChannel;                           // Channel with deepest flow
     double xsFlowArea[3];                      // [0] Channel [1] Floodplain [2] Total area
     double xsFlowPerim[3];                     // [0] Channel [1] Floodplain [2] Total wetted perimeter
     double hydRadius;                          // Hydraulic radius
-    double critdepth;                          // Critical depth
+    double critDepth;                          // Critical depth
     double centr;                              // Vertical centroid of flow
     double rough;                              // Grain roughness height
     double omega;                              // Reach resistance: reciprocal of Dingman's Omega (~prop u*/U), Eqn. 6.17
