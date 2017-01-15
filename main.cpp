@@ -1,5 +1,6 @@
 #include <QApplication>
 #include <QWidget>
+#include <QDir>
 #include "mainwindow.h"
 #include "riverprofile.h"
 

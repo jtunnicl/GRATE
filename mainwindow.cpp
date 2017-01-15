@@ -20,8 +20,8 @@
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
-    rn(new RiverProfile),                        // Long profile, channel geometry
-    wl(new hydro(rn)),                               // Channel hydraulic parameters
+    rn(new RiverProfile),                      // Long profile, channel geometry
+    wl(new hydro(rn)),                         // Channel hydraulic parameters
     sd(new sed(rn))
 
 {
@@ -29,7 +29,7 @@ MainWindow::MainWindow(QWidget *parent) :
     rn->cTime = wl->Qw[0][0].date_time;
     rn->startTime = wl->Qw[0][0].date_time;
     rn->endTime = wl->Qw[0][wl->Qw[0].size() - 1].date_time;
-    setupChart();                                // Setup GUI graph
+    setupChart();                              // Setup GUI graph
     setWindowTitle("Raparapaririki River");
     ui->textFileName->setText("Input03.dat");
     ui->VectorPlot->replot();
@@ -77,10 +77,10 @@ void MainWindow::setupChart(){
         x[i] = rn->RiverXS[i].node;
         eta[i] = rn->eta[i];
         WSL[i] = rn -> eta[i] + rn->RiverXS[i].CHList[0].depth * 8;    // x8 exaggeration for display
-        Froude[i] = rn->ntop[i];                             // RiverXS[i].ustar;
+        Froude[i] = rn->ntop[i];               // RiverXS[i].ustar;
         Bedload[i] = sd->Qs[i];
         Qw_Plot[i] = wl->QwCumul[i] / 100;
-        for ( j = 0; j < rn->ngsz; j++ )                     // Make a cumulative dist
+        for ( j = 0; j < rn->ngsz; j++ )       // Make a cumulative dist
         {
             if ( j > 0 )
                 GSD_Cumul[j][i] = GSD_Cumul[j-1][i];
@@ -98,7 +98,7 @@ void MainWindow::setupChart(){
     // Setup cross-section graph
     n = ui->spinNode->value();
     theta_rad = rn->RiverXS[n].CHList[0].theta * PI / 180;
-    a = rn->RiverXS[n].bankHeight - rn->RiverXS[n].CHList[0].Hmax;  // Vert & Horiz triangle segments at lower channel.
+    a = rn->RiverXS[n].xsBankHt - rn->RiverXS[n].CHList[0].Hmax;  // Vert & Horiz triangle segments at lower channel.
     b = a / tan(theta_rad);
 
     XsPlotX[2] = 0;
@@ -391,7 +391,7 @@ void MainWindow::modelUpdate(){
     // Setup cross-section graph
     n = ui->spinNode->value();
     theta_rad = rn->RiverXS[n].CHList[0].theta * PI / 180;
-    a = rn->RiverXS[n].CHList[0].bankHeight - rn->RiverXS[n].Hmax;  // Vert & Horiz triangle segments at lower channel.
+    a = rn->RiverXS[n].CHList[0].bankHeight - rn->RiverXS[n].CHList[0].Hmax;  // Vert & Horiz triangle segments at lower channel.
     c = tan(theta_rad);
     b = a / c;              // aka dW, horizontal distance between bed and bank, under toe of channel edge
 
@@ -615,7 +615,7 @@ void MainWindow::writeResults(int count){
         rn->RiverXS[i].CHList[0].depth << '\t' <<
         rn->RiverXS[i].CHList[0].width << '\t' <<
         rn->RiverXS[i].CHList[0].theta << '\t' <<
-        rn->RiverXS[i].CHList[0].ustar << '\t' <<
+        rn->RiverXS[i].ustar << '\t' <<
 		rn->storedf[i][rn->ntop[i]].dsg << '\t' <<
 		rn->F[i].dsg << '\t' <<
 		rn->F[i].stdv << '\t' <<
@@ -651,7 +651,7 @@ void MainWindow::writeResults(int count){
             rn->RiverXS[i].CHList[0].depth << '\t' <<
             rn->RiverXS[i].CHList[0].width << '\t' <<
             rn->RiverXS[i].CHList[0].theta << '\t' <<
-            rn->RiverXS[i].CHList[0].ustar << '\t' <<
+            rn->RiverXS[i].ustar << '\t' <<
 			rn->storedf[i][rn->ntop[i]].dsg << '\t' <<
 			rn->F[i].dsg << '\t' <<
 			rn->F[i].stdv << '\t' <<

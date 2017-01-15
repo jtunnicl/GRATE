@@ -5,6 +5,7 @@
 #include <QVector>
 #include <QDateTime>
 #include <cmath>
+
 using namespace std;
 
 double gammln2(double xx);
@@ -78,17 +79,18 @@ public:
     int numChannels;                           // Number of channels
     double wsl;                                // Water surface level (m above sea level)
     vector<NodeCHObject> CHList;               // Vector containing channel characteristics
-    double fpWidth;                            // Floodplain width (m)
+    double fpWidth;                            // Valley width -> Floodplain width (m) = fpWidth - b2b
+    double xsBankHt;                           // Same as channel object bankHeight; possibly move to xs exclusively?
     double chSinu;                             // Reach sinuosity (>1, channel length/valley length)
     double topW;                               // Total width of water surface, across all channels
     double xsBedWidth;                         // Summed channel bed width within the reach (m)
     double meanVeloc;                          // Mean flow velocity (m/s) within reach
     double ustar;                              // Shear velocity
-    double maxDepth;                            // Total (maximum) flow depth, including overbank, in reach
+    double maxDepth;                           // Total (maximum) flow depth, including overbank, in reach
     int ovBankFlag;                            // Flag indicating overbank flow
     int mainChannel;                           // Channel with deepest flow
-    double xsFlowArea[3];                      // [0] Channel [1] Floodplain [2] Total area
-    double xsFlowPerim[3];                     // [0] Channel [1] Floodplain [2] Total wetted perimeter
+    vector <double> xsFlowArea;                // [0] Channel [1] Floodplain [2] Total area
+    vector <double>  xsFlowPerim;              // [0] Channel [1] Floodplain [2] Total wetted perimeter
     double hydRadius;                          // Hydraulic radius
     double critDepth;                          // Critical depth
     double centr;                              // Vertical centroid of flow

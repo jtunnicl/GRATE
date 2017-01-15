@@ -178,7 +178,7 @@ void sed::computeTransport(RiverProfile *r)
             fpp.norm_frac();
 
             if (FGSum > 0)
-                Qs[i] = FGSum * pow( r->RiverXS[i].ustar, 3 ) / specWt / 9.81 * ( r->RiverXS[i].width);
+                Qs[i] = FGSum * pow( r->RiverXS[i].ustar, 3 ) / specWt / 9.81 * ( r->RiverXS[i].xsBedWidth);
             else
                 Qs[i] = 0.0;
         }
@@ -247,7 +247,7 @@ void sed::exner(RiverProfile *r)
 
     for ( i = 1; i < (r->nnodes-1); i++ )                          // Calculate deta
     {
-        fullValleyWidth[i] = r->RiverXS[i].fpWidth + r->RiverXS[i].width;
+        fullValleyWidth[i] = r->RiverXS[i].fpWidth + r->RiverXS[i].xsBedWidth;
 
         deta[i] = r->dt * ( upw * ( ( Qs[i-1] - Qs[i] ) / ( r->xx[i] - r->xx[i-1] ) )
             + ( 1 - upw ) * ( ( Qs[i] - Qs[i+1] ) / ( r->xx[i+1] - r->xx[i] ) ) )
@@ -331,7 +331,7 @@ void sed::exner(RiverProfile *r)
             df[i].pct[1][j] = 0.0;
             df[i].pct[2][j] = 0.0;
             for ( k = 0; k < r->nlith; k++ )
-                df[i].pct[k][j] += -(r->dt / r->RiverXS[i].width ) *
+                df[i].pct[k][j] += -(r->dt / r->RiverXS[i].xsBedWidth ) *
                               ( ( upw * ( Qs[i] * p[i].pct[k][j] - Qs[i-1] * p[i-1].pct[k][j] ) / ( r->xx[i] - r->xx[i-1] )
                               + ( 1 - upw ) * ( Qs[i+1] * p[i+1].pct[k][j] - Qs[i] * p[i].pct[k][j] ) / (r->xx[i+1] - r->xx[i] ) )
                               - p[i].abrasion[k] * Qs[i] * ( p[i].pct[k][j] + Fprime.pct[k][j] )

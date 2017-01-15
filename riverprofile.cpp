@@ -1,7 +1,7 @@
 /*******************
  *
  *
- *  GRATE 8
+ *  GRATE 9
  *
  *  Long profile parameters
  *
@@ -134,9 +134,9 @@ void NodeGSDObject::dg_and_std()
 
 NodeCHObject::NodeCHObject()
 {
-    flowProp = 0.;                             // Proportion of total flow directed to this channel
-    depth = 0.;                                // Given the proportion of flow in the channel, this is the computed depth - modified later in xsGeom()
-    width = 0.;
+    QProp = 1.;                             // Proportion of total flow directed to this channel
+    depth = 1.;                                // Given the proportion of flow in the channel, this is the computed depth - modified later in xsGeom()
+    width = 10.;
     bankHeight = 3.;                           // Measured relative to channel bottom
     b2b = 0.0;
     flowArea = 0.0;
@@ -158,6 +158,7 @@ void NodeCHObject::chGeom()
     // This is only for the channel itself. Overbank flows are handled in the NodeXSObject
     float theta_rad = theta * PI / 180;        // theta is always in degrees
 
+    b2b = width + 2 * ( bankHeight - Hmax) / tan( theta_rad );
     if ( depth <= ( bankHeight - Hmax ) )      // w.s.l. is below sloping bottom edges
     {
         flowArea = width * depth + pow ( depth, 2 ) / tan( theta_rad );
@@ -178,19 +179,35 @@ void NodeCHObject::chGeom()
 NodeXSObject::NodeXSObject()                   // Initialize object
 {
      NodeCHObject tmp;
+     int i;
 
      node = 0;
      numChannels = 1;
      fpWidth = 0.;
+     xsBankHt = 1.;
      chSinu = 1.05;
      topW = 10.;
-     velocity = 0.;
+     xsBedWidth = 2;
+     meanVeloc = 0.;
      ustar = 0.;
-     xsDepth = 1.;
+     maxDepth = 1.;
+     ovBankFlag = 0;
+     mainChannel = 0;
      hydRadius = 0;
-     critdepth = 0.;
+     critDepth = 0.;
+     centr = 0.;
+     rough = 0.;
+     omega = 0.;
+     k_mean = 0.;
+     eci = 0.;
 
-     for (int i = 0; i < 10; i++)              // Max 10 dummy channel objects initiated, all with flowProp '0'.
+     for (i = 0; i < 3; i++)
+     {
+         xsFlowArea.push_back(0);
+         xsFlowPerim.push_back(0);
+     }
+
+     for (int i = 0; i < 10; i++)              // Max 10 dummy channel objects initiated, all with QProp '0'.
          CHList.push_back(tmp);
 }
 
@@ -210,6 +227,7 @@ void NodeXSObject::xsGeom()                    // Update flow X-Section area at 
 
     for (i = 0; i < numChannels; i++)          // Add up in-channel flow, area, perimeter and bed width
     {
+        CHList[i].chGeom();
         xsFlowArea[0] += CHList[i].flowArea;
         xsFlowPerim[0] += CHList[i].flowPerim;
         xsBedWidth += CHList[i].width;
@@ -229,7 +247,7 @@ void NodeXSObject::xsGeom()                    // Update flow X-Section area at 
         }
     }
 
-    xsDepth = maxDepth + (xsFlowArea[1] / fpWidth);
+    maxDepth = maxDepth + (xsFlowArea[1] / fpWidth);
 
     if (ovBankFlag == 1)
             xsFlowPerim[1] += fpWidth + 2 * (xsFlowArea[1] / fpWidth);
@@ -430,11 +448,19 @@ void RiverProfile::initData()
     int i = 0;
     char g[8];
 
-    inDatFile.open("Input_Rip1_equil_1938.dat");
+    ofstream myfile ("example.txt");
+    if (myfile.is_open())
+    {
+      myfile << "This is a line.\n";
+      myfile << "This is another line.\n";
+      myfile.close();
+    }
+
+    inDatFile.open("GRATEInputFile1.dat");
 
     if( !inDatFile )                           //test the file open.
     {
-        cout<<"Error opening intput file.."<<endl;
+        cout<<"Error opening profile intput file.."<<endl;
         system("pause");
     }
 
@@ -499,8 +525,8 @@ void RiverProfile::initData()
 
     for (i = 0; i < nnodes; i++)
     {
-        RiverXS[i].xsDepth = 1.5;
-        RiverXS[i].wsl = eta[i] + RiverXS[i].xsDepth;
+        RiverXS[i].maxDepth = 1.5;
+        RiverXS[i].wsl = eta[i] + RiverXS[i].maxDepth;
         RiverXS[i].node = i;
     }
 
