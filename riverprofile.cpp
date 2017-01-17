@@ -52,9 +52,9 @@ NodeGSDObject::NodeGSDObject()
          for (int k = 0; k < 3; k++)
              pct.push_back(tmp);
 
-         dsg = 0;
-         stdv = 0;
-         sand_pct = 0;
+         dsg = 0.;
+         stdv = 0.;
+         sand_pct = 0.;
     }
 
 void NodeGSDObject::norm_frac()
@@ -134,9 +134,9 @@ void NodeGSDObject::dg_and_std()
 
 NodeCHObject::NodeCHObject()
 {
-    QProp = 1.;                             // Proportion of total flow directed to this channel
+    QProp = 0.;                             // Proportion of total flow directed to this channel
     depth = 1.;                                // Given the proportion of flow in the channel, this is the computed depth - modified later in xsGeom()
-    width = 10.;
+    width = 0.;
     bankHeight = 3.;                           // Measured relative to channel bottom
     b2b = 0.0;
     flowArea = 0.0;
@@ -153,7 +153,7 @@ NodeCHObject::NodeCHObject()
     theta = 30.;
 }
 
-void NodeCHObject::chGeom()
+void NodeCHObject::chGeom(double relDepth)
 {   // Update channel cross-section area and perimeter
     // This is only for the channel itself. Overbank flows are handled in the NodeXSObject
     float theta_rad = theta * PI / 180;        // theta is always in degrees
@@ -184,7 +184,7 @@ NodeXSObject::NodeXSObject()                   // Initialize object
      node = 0;
      numChannels = 1;
      fpWidth = 0.;
-     xsBankHt = 1.;
+     maxBankHt = 1.;
      chSinu = 1.05;
      topW = 10.;
      xsBedWidth = 2;
@@ -207,14 +207,15 @@ NodeXSObject::NodeXSObject()                   // Initialize object
          xsFlowPerim.push_back(0);
      }
 
-     for (int i = 0; i < 10; i++)              // Max 10 dummy channel objects initiated, all with QProp '0'.
+     for (int i = 0; i < 10; i++)              // Max 10 dummy channel objects initiated, all with QProp '0'..
          CHList.push_back(tmp);
+     CHList[0].QProp = 1;                      // ..except 1st element. Assume single-channel default.
 }
 
-void NodeXSObject::xsGeom()                    // Update flow X-Section area at a given node, including overbank flows
+void NodeXSObject::xsGeom()                    // Given maxDepth, update flow XS area at a given node, including overbank flows
 {
     int i;
-    maxDepth = 0.;
+    double deltaWSL = maxDepth - maxBankHt;    // When deltaWSL = 0, flow depth is at bank top. +ve is overbank, -ve is in channel
     ovBankFlag = 0;
     xsBedWidth = 0.;
     topW = 0.;
@@ -227,18 +228,15 @@ void NodeXSObject::xsGeom()                    // Update flow X-Section area at 
 
     for (i = 0; i < numChannels; i++)          // Add up in-channel flow, area, perimeter and bed width
     {
-        CHList[i].chGeom();
+        CHList[i].depth = maxDepth;            // Send XS depth to channel object, returns area possibly including overbank flow
+        CHList[i].chGeom(deltaWSL);
         xsFlowArea[0] += CHList[i].flowArea;
         xsFlowPerim[0] += CHList[i].flowPerim;
         xsBedWidth += CHList[i].width;
         topW += CHList[i].b2b;
-
-
+        xsFlowArea[1] += (CHList[i].depth);
         if (CHList[i].ovBank == 1)             // If flows go overbank..
-        {
             ovBankFlag = 1;
-            xsFlowArea[1] += (CHList[i].depth - CHList[i].bankHeight) * CHList[i].b2b;    // Sum up total flow area out of channel
-        }
 
         if (CHList[i].depth > maxDepth)
         {
@@ -247,13 +245,14 @@ void NodeXSObject::xsGeom()                    // Update flow X-Section area at 
         }
     }
 
-    maxDepth = maxDepth + (xsFlowArea[1] / fpWidth);
-
     if (ovBankFlag == 1)
-            xsFlowPerim[1] += fpWidth + 2 * (xsFlowArea[1] / fpWidth);
+    {
+        maxDepth = maxDepth + (xsFlowArea[1] / fpWidth);  // maxDepth includes overbank flows
+        xsFlowPerim[1] += fpWidth + 2 * (xsFlowArea[1] / fpWidth);
+    }
 
     xsFlowArea[2] = xsFlowArea[0] + xsFlowArea[1];       // Sum total area and perim for the cross-section
-    xsFlowPerim[2] = xsFlowPerim[0] + xsFlowPerim[1] - topW;
+    xsFlowPerim[2] = xsFlowPerim[0] + xsFlowPerim[1];
     hydRadius = xsFlowArea[2] / xsFlowPerim[2];
 }
 

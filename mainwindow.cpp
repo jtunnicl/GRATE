@@ -98,7 +98,7 @@ void MainWindow::setupChart(){
     // Setup cross-section graph
     n = ui->spinNode->value();
     theta_rad = rn->RiverXS[n].CHList[0].theta * PI / 180;
-    a = rn->RiverXS[n].xsBankHt - rn->RiverXS[n].CHList[0].Hmax;  // Vert & Horiz triangle segments at lower channel.
+    a = rn->RiverXS[n].maxBankHt - rn->RiverXS[n].CHList[0].Hmax;  // Vert & Horiz triangle segments at lower channel.
     b = a / tan(theta_rad);
 
     XsPlotX[2] = 0;

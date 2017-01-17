@@ -56,12 +56,12 @@ public:
     double Qb_cap;                             // Transport capacity (m3/s)
     double comp_D;                             // The largest grain that the flow can move
     double K;                                  // Estimated division between key stones and bed material load
-    double bankHeight;                         // Characteristic bank height above channel bottom (m)
+    double bankHeight;                         // Height above channel bottom (m)
     double Hmax;                               // Bank strength as a vertical upper bank section (m)
     double mu;                                 // Bank strength, relative to bed (afer Millar, 2005)
     double theta;                              // Bank sideslope angle (degrees)
 
-    void chGeom();                             // Calculate x-sec area for a given depth
+    void chGeom(double relDepth);               // Calculate x-sec area for a given depth
 
     void chCentr();                            // Elevation of xsec centre of mass
 };
@@ -80,7 +80,7 @@ public:
     double wsl;                                // Water surface level (m above sea level)
     vector<NodeCHObject> CHList;               // Vector containing channel characteristics
     double fpWidth;                            // Valley width -> Floodplain width (m) = fpWidth - b2b
-    double xsBankHt;                           // Same as channel object bankHeight; possibly move to xs exclusively?
+    double maxBankHt;                          // Bank height in the principal channel
     double chSinu;                             // Reach sinuosity (>1, channel length/valley length)
     double topW;                               // Total width of water surface, across all channels
     double xsBedWidth;                         // Summed channel bed width within the reach (m)
@@ -99,7 +99,7 @@ public:
     double k_mean;                             // Conveyance coefficient
     double eci;                                // Energy coefficient related to channel form drag
 
-    void xsGeom();                             // Calculate x-sec area for a given depth
+    void xsGeom();                    // Calculate x-sec area for a given depth
 
     void xsCentr();                            // Elevation of xsec centre of mass
 

@@ -26,7 +26,7 @@ public:
 
     void setQuasiSteadyNodalFlows(RiverProfile *r);
 
-    void xsCritDepth(int node, RiverProfile *r, double Q);         // Critical depth at a cross-section for a given Qw
+    void xsCritDepth(int node, RiverProfile *r);                   // Critical depth at a cross-section for a given Qw
 
     int energyConserve(int node, RiverProfile *r);                 // Energy conservation between two nodes
 
@@ -36,7 +36,7 @@ public:
 
     vector<double> matsol(int N, vector<vector<double>> EQN);      // Matrix solver
 
-    void regimeModel(int n, RiverProfile *r);                           // Compute Millar-Eaton equilibrium channel width
+    void regimeModel(int n, RiverProfile *r);                      // Compute Millar-Eaton equilibrium channel width
 
     void channelState(int n, int ch_idx, RiverProfile *r);
 
