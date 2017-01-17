@@ -19,9 +19,9 @@ public:
 
     NodeGSDObject();
 
-    vector <double> abrasion;                        // abrasion value for each lithology type (3)
-    vector < double > psi;                            // psi (base 2) grain size categories
-    vector < vector < double > > pct;                         // Grain-size  (ngsz x nlith)
+    vector <double> abrasion;                  // abrasion value for each lithology type (3)
+    vector < double > psi;                     // psi (base 2) grain size categories
+    vector < vector < double > > pct;          // Grain-size  (ngsz x nlith)
     float dsg;                                 // Geometric mean grain size
     float d84;
     float d90;
@@ -79,10 +79,11 @@ public:
     int numChannels;                           // Number of channels
     double wsl;                                // Water surface level (m above sea level)
     vector<NodeCHObject> CHList;               // Vector containing channel characteristics
-    double fpWidth;                            // Valley width -> Floodplain width (m) = fpWidth - b2b
+    double fpWidth;                            // Valley width -> Floodplain width (m) = fpWidth - xsB2B
     double maxBankHt;                          // Bank height in the principal channel
     double chSinu;                             // Reach sinuosity (>1, channel length/valley length)
     double topW;                               // Total width of water surface, across all channels
+    double xsB2B;                              // Total bank-to-bank width of all channels
     double xsBedWidth;                         // Summed channel bed width within the reach (m)
     double meanVeloc;                          // Mean flow velocity (m/s) within reach
     double ustar;                              // Shear velocity

@@ -158,6 +158,8 @@ void NodeCHObject::chGeom(double relDepth)
     // This is only for the channel itself. Overbank flows are handled in the NodeXSObject
     float theta_rad = theta * PI / 180;        // theta is always in degrees
 
+    depth = bankHeight + relDepth;             // bankHeight is different for each channel, and flow depth
+                                               //    within NodeCH objects is always set relative to this.
     b2b = width + 2 * ( bankHeight - Hmax) / tan( theta_rad );
     if ( depth <= ( bankHeight - Hmax ) )      // w.s.l. is below sloping bottom edges
     {
@@ -187,7 +189,8 @@ NodeXSObject::NodeXSObject()                   // Initialize object
      maxBankHt = 1.;
      chSinu = 1.05;
      topW = 10.;
-     xsBedWidth = 2;
+     xsBedWidth = 2.;
+     xsB2B = 0.;
      meanVeloc = 0.;
      ustar = 0.;
      maxDepth = 1.;
@@ -230,11 +233,11 @@ void NodeXSObject::xsGeom()                    // Given maxDepth, update flow XS
     {
         CHList[i].depth = maxDepth;            // Send XS depth to channel object, returns area possibly including overbank flow
         CHList[i].chGeom(deltaWSL);
-        xsFlowArea[0] += CHList[i].flowArea;
+        xsFlowArea[0] += CHList[i].flowArea;   // Sum up area, perim, bed width, 2b2 for all channels
         xsFlowPerim[0] += CHList[i].flowPerim;
         xsBedWidth += CHList[i].width;
-        topW += CHList[i].b2b;
-        xsFlowArea[1] += (CHList[i].depth);
+        xsB2B += CHList[i].b2b;
+
         if (CHList[i].ovBank == 1)             // If flows go overbank..
             ovBankFlag = 1;
 
@@ -247,7 +250,6 @@ void NodeXSObject::xsGeom()                    // Given maxDepth, update flow XS
 
     if (ovBankFlag == 1)
     {
-        maxDepth = maxDepth + (xsFlowArea[1] / fpWidth);  // maxDepth includes overbank flows
         xsFlowPerim[1] += fpWidth + 2 * (xsFlowArea[1] / fpWidth);
     }
 
@@ -283,11 +285,11 @@ void NodeXSObject::xsECI(NodeGSDObject F)
     rough = 2 * pow( 2, F.dsg ) / 1000. * pow( F.stdv, 1.28 );              // roughness height, ks, 2*D90
     if (rough <= 0)         // indicates problems with previous F calcs
         rough = 0.01;
-    omega = 2.5 * log( 11.0 * ( CHList[mainChannel].depth / rough ) );                          // Parker (1991), Dingman 6.25, p.224
-    double K_ch = xsFlowArea[0] * omega * sqrt( 9.81 * CHList[mainChannel].depth );              // Dingman, (2009) 8B2.3C, p.300
+    omega = 2.5 * log( 11.0 * ( maxDepth / rough ) );                          // Parker (1991), Dingman 6.25, p.224
+    double K_ch = xsFlowArea[0] * omega * sqrt( 9.81 * maxDepth );              // Dingman, (2009) 8B2.3C, p.300
     double K_fp = 0;
     k_mean = 0;
-    double ovBank = CHList[mainChannel].depth - CHList[0].bankHeight;
+    double ovBank = maxDepth - CHList[mainChannel].bankHeight;
 
     if (ovBank > 0)
     {
