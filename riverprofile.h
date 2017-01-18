@@ -49,6 +49,7 @@ public:
     double flowArea;                           // Flow area within the channel
     double flowPerim;                          // Perimeter, within the channel
     double chVelocity;                         // Flow velocity (m/s) within the channel
+    double aspect;                             // width/depth ratio of the channel
 
     int ovBank;                                // Flag; flow has gone overbank, for this channel
     double Tbed;                               // Shear stress acting on the channel bed (Pa)
@@ -63,7 +64,6 @@ public:
 
     void chGeom(double relDepth);               // Calculate x-sec area for a given depth
 
-    void chCentr();                            // Elevation of xsec centre of mass
 };
 
 class NodeXSObject
@@ -101,8 +101,6 @@ public:
     double eci;                                // Energy coefficient related to channel form drag
 
     void xsGeom();                    // Calculate x-sec area for a given depth
-
-    void xsCentr();                            // Elevation of xsec centre of mass
 
     void xsECI(NodeGSDObject F);               // Energy coefficient
 

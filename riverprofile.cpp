@@ -161,7 +161,7 @@ void NodeCHObject::chGeom(double relDepth)
     depth = bankHeight + relDepth;             // bankHeight is different for each channel, and flow depth
                                                //    within NodeCH objects is always set relative to this.
     b2b = width + 2 * ( bankHeight - Hmax) / tan( theta_rad );
-    if ( depth <= ( bankHeight - Hmax ) )      // w.s.l. is below sloping bottom edges
+    if ( depth <= ( bankHeight - Hmax ) )      // w.s.l. is below sloping bottom edges near bottom of channel
     {
         flowArea = width * depth + pow ( depth, 2 ) / tan( theta_rad );
         flowPerim = width + 2 * depth / sin ( theta_rad );
@@ -176,6 +176,7 @@ void NodeCHObject::chGeom(double relDepth)
         ovBank = 1;
     else
         ovBank = 0;
+    aspect = width / depth;
 }
 
 NodeXSObject::NodeXSObject()                   // Initialize object
@@ -218,10 +219,16 @@ NodeXSObject::NodeXSObject()                   // Initialize object
 void NodeXSObject::xsGeom()                    // Given maxDepth, update flow XS area at a given node, including overbank flows
 {
     int i;
-    double deltaWSL = maxDepth - maxBankHt;    // When deltaWSL = 0, flow depth is at bank top. +ve is overbank, -ve is in channel
+    double deltaWSL = 0.;    // When deltaWSL = 0, flow depth is at bank top. +ve is overbank, -ve is in channel
+    maxBankHt = 0.;
     ovBankFlag = 0;
     xsBedWidth = 0.;
-    topW = 0.;
+    mainChannel = 0;
+    topW, xsB2B = 0.;
+    for (i = 0; i < numChannels; i++)
+        if ( CHList[i].bankHeight > maxBankHt )
+            maxBankHt = CHList[i].bankHeight;
+    deltaWSL = maxDepth - maxBankHt;           // Assess deepest channel in cross-section, calculate delta WSL
 
     for (i = 0; i < 3; i++)                    // Clear out old data
     {
@@ -231,7 +238,6 @@ void NodeXSObject::xsGeom()                    // Given maxDepth, update flow XS
 
     for (i = 0; i < numChannels; i++)          // Add up in-channel flow, area, perimeter and bed width
     {
-        CHList[i].depth = maxDepth;            // Send XS depth to channel object, returns area possibly including overbank flow
         CHList[i].chGeom(deltaWSL);
         xsFlowArea[0] += CHList[i].flowArea;   // Sum up area, perim, bed width, 2b2 for all channels
         xsFlowPerim[0] += CHList[i].flowPerim;
@@ -239,41 +245,25 @@ void NodeXSObject::xsGeom()                    // Given maxDepth, update flow XS
         xsB2B += CHList[i].b2b;
 
         if (CHList[i].ovBank == 1)             // If flows go overbank..
-            ovBankFlag = 1;
+            ovBankFlag = 1;                    // Partition 'area' into channel and floodplain
 
-        if (CHList[i].depth > maxDepth)
-        {
-            maxDepth = CHList[i].depth;         // identify deepest, 'main' channel
+        if (CHList[i].depth >= maxDepth)       // identify deepest, 'main' channel
             mainChannel = i;
-        }
     }
 
-    if (ovBankFlag == 1)
+    topW = xsB2B;
+
+    if (deltaWSL > 0)                          // if flows are overbank, compute floodplain area, perimeter
     {
-        xsFlowPerim[1] += fpWidth + 2 * (xsFlowArea[1] / fpWidth);
+        xsFlowArea[1] = ( fpWidth - xsB2B ) * deltaWSL;
+        xsFlowPerim[1] = ( fpWidth - xsB2B ) + 2 * deltaWSL;
+        topW = fpWidth;
     }
 
     xsFlowArea[2] = xsFlowArea[0] + xsFlowArea[1];       // Sum total area and perim for the cross-section
     xsFlowPerim[2] = xsFlowPerim[0] + xsFlowPerim[1];
     hydRadius = xsFlowArea[2] / xsFlowPerim[2];
-}
-
-void NodeXSObject::xsCentr()
-{
-    // Compute centroid of flow
-                                                                        // Elevation at point where floodplain meets valley wall
-    /* The formula for a trapezoid with base (a), top width (b),
-       and height (h) - arbitrary side slope length - is:
-
-                      / 2a + b  \
-           (h/3)  *  | --------  |
-                      \  a + b  /                             */
-
-
-    centr = 1;         // Need to figure out computation scheme, here.
-
-    // NEED TO DIVIDE BY TOTAL AREA (e.g. n.xs_area()) AFTER GETTING THIS ARRAY (?)
-
+    centr = (maxDepth / 3) * ( (2 * xsBedWidth + topW ) / ( xsBedWidth + topW) );         // Slightly inaccurate... 3-part approach would be better
 }
 
 void NodeXSObject::xsECI(NodeGSDObject F)
