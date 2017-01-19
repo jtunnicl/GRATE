@@ -939,13 +939,11 @@ void hydro::regimeModel(int n, int m, RiverProfile *r )
     double gradient_2 = 0;
 
     p = 4 * pow( Q, 0.5 );
-    CH.width = p * 1.001;
-    // energyConserve( n, r );                 // Update section data based on new theta
+    CH.width = p * 1.001;                // Update section data based on new theta
     findStable( n, m, r );
     test_plus = CH.Qb_cap;
 
     CH.width = p * 0.999;
-    // energyConserve( n, r );
     findStable( n, m, r );
     test_minus = CH.Qb_cap;
     gradient_1 = test_plus - test_minus;
@@ -957,12 +955,10 @@ void hydro::regimeModel(int n, int m, RiverProfile *r )
     else
         p = p - 0.25 * p;
     CH.width = p * 1.001;
-    // energyConserve( n, r );
     findStable( n, m, r );
     test_plus = CH.Qb_cap;
 
     CH.width = p * 0.999;
-    energyConserve( n, r );
     findStable( n, m, r );
     test_minus = CH.Qb_cap;
 
@@ -979,12 +975,10 @@ void hydro::regimeModel(int n, int m, RiverProfile *r )
         else
             p = p - 0.25 * p;
         CH.width = p * 1.001;
-        // energyConserve( n, r );
         findStable( n, m, r );
         test_plus = CH.Qb_cap;
 
         CH.width = p * 0.999;
-        // energyConserve( n, r );
         findStable( n, m, r );
         test_minus = CH.Qb_cap;
 
@@ -1005,7 +999,6 @@ void hydro::regimeModel(int n, int m, RiverProfile *r )
         test_plus = CH.Qb_cap;
 
         CH.width = p * 0.999;
-        energyConserve( n, r );
         findStable( n, m, r );
         test_minus = CH.Qb_cap;
 
@@ -1020,7 +1013,6 @@ void hydro::regimeModel(int n, int m, RiverProfile *r )
 
     CH.width = p;
     CH.bankHeight = CH.Hmax + sin( CH.theta * PI / 180 ) * ( (CH.b2b - CH.width) / 2 );
-    energyConserve( n, r );
     findStable( n, m, r );
 }
 
@@ -1103,7 +1095,7 @@ void hydro::findStable( int n, int ch_idx, RiverProfile *r )
               pow( 1 - ( pow( sin ( CH.theta * PI / 180 ), 2) /
               pow( sin( phi * PI / 180 ), 2) ), 0.5 );
 
-    energyConserve( n, r );                 // Update section data based on new theta
+    //energyConserve( n, r );                 // Update section data based on new theta
     channelState( n, ch_idx, r );                   // Update stresses, transport capacity
     converg = ( CH.Tbank - bank_crit ) / bank_crit;
 
@@ -1115,7 +1107,7 @@ void hydro::findStable( int n, int ch_idx, RiverProfile *r )
             b_lower = CH.theta;
         CH.theta = 0.5 * (b_upper + b_lower);
 
-        energyConserve( n, r );            // Update section data based on new theta
+        //energyConserve( n, r );            // Update section data based on new theta
         channelState( n, ch_idx, r );              // Update stresses, transport capacity
         converg = ( CH.Tbank - bank_crit ) / bank_crit;
 
