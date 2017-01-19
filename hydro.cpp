@@ -218,7 +218,7 @@ void hydro::setQuasiSteadyNodalFlows(RiverProfile *r){
 
 void hydro::xsCritDepth(int n, RiverProfile *r )
 {
-    int mainCH = r->RiverXS[n].mainChannel;
+    int& mainCH = r->RiverXS[n].mainChannel;
     int itmax = 50;
     double i,k,iter;
     double y_star, y_c1, y_c2, y_c3;                 // Following Chaudhry's technique, Section 3-7, in 2nd Ed. 2008
@@ -229,7 +229,7 @@ void hydro::xsCritDepth(int n, RiverProfile *r )
     double ff = 1;
     double dy, y1, y2 = 0;
     double upper, lower, Cmax;
-    NodeXSObject XS1 = r->RiverXS[n];
+    NodeXSObject& XS1 = r->RiverXS[n];
     vector<double> y_r_test = {1.0001, 1.0005, 1.001, 1.005, 1.01, 1.02, 1.03, 1.04, 1.05, 1.06, 1.07, 1.1, 1.2, 1.5, 2, 3};    // 16 elements
     vector<double> C_result = {0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.};
 
@@ -927,9 +927,9 @@ vector<double> hydro::matsol(int N, vector<vector<double>> A){
 
 // New Routines:   *********************************************************************
 
-void hydro::regimeModel(int n, int m, NodeXSObject *XS )
+void hydro::regimeModel(int n, int m, RiverProfile *r )
 {
-    NodeCHObject& CH = XS.CHList[m];
+    NodeCHObject& CH = r->RiverXS[n].CHList[m];
     double Tol = 0.00001;
     double Q = QwCumul[n] * CH.QProp;
     double test_plus, test_minus = 0;
@@ -940,12 +940,12 @@ void hydro::regimeModel(int n, int m, NodeXSObject *XS )
 
     p = 4 * pow( Q, 0.5 );
     CH.width = p * 1.001;
-    energyConserve( n, r );                 // Update section data based on new theta
+    // energyConserve( n, r );                 // Update section data based on new theta
     findStable( n, m, r );
     test_plus = CH.Qb_cap;
 
     CH.width = p * 0.999;
-    energyConserve( n, r );
+    // energyConserve( n, r );
     findStable( n, m, r );
     test_minus = CH.Qb_cap;
     gradient_1 = test_plus - test_minus;
@@ -957,7 +957,7 @@ void hydro::regimeModel(int n, int m, NodeXSObject *XS )
     else
         p = p - 0.25 * p;
     CH.width = p * 1.001;
-    energyConserve( n, r );
+    // energyConserve( n, r );
     findStable( n, m, r );
     test_plus = CH.Qb_cap;
 
@@ -979,12 +979,12 @@ void hydro::regimeModel(int n, int m, NodeXSObject *XS )
         else
             p = p - 0.25 * p;
         CH.width = p * 1.001;
-        energyConserve( n, r );
+        // energyConserve( n, r );
         findStable( n, m, r );
         test_plus = CH.Qb_cap;
 
         CH.width = p * 0.999;
-        energyConserve( n, r );
+        // energyConserve( n, r );
         findStable( n, m, r );
         test_minus = CH.Qb_cap;
 
@@ -1139,7 +1139,6 @@ void hydro::setRegimeWidth(RiverProfile *r)
     float deltaEta = 0;
     float reachDrop = 0;                       // Drop in elevation over reach river length
     float oldBankHeight = 0;
-    double aspect = 0.;
     double Tol = 50.;                          // Maximum allowed channel aspect (w/d)
     int g, m, n = 0;                           // Counters
 
@@ -1155,13 +1154,13 @@ void hydro::setRegimeWidth(RiverProfile *r)
         for (n = 0; n < 10; n++)               // Iterate through CH Objects
         {
             g = rand();
-            if ( XS.CHList[n].aspect > Tol )
+            if ( XS.CHList[n].aspect > Tol )   // Any channels exceeding tolerance are split, at random proportions
             {
                 XS.numChannels++;
-                XS.CHList[n].Qprop = g;
-                regimeModel( regimeCounter, n, r );
-                XS.CHList[numChannels].Qprop = ( 1 - g );
-                regimeModel( regimeCounter, numChannels, r );
+                XS.CHList[n].QProp = g;
+                regimeModel( regimeCounter, n, r );   // Assess regime proportions, for given flow
+                XS.CHList[XS.numChannels].QProp = ( 1 - g );
+                regimeModel( regimeCounter, XS.numChannels, r );
             }
             XS.xsGeom();
         }
