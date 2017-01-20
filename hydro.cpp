@@ -939,9 +939,9 @@ void hydro::regimeModel(int n, int m, RiverProfile *r )
     double gradient_2 = 0;
 
     p = 4 * pow( Q, 0.5 );
-    CH.width = p * 1.001;                // Update section data based on new theta
+    CH.width = p * 1.001;
     findStable( n, m, r );
-    test_plus = CH.Qb_cap;
+    test_plus = CH.Qb_cap;               // Compute bedload transport, for given width
 
     CH.width = p * 0.999;
     findStable( n, m, r );
@@ -1069,6 +1069,12 @@ void hydro::channelState( int n, int ch_idx, RiverProfile *r )
     CH.Qb_cap = CH.width * ( W_star / ( 1.65 * G ) ) * pow( ( CH.Tbed / RHO ), ( 3 / 2 ) );
 }
 
+
+void hydro::Qfind( int Q, n, S, Width, H, theta )         // Work out depth for a diven discharge.
+{
+    // Work out depth for a given Q, using CH.chGeom(0) and Keulegan reln.
+}
+
 void hydro::findStable( int n, int ch_idx, RiverProfile *r )
 {
     // find the stable channel shape for the specified Q and relative bank strength, mu
@@ -1088,12 +1094,50 @@ void hydro::findStable( int n, int ch_idx, RiverProfile *r )
     // set the upper and lower angle limits
     double b_upper = phi - deltaX;
     double b_lower = deltaX;
-    CH.theta = 0.67 * phi;
+    CH.theta = 0.25 * phi;                // UBCRM_H uses 1/4; later versions use 2/3
 
-    // calculate the bank stability index
+
+    // calculate the bank stability index (Bank SI)
     bank_crit = G * RHO * Gs * D90 * tau_star *
               pow( 1 - ( pow( sin ( CH.theta * PI / 180 ), 2) /
               pow( sin( phi * PI / 180 ), 2) ), 0.5 );
+
+
+    Qfind();
+
+    if ( CH.depth > CH.Hmax )             // perform a stress partitioning only if Y > H
+    {
+        Stress(i,:,j)=UBCRMHstress(Pbed(i),Y,H, S,theta,D95);
+        Btest = abs(Stress(i,2,j)./Stress(i,4,j)-1);
+        while (Btest > Bthreshold)
+        {
+            if Stress(i,2,j) > Stress(i,4,j)
+            {
+                T_high = theta;
+                theta=(T_high+T_low)/2;
+            }
+            elseif ( Stress(i,2,j) < Stress(i,4,j) )
+            {
+                T_low = theta;
+                theta=(T_high+T_low)/2;
+            }
+
+            // Q, n, S, Pbed(i),H, theta
+            Qfind();
+            Stress(i,:,j) = UBCRMHstress(Pbed(i),Y,H,S,theta,D95);
+            Btest = abs(Stress(i,2,j)./Stress(i,4,j)-1);
+        end
+    else            // perform analysis for rectangular channel, no bank stab
+        theta = 89;
+        Stress(i,:,j) = UBCRMHstress(Pbed(i),Y,H,S,theta,D95);
+
+    }
+
+
+
+
+
+
 
     //energyConserve( n, r );                 // Update section data based on new theta
     channelState( n, ch_idx, r );                   // Update stresses, transport capacity
