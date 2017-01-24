@@ -1069,100 +1069,54 @@ void hydro::channelState( int n, int ch_idx, RiverProfile *r )
     CH.Qb_cap = CH.width * ( W_star / ( 1.65 * G ) ) * pow( ( CH.Tbed / RHO ), ( 3 / 2 ) );
 }
 
-
-void hydro::Qfind( int Q, n, S, Width, H, theta )         // Work out depth for a diven discharge.
-{
-    // Work out depth for a given Q, using CH.chGeom(0) and Keulegan reln.
-}
-
 void hydro::findStable( int n, int ch_idx, RiverProfile *r )
 {
     // find the stable channel shape for the specified Q and relative bank strength, mu
     NodeCHObject& CH = r->RiverXS[n].CHList[ch_idx];
     NodeGSDObject& f = r->F[n];
 
-    // specify constants and set mu to an equivalent phi
-    double phi = 40;
-    // double mod_phi = atan( CH.mu * tan( phi * PI / 180) ) * 180 / PI;
-    double Tol = 0.00001;
-    double deltaX = 0.00001 * phi;
-    double tau_star = 0.02;
-    double D90 = pow( 2, f.d90 ) / 1000;
+    // specify constants
     double converg, bank_crit;
     int iter = 0;
+    double phi = 40.;                          // friction angle for bank sediment
+    double Tol = 0.00001;
+    double deltaX = 0.00001 * CH.theta;
+    double tau_star = 0.02;   // = 0.035;
 
     // set the upper and lower angle limits
-    double b_upper = phi - deltaX;
-    double b_lower = deltaX;
-    CH.theta = 0.25 * phi;                // UBCRM_H uses 1/4; later versions use 2/3
-
+    double T_upper = CH.theta - deltaX;
+    double T_lower = deltaX;
+    CH.theta = 0.25 * phi;                     // UBCRM_H uses 1/4; later versions use 2/3
+    CH.FindDepth( CH.QProp * QwCumul[n] );
+    CH.chComputeStress(f, bedSlope[n]);
 
     // calculate the bank stability index (Bank SI)
     bank_crit = G * RHO * Gs * D90 * tau_star *
               pow( 1 - ( pow( sin ( CH.theta * PI / 180 ), 2) /
               pow( sin( phi * PI / 180 ), 2) ), 0.5 );
+    converg = ( CH.Tbank - bank_crit ) / bank_crit;   // Btest
 
+    while(abs(converg) > Tol){
 
-    Qfind();
-
-    if ( CH.depth > CH.Hmax )             // perform a stress partitioning only if Y > H
-    {
-        Stress(i,:,j)=UBCRMHstress(Pbed(i),Y,H, S,theta,D95);
-        Btest = abs(Stress(i,2,j)./Stress(i,4,j)-1);
-        while (Btest > Bthreshold)
+        if ( CH.depth > CH.Hmax )            // perform a stress partitioning only if Y > H
         {
-            if Stress(i,2,j) > Stress(i,4,j)
-            {
-                T_high = theta;
-                theta=(T_high+T_low)/2;
-            }
-            elseif ( Stress(i,2,j) < Stress(i,4,j) )
-            {
-                T_low = theta;
-                theta=(T_high+T_low)/2;
-            }
-
-            // Q, n, S, Pbed(i),H, theta
-            Qfind();
-            Stress(i,:,j) = UBCRMHstress(Pbed(i),Y,H,S,theta,D95);
-            Btest = abs(Stress(i,2,j)./Stress(i,4,j)-1);
-        end
-    else            // perform analysis for rectangular channel, no bank stab
-        theta = 89;
-        Stress(i,:,j) = UBCRMHstress(Pbed(i),Y,H,S,theta,D95);
-
-    }
+            if(converg > 0){T_upper = CH.theta;} else {T_lower = CH.theta;}
+            CH.theta = 0.5 * ( T_upper + T_lower );
+            CH.FindDepth( CH.QProp * QwCumul[n] );
+            CH.chComputeStress(f, bedSlope[n]);
+            bank_crit = G * RHO * Gs * D90 * tau_star *
+                      pow( 1 - ( pow( sin ( CH.theta * PI / 180 ), 2) /
+                      pow( sin( phi * PI / 180 ), 2) ), 0.5 );
+            converg = ( CH.Tbank - bank_crit ) / bank_crit;
 
 
+        }
+        else  // Flow is lower than Hmax, so assume rectangular channel
+        {
+            CH.theta = 89;
+            CH.chComputeStress(f, bedSlope[n]);
+        }
 
-
-
-
-
-    //energyConserve( n, r );                 // Update section data based on new theta
-    channelState( n, ch_idx, r );                   // Update stresses, transport capacity
-    converg = ( CH.Tbank - bank_crit ) / bank_crit;
-
-    while( ( abs( converg ) > Tol ) && ( iter < 50 ) )
-    {
-        if( converg > 0 )
-            b_upper = CH.theta;
-        else
-            b_lower = CH.theta;
-        CH.theta = 0.5 * (b_upper + b_lower);
-
-        //energyConserve( n, r );            // Update section data based on new theta
-        channelState( n, ch_idx, r );              // Update stresses, transport capacity
-        converg = ( CH.Tbank - bank_crit ) / bank_crit;
-
-        bank_crit = G * RHO * Gs * D90 * tau_star *
-                  pow( 1 - ( pow( sin ( CH.theta * PI / 180 ), 2) /
-                  pow( sin( phi * PI / 180 ), 2) ), 0.5 );
-
-        converg = (CH.Tbank - bank_crit) / bank_crit;
-
-        iter++;
-    }
 }
 
 void hydro::setRegimeWidth(RiverProfile *r)
