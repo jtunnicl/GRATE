@@ -19,6 +19,9 @@
 using namespace std;
 
 #define PI 3.14159265
+#define G 9.80665
+#define RHO 1000  // water density
+#define Gs 1.65   // submerged specific gravity
 
 double gammln2(double xx)
 {
@@ -177,6 +180,56 @@ void NodeCHObject::chGeom(double relDepth)
     else
         ovBank = 0;
     aspect = width / depth;
+}
+
+void NodeCHObject::chFindDepth(double Q, double Slope)       // Work out depth for a diven discharge.
+{
+
+}
+
+void NodeCHObject::chComputeStress(NodeGSDObject f, double Slope)       // Work out depth for a diven discharge.
+{
+    double X, arg;
+    double SFbank = 0;
+    double tau_star_ref, tau_ref, totstress, W_star;
+    float theta_rad = CH.theta * PI / 180;
+
+    // use Ferguson 2007 to calculate the stream velocity
+    // Res = a1 * a2 * ( hydRadius / D50 ) / pow( ( pow( a1, 2 ) + pow( a2, 2 ) *
+    //    pow(( hydRadius / D84 ),( 5 / 3 ))),( 1 / 2 ));
+    // use the Keulegan Equation
+    // Res = (1/0.4)*log(12.2*R/(f.d84))
+    // velocity = Res * pow((G * hydRadius * Slope),(1/2));
+
+    // use the equations from Knight and others to partition stress
+
+    arg =  -1.4026 * log10( width / ( flowPerim - width ) + 1.5 ) + 0.247;
+    SFbank = pow ( 10.0 , arg );    // partioning equation, M&Q93 Eqn.8, E&M04 Eqn.2
+    totstress = G * RHO * depth * Slope;
+    Tbed =  totstress * (1 - SFbank) *
+            ( b2b / (2 * width) + 0.5 );           // bed_str = stress acting on the bed, M&Q93 Eqn.10, E&M04 Eqn.4
+    Tbank =  totstress * SFbank *
+            ( b2b + width ) * sin( theta_rad ) / (4 * depth );
+
+    // estimate the largest grain that the flow can move
+    comp_D = Tbed / (0.02 * G * RHO * Gs );
+
+    // estimate the division between key stones and bed material load
+    //   (this corresponds to the approximate limit of full mobility)
+    K = Tbed / (0.04 * G * RHO * Gs);
+
+    // use Wilcock and Crowe to estimate the sediment transport rate
+    tau_star_ref = 0.021 + 0.015 * exp (-20 * f.sand_pct);
+    tau_ref = tau_star_ref * G * RHO * Gs * f.dsg;
+    X = Tbed / tau_ref;
+
+    if (X < 1.35)
+        W_star = 0.002 * pow( X, 7.5 );
+    else
+        W_star = 14 * pow( ( 1 - ( 0.894 / pow( X, 0.5 ) ) ), ( 4.5 ) );
+
+    Qb_cap = width * ( W_star / ( 1.65 * G ) ) * pow( ( Tbed / RHO ), ( 3 / 2 ) );
+
 }
 
 NodeXSObject::NodeXSObject()                   // Initialize object

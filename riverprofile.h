@@ -62,8 +62,11 @@ public:
     double mu;                                 // Bank strength, relative to bed (afer Millar, 2005)
     double theta;                              // Bank sideslope angle (degrees)
 
-    void chGeom(double relDepth);               // Calculate x-sec area for a given depth
+    void chGeom(double relDepth);              // Calculate x-sec area for a given depth
 
+    void chFindDepth(double Q, double Slope);                // Work out depth for a diven discharge.
+
+    void chComputeStress(NodeGSDObject f, double Slope);
 };
 
 class NodeXSObject
