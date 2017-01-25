@@ -144,6 +144,7 @@ NodeCHObject::NodeCHObject()
     b2b = 0.0;
     flowArea = 0.0;
     flowPerim = 0.0;
+    hydRadius = 0.0;
     ovBank = 0;
     Tbed = 20.;
     Tbank = 20.;
@@ -157,13 +158,17 @@ NodeCHObject::NodeCHObject()
 }
 
 void NodeCHObject::chGeom(double relDepth)
-{   // Update channel cross-section area and perimeter
-    // This is only for the channel itself. Overbank flows are handled in the NodeXSObject
+{   /* Update channel cross-section area and perimeter
+     'eta' in the long profile is tied to bank top of the cross section.
+     Thus, depth is assessed relative to the bank top. relDepth is zero at bankfull
+     This is only for the channel itself. Overbank flows are handled in the NodeXSObject */
+
     float theta_rad = theta * PI / 180;        // theta is always in degrees
 
-    depth = bankHeight + relDepth;             // bankHeight is different for each channel, and flow depth
-                                               //    within NodeCH objects is always set relative to this.
+    depth = bankHeight + relDepth;             /* bankHeight is different for each channel, and flow depth
+                                                      within NodeCH objects is always set relative to this. */
     b2b = width + 2 * ( bankHeight - Hmax) / tan( theta_rad );
+
     if ( depth <= ( bankHeight - Hmax ) )      // w.s.l. is below sloping bottom edges near bottom of channel
     {
         flowArea = width * depth + pow ( depth, 2 ) / tan( theta_rad );
@@ -179,15 +184,32 @@ void NodeCHObject::chGeom(double relDepth)
         ovBank = 1;
     else
         ovBank = 0;
+
+    hydRadius = flowArea / flowPerim;
     aspect = width / depth;
 }
 
-void NodeCHObject::chFindDepth(double Q, double Slope)       // Work out depth for a diven discharge.
+void NodeCHObject::chFindDepth(double Q, double D84, double Slope)       // Work out depth for a given discharge.
 {
+
+    double Res, a1, a2;
+    depth = 0.3 * pow( Q, 0.3 );
+    double deltaX = 0.001 * pow( Q, 0.3 );
+    double tol = 0.00001;
+
+    chGeom( depth - bankHeight );
+    // use Ferguson 2007 to calculate the stream velocity
+    a1 = 6.5;
+    a2 = 2.5;
+    Res = a1 * a2 *  ( hydRadius / D84 ) / ( pow ( a1, 2 ) + pow( a2, 2 ) *
+                     pow( pow( hydRadius / D84, (5/3)), 0.5 );
+    // use the Keulegan Equation
+    // Res = (1/0.4)*log(12.2*R/(D84))
+    chVelocity = Res * pow( (G * hydRadius * Slope), 0.5 );
 
 }
 
-void NodeCHObject::chComputeStress(NodeGSDObject f, double Slope)       // Work out depth for a diven discharge.
+void NodeCHObject::chComputeStress(NodeGSDObject f, double Slope)       // Compute stress on bed and banks.
 {
     double X, arg;
     double SFbank = 0;

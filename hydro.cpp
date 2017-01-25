@@ -1071,52 +1071,50 @@ void hydro::channelState( int n, int ch_idx, RiverProfile *r )
 
 void hydro::findStable( int n, int ch_idx, RiverProfile *r )
 {
-    // find the stable channel shape for the specified Q and relative bank strength, mu
+    // find optimal theta for the specified Q and Pbed
     NodeCHObject& CH = r->RiverXS[n].CHList[ch_idx];
     NodeGSDObject& f = r->F[n];
 
     // specify constants
     double converg, bank_crit;
-    int iter = 0;
     double phi = 40.;                          // friction angle for bank sediment
     double Tol = 0.00001;
     double deltaX = 0.00001 * CH.theta;
     double tau_star = 0.02;   // = 0.035;
 
-    // set the upper and lower angle limits
+    // set the upper and lower theta limits
     double T_upper = CH.theta - deltaX;
     double T_lower = deltaX;
     CH.theta = 0.25 * phi;                     // UBCRM_H uses 1/4; later versions use 2/3
-    CH.FindDepth( CH.QProp * QwCumul[n] );
+    CH.chFindDepth( CH.QProp * QwCumul[n], bedSlope[n] );
     CH.chComputeStress(f, bedSlope[n]);
 
     // calculate the bank stability index (Bank SI)
-    bank_crit = G * RHO * Gs * D90 * tau_star *
+    bank_crit = G * RHO * Gs * f.d90 * tau_star *
               pow( 1 - ( pow( sin ( CH.theta * PI / 180 ), 2) /
               pow( sin( phi * PI / 180 ), 2) ), 0.5 );
     converg = ( CH.Tbank - bank_crit ) / bank_crit;   // Btest
 
-    while(abs(converg) > Tol){
-
-        if ( CH.depth > CH.Hmax )            // perform a stress partitioning only if Y > H
+    if ( CH.depth > CH.Hmax )              // perform a stress partitioning only if Y > H
+    {
+        while(abs(converg) > Tol)
         {
-            if(converg > 0){T_upper = CH.theta;} else {T_lower = CH.theta;}
+            if(converg > 0){T_upper = CH.theta;} else {T_lower = CH.theta;}   // new candidate theta
             CH.theta = 0.5 * ( T_upper + T_lower );
-            CH.FindDepth( CH.QProp * QwCumul[n] );
-            CH.chComputeStress(f, bedSlope[n]);
-            bank_crit = G * RHO * Gs * D90 * tau_star *
+
+            CH.chFindDepth( CH.QProp * QwCumul[n], bedSlope[n] );
+            CH.chComputeStress(f, bedSlope[n]);   // Compute Tbed, Tbank
+            bank_crit = G * RHO * Gs * f.d90 * tau_star *
                       pow( 1 - ( pow( sin ( CH.theta * PI / 180 ), 2) /
                       pow( sin( phi * PI / 180 ), 2) ), 0.5 );
             converg = ( CH.Tbank - bank_crit ) / bank_crit;
-
-
         }
-        else  // Flow is lower than Hmax, so assume rectangular channel
-        {
-            CH.theta = 89;
-            CH.chComputeStress(f, bedSlope[n]);
-        }
-
+    }
+    else  // Flow is lower than Hmax, so assume rectangular channel
+    {
+        CH.theta = 89;
+        CH.chComputeStress(f, bedSlope[n]);  // Need to know Qb_Cap, regardless
+    }
 }
 
 void hydro::setRegimeWidth(RiverProfile *r)

@@ -48,6 +48,7 @@ public:
     double b2b;                                // Bank-to-bank width (top of in-channel flow section)
     double flowArea;                           // Flow area within the channel
     double flowPerim;                          // Perimeter, within the channel
+    double hydRadius;                          // Hydraulic radius for channel (note duplicate variable for XS)
     double chVelocity;                         // Flow velocity (m/s) within the channel
     double aspect;                             // width/depth ratio of the channel
 
@@ -64,7 +65,7 @@ public:
 
     void chGeom(double relDepth);              // Calculate x-sec area for a given depth
 
-    void chFindDepth(double Q, double Slope);                // Work out depth for a diven discharge.
+    void chFindDepth(double Q, double D84, double Slope);                // Work out depth for a diven discharge.
 
     void chComputeStress(NodeGSDObject f, double Slope);
 };
