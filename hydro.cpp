@@ -1075,7 +1075,7 @@ void hydro::Qfind( int Q, n, S, Width, H, theta )         // Work out depth for 
     // Work out depth for a given Q, using CH.chGeom(0) and Keulegan reln.
 }
 
-void hydro::findStable( int n, int ch_idx, RiverProfile *r )     // findStable = FindTransp in some BE code (UBCRM_base)
+void hydro::findStable( int n, int ch_idx, RiverProfile *r )
 {
     // find the stable channel shape for the specified Q and relative bank strength, mu
     NodeCHObject& CH = r->RiverXS[n].CHList[ch_idx];
@@ -1096,9 +1096,12 @@ void hydro::findStable( int n, int ch_idx, RiverProfile *r )     // findStable =
     double b_lower = deltaX;
     CH.theta = 0.25 * phi;                // UBCRM_H uses 1/4; later versions use 2/3
 
+
     // calculate the bank stability index (Bank SI)
-    bank_crit = G * RHO * Gs * D90 * tau_star * pow( 1 - ( pow( sin ( CH.theta * PI / 180 ), 2) /
+    bank_crit = G * RHO * Gs * D90 * tau_star *
+              pow( 1 - ( pow( sin ( CH.theta * PI / 180 ), 2) /
               pow( sin( phi * PI / 180 ), 2) ), 0.5 );
+
 
     Qfind();
 
@@ -1159,7 +1162,6 @@ void hydro::findStable( int n, int ch_idx, RiverProfile *r )     // findStable =
         converg = (CH.Tbank - bank_crit) / bank_crit;
 
         iter++;
-    }
     }
 }
 
