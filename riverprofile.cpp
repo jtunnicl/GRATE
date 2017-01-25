@@ -189,24 +189,50 @@ void NodeCHObject::chGeom(double relDepth)
     aspect = width / depth;
 }
 
-void NodeCHObject::chFindDepth(double Q, double D84, double Slope)       // Work out depth for a given discharge.
+void NodeCHObject::chFindDepth(double Q, double D84, double Slope)
+    // Work out bankfull depth (bankHeight) for a given discharge.
+    // Based on 'FindQ' routine in UBCRM
 {
 
-    double Res, a1, a2;
-    depth = 0.3 * pow( Q, 0.3 );
+    double Res, converg, testQ1, testQ2, B, M;
     double deltaX = 0.001 * pow( Q, 0.3 );
     double tol = 0.00001;
+    int iter = 0;
+    int itmax = 250;
 
-    chGeom( depth - bankHeight );
-    // use Ferguson 2007 to calculate the stream velocity
-    a1 = 6.5;
-    a2 = 2.5;
-    Res = a1 * a2 *  ( hydRadius / D84 ) / ( pow ( a1, 2 ) + pow( a2, 2 ) *
-                     pow( pow( hydRadius / D84, (5/3)), 0.5 );
-    // use the Keulegan Equation
-    // Res = (1/0.4)*log(12.2*R/(D84))
-    chVelocity = Res * pow( (G * hydRadius * Slope), 0.5 );
+    bankHeight = 0.3 * pow( Q, 0.3 );
+    chGeom( 0 );
+    Res = ( 1 / 0.4 ) * log( 12.2 * hydRadius / ( D84 ) );               // Keulegan equation
+    chVelocity = Res * pow( ( G * hydRadius * Slope ), 0.5 );
+    testQ1 = flowArea * chVelocity;
+    converg = ( ( testQ1 ) - Q ) / Q;
+    itmax = 250;
 
+    while ( abs ( converg ) > tol )
+    {
+        bankHeight += deltaX;
+        chGeom( 0 );
+        Res = ( 1 / 0.4 ) * log( 12.2 * hydRadius / ( D84 ) );
+        chVelocity = Res * pow( ( G * hydRadius * Slope ), 0.5 );
+        testQ2 = flowArea * chVelocity;
+        M = ( testQ2 - testQ1 ) / deltaX;
+        B = ( testQ1 - Q ) - M * ( bankHeight - deltaX );
+
+        bankHeight = - B / M;
+        chGeom( 0 );
+        Res = ( 1 / 0.4 ) * log( 12.2 * hydRadius / ( D84 ) );               // Keulegan equation
+        chVelocity = Res * pow( ( G * hydRadius * Slope ), 0.5 );
+        testQ1 = flowArea * chVelocity;
+        converg = ( ( testQ1 ) - Q ) / Q;
+        iter++;
+        if ( iter > itmax )
+        {
+            cout << "Iteration exceed in NodeCHObject::chFindDepth" << endl;
+            break;
+        }
+    }
+
+    if ( bankHeight < Hmax ) { bankHeight = Hmax; }
 }
 
 void NodeCHObject::chComputeStress(NodeGSDObject f, double Slope)       // Compute stress on bed and banks.
@@ -214,16 +240,8 @@ void NodeCHObject::chComputeStress(NodeGSDObject f, double Slope)       // Compu
     double X, arg;
     double SFbank = 0;
     double tau_star_ref, tau_ref, totstress, W_star;
-    float theta_rad = CH.theta * PI / 180;
-
-    // use Ferguson 2007 to calculate the stream velocity
-    // Res = a1 * a2 * ( hydRadius / D50 ) / pow( ( pow( a1, 2 ) + pow( a2, 2 ) *
-    //    pow(( hydRadius / D84 ),( 5 / 3 ))),( 1 / 2 ));
-    // use the Keulegan Equation
-    // Res = (1/0.4)*log(12.2*R/(f.d84))
-    // velocity = Res * pow((G * hydRadius * Slope),(1/2));
-
-    // use the equations from Knight and others to partition stress
+    double D50 = pow( 2, f.dsg ) / 1000;
+    float theta_rad = theta * PI / 180;
 
     arg =  -1.4026 * log10( width / ( flowPerim - width ) + 1.5 ) + 0.247;
     SFbank = pow ( 10.0 , arg );    // partioning equation, M&Q93 Eqn.8, E&M04 Eqn.2
@@ -242,7 +260,7 @@ void NodeCHObject::chComputeStress(NodeGSDObject f, double Slope)       // Compu
 
     // use Wilcock and Crowe to estimate the sediment transport rate
     tau_star_ref = 0.021 + 0.015 * exp (-20 * f.sand_pct);
-    tau_ref = tau_star_ref * G * RHO * Gs * f.dsg;
+    tau_ref = tau_star_ref * G * RHO * Gs * D50;
     X = Tbed / tau_ref;
 
     if (X < 1.35)

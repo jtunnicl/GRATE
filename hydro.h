@@ -38,8 +38,6 @@ public:
 
     void regimeModel(int m, int n, RiverProfile *r);               // Compute Millar-Eaton equilibrium channel width
 
-    void channelState(int n, int ch_idx, RiverProfile *r);
-
     void findStable(int n, int ch_idx, RiverProfile *r);
 
     void setRegimeWidth( RiverProfile *r );

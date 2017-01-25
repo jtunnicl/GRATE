@@ -65,9 +65,10 @@ public:
 
     void chGeom(double relDepth);              // Calculate x-sec area for a given depth
 
-    void chFindDepth(double Q, double D84, double Slope);                // Work out depth for a diven discharge.
-
+    void chFindDepth(double Q, double D84, double Slope);
+                                               // Work out bankfull depth (bankHeight) for a given discharge.
     void chComputeStress(NodeGSDObject f, double Slope);
+                                               // Compute stress on banks
 };
 
 class NodeXSObject

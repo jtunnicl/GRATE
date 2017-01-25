@@ -994,7 +994,6 @@ void hydro::regimeModel(int n, int m, RiverProfile *r )
     while(converg > Tol)
     {
         CH.width = p * 1.001;
-        CH.chGeom(p);               // quickfix, here - needs appropriate WSL
         findStable( n, m, r );
         test_plus = CH.Qb_cap;
 
@@ -1016,59 +1015,6 @@ void hydro::regimeModel(int n, int m, RiverProfile *r )
     findStable( n, m, r );
 }
 
-void hydro::channelState( int n, int ch_idx, RiverProfile *r )
-{
-    // Compute stresses, transport capacity
-    NodeCHObject& CH = r->RiverXS[n].CHList[ch_idx];
-    double X, arg;
-    double SFbank = 0;
-    double tau_star_ref, tau_ref, totstress, W_star;
-
-    NodeGSDObject& f = r->F[n];
-    //double D84 = pow( 2, f.d84 ) / 1000;
-    double D50 = pow( 2, f.dsg ) / 1000;
-
-    NodeGSDObject bankMaterial = r->storedf[n][r->ntop[n]];
-    bankMaterial.dg_and_std();
-    float theta_rad = CH.theta * PI / 180;
-
-    // use Ferguson 2007 to calculate the stream velocity
-    // Res = a1 * a2 * ( CH.hydRadius / D50 ) / pow( ( pow( a1, 2 ) + pow( a2, 2 ) *
-    //    pow(( CH.hydRadius / D84 ),( 5 / 3 ))),( 1 / 2 ));
-    // use the Keulegan Equation
-    // Res = (1/0.4)*log(12.2*R/(D84))
-    // CH.velocity = Res * pow((G * CH.hydRadius * bedSlope[n]),(1/2));
-
-    // use the equations from Knight and others to partition stress
-
-    arg =  -1.4026 * log10( CH.width / ( CH.flowPerim - CH.width ) + 1.5 ) + 0.247;
-    SFbank = pow ( 10.0 , arg );    // partioning equation, M&Q93 Eqn.8, E&M04 Eqn.2
-    totstress = G * RHO * CH.depth * bedSlope[n];
-    CH.Tbed =  totstress * (1 - SFbank) *
-            ( CH.b2b / (2 * CH.width) + 0.5 );           // bed_str = stress acting on the bed, M&Q93 Eqn.10, E&M04 Eqn.4
-    CH.Tbank =  totstress * SFbank *
-            ( CH.b2b + CH.width ) * sin( theta_rad ) / (4 * CH.depth );
-
-    // estimate the largest grain that the flow can move
-    CH.comp_D = CH.Tbed / (0.02 * G * RHO * Gs );
-
-    // estimate the division between key stones and bed material load
-    //   (this corresponds to the approximate limit of full mobility)
-    CH.K = CH.Tbed / (0.04 * G * RHO * Gs);
-
-    // use Wilcock and Crowe to estimate the sediment transport rate
-    tau_star_ref = 0.021 + 0.015 * exp (-20 * f.sand_pct);
-    tau_ref = tau_star_ref * G * RHO * Gs * D50;
-    X = CH.Tbed / tau_ref;
-
-    if (X < 1.35)
-        W_star = 0.002 * pow( X, 7.5 );
-    else
-        W_star = 14 * pow( ( 1 - ( 0.894 / pow( X, 0.5 ) ) ), ( 4.5 ) );
-
-    CH.Qb_cap = CH.width * ( W_star / ( 1.65 * G ) ) * pow( ( CH.Tbed / RHO ), ( 3 / 2 ) );
-}
-
 void hydro::findStable( int n, int ch_idx, RiverProfile *r )
 {
     // find optimal theta for the specified Q and Pbed
@@ -1077,20 +1023,25 @@ void hydro::findStable( int n, int ch_idx, RiverProfile *r )
 
     // specify constants
     double converg, bank_crit;
+    double D84 = pow( 2, f.d90 ) / 1000;       // grain size in m
+    double D90 = pow( 2, f.d90 ) / 1000;
     double phi = 40.;                          // friction angle for bank sediment
     double Tol = 0.00001;
     double deltaX = 0.00001 * CH.theta;
     double tau_star = 0.02;   // = 0.035;
+    int iter = 0;
+    int itmax = 250;
 
     // set the upper and lower theta limits
     double T_upper = CH.theta - deltaX;
     double T_lower = deltaX;
     CH.theta = 0.25 * phi;                     // UBCRM_H uses 1/4; later versions use 2/3
-    CH.chFindDepth( CH.QProp * QwCumul[n], bedSlope[n] );
+
+    CH.chFindDepth( CH.QProp * QwCumul[n], D84, bedSlope[n] );
     CH.chComputeStress(f, bedSlope[n]);
 
     // calculate the bank stability index (Bank SI)
-    bank_crit = G * RHO * Gs * f.d90 * tau_star *
+    bank_crit = G * RHO * Gs * D90 * tau_star *
               pow( 1 - ( pow( sin ( CH.theta * PI / 180 ), 2) /
               pow( sin( phi * PI / 180 ), 2) ), 0.5 );
     converg = ( CH.Tbank - bank_crit ) / bank_crit;   // Btest
@@ -1102,12 +1053,18 @@ void hydro::findStable( int n, int ch_idx, RiverProfile *r )
             if(converg > 0){T_upper = CH.theta;} else {T_lower = CH.theta;}   // new candidate theta
             CH.theta = 0.5 * ( T_upper + T_lower );
 
-            CH.chFindDepth( CH.QProp * QwCumul[n], bedSlope[n] );
+            CH.chFindDepth( CH.QProp * QwCumul[n], D84, bedSlope[n] );
             CH.chComputeStress(f, bedSlope[n]);   // Compute Tbed, Tbank
-            bank_crit = G * RHO * Gs * f.d90 * tau_star *
+            bank_crit = G * RHO * Gs * D90 * tau_star *
                       pow( 1 - ( pow( sin ( CH.theta * PI / 180 ), 2) /
                       pow( sin( phi * PI / 180 ), 2) ), 0.5 );
             converg = ( CH.Tbank - bank_crit ) / bank_crit;
+            iter++;
+            if ( iter > itmax )
+            {
+                cout << "Iteration exceed in hydro::findStable" << endl;
+                break;
+            }
         }
     }
     else  // Flow is lower than Hmax, so assume rectangular channel
