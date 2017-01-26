@@ -244,12 +244,12 @@ void NodeCHObject::chComputeStress(NodeGSDObject f, double Slope)       // Compu
     float theta_rad = theta * PI / 180;
 
     arg =  -1.4026 * log10( width / ( flowPerim - width ) + 1.5 ) + 0.247;
-    SFbank = pow ( 10.0 , arg );    // partioning equation, M&Q93 Eqn.8, E&M04 Eqn.2
-    totstress = G * RHO * depth * Slope;
+    SFbank = pow ( 10.0 , arg );                   // Partioning equation, M&Q93 Eqn.8, E&M04 Eqn.2
+    totstress = G * RHO * bankHeight * Slope;      // We are assuming bankfull flow, thus bankHeight
     Tbed =  totstress * (1 - SFbank) *
             ( b2b / (2 * width) + 0.5 );           // bed_str = stress acting on the bed, M&Q93 Eqn.10, E&M04 Eqn.4
     Tbank =  totstress * SFbank *
-            ( b2b + width ) * sin( theta_rad ) / (4 * depth );
+            ( b2b + width ) * sin( theta_rad ) / (4 * bankHeight );
 
     // estimate the largest grain that the flow can move
     comp_D = Tbed / (0.02 * G * RHO * Gs );
@@ -312,12 +312,13 @@ NodeXSObject::NodeXSObject()                   // Initialize object
 void NodeXSObject::xsGeom()                    // Given maxDepth, update flow XS area at a given node, including overbank flows
 {
     int i;
-    double deltaWSL = 0.;    // When deltaWSL = 0, flow depth is at bank top. +ve is overbank, -ve is in channel
+    double deltaWSL = 0.;                      // When deltaWSL = 0, flow depth is at bank top. +ve is overbank, -ve is in channel
     maxBankHt = 0.;
     ovBankFlag = 0;
     xsBedWidth = 0.;
     mainChannel = 0;
     topW, xsB2B = 0.;
+
     for (i = 0; i < numChannels; i++)
         if ( CHList[i].bankHeight > maxBankHt )
             maxBankHt = CHList[i].bankHeight;

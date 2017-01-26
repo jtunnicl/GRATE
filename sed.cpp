@@ -247,7 +247,7 @@ void sed::exner(RiverProfile *r)
 
     for ( i = 1; i < (r->nnodes-1); i++ )                          // Calculate deta
     {
-        fullValleyWidth[i] = r->RiverXS[i].fpWidth + r->RiverXS[i].xsBedWidth;
+        fullValleyWidth[i] = r->RiverXS[i].fpWidth - r->RiverXS[i].xsBedWidth;
 
         deta[i] = r->dt * ( upw * ( ( Qs[i-1] - Qs[i] ) / ( r->xx[i] - r->xx[i-1] ) )
             + ( 1 - upw ) * ( ( Qs[i] - Qs[i+1] ) / ( r->xx[i+1] - r->xx[i] ) ) )

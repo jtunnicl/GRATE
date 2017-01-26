@@ -142,7 +142,8 @@ void hydro::backWater(RiverProfile *r)
         Fr2[n] = r->RiverXS[n].eci * r->RiverXS[n].meanVeloc *
                 r->RiverXS[n].meanVeloc / ( g * r->RiverXS[n].maxDepth );
 
-        xsCritDepth( n, r );       // Calculate critical depth
+        //xsCritDepth( n, r );       // Calculate critical depth
+        r->RiverXS[n].critDepth = pow ( G * pow( r->RiverXS[n].xsBedWidth, 2 ) / pow ( QwCumul[n], 2 ), 0.334 );
 
         if ( ( Fr2[n] < FrN2 ) || ( bedSlope[n] <= 0 ) || ( n == 0 ) ) // Not super-crit; use energy eqn
             iret = energyConserve(n, r);
@@ -1046,7 +1047,7 @@ void hydro::findStable( int n, int ch_idx, RiverProfile *r )
               pow( sin( phi * PI / 180 ), 2) ), 0.5 );
     converg = ( CH.Tbank - bank_crit ) / bank_crit;   // Btest
 
-    if ( CH.depth > CH.Hmax )              // perform a stress partitioning only if Y > H
+    if ( CH.bankHeight > CH.Hmax )              // perform a stress partitioning only if Y > H
     {
         while(abs(converg) > Tol)
         {
