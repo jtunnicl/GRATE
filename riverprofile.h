@@ -105,7 +105,9 @@ public:
     double k_mean;                             // Conveyance coefficient
     double eci;                                // Energy coefficient related to channel form drag
 
-    void xsGeom();                    // Calculate x-sec area for a given depth
+    void RegimeReset();
+
+    void xsGeom();                             // Calculate x-sec area for a given depth
 
     void xsECI(NodeGSDObject F);               // Energy coefficient
 

@@ -167,6 +167,14 @@ void NodeCHObject::chGeom(double relDepth)
 
     depth = bankHeight + relDepth;             /* bankHeight is different for each channel, and flow depth
                                                       within NodeCH objects is always set relative to this. */
+
+    if ( depth < 0 )
+    {
+        cout << "Cocksucker went negative!!! " << "\n";
+        exit(1);
+    }
+
+
     b2b = width + 2 * ( bankHeight - Hmax) / tan( theta_rad );
 
     if ( depth <= ( bankHeight - Hmax ) )      // w.s.l. is below sloping bottom edges near bottom of channel
@@ -200,7 +208,7 @@ void NodeCHObject::chFindDepth(double Q, double D84, double Slope)
     int iter = 0;
     int itmax = 250;
 
-    bankHeight = 0.3 * pow( Q, 0.3 );
+    bankHeight = Hmax + 0.3 * pow( Q, 0.3 );
     chGeom( 0 );
     Res = ( 1 / 0.4 ) * log( 12.2 * hydRadius / ( D84 ) );               // Keulegan equation
     chVelocity = Res * pow( ( G * hydRadius * Slope ), 0.5 );
@@ -219,6 +227,7 @@ void NodeCHObject::chFindDepth(double Q, double D84, double Slope)
         B = ( testQ1 - Q ) - M * ( bankHeight - deltaX );
 
         bankHeight = - B / M;
+        if ( bankHeight < Hmax ) { bankHeight = Hmax + 0.01; }
         chGeom( 0 );
         Res = ( 1 / 0.4 ) * log( 12.2 * hydRadius / ( D84 ) );               // Keulegan equation
         chVelocity = Res * pow( ( G * hydRadius * Slope ), 0.5 );
@@ -231,11 +240,9 @@ void NodeCHObject::chFindDepth(double Q, double D84, double Slope)
             break;
         }
     }
-
-    if ( bankHeight < Hmax ) { bankHeight = Hmax; }
 }
 
-void NodeCHObject::chComputeStress(NodeGSDObject f, double Slope)       // Compute stress on bed and banks.
+void NodeCHObject::chComputeStress(NodeGSDObject f, double Slope)       // Compute stress on bed and banks of channel.
 {
     double X, arg;
     double SFbank = 0;
@@ -307,6 +314,31 @@ NodeXSObject::NodeXSObject()                   // Initialize object
      for (int i = 0; i < 10; i++)              // Max 10 dummy channel objects initiated, all with QProp '0'..
          CHList.push_back(tmp);
      CHList[0].QProp = 1;                      // ..except 1st element. Assume single-channel default.
+}
+
+void NodeXSObject::RegimeReset()
+{
+    // clear out old channel information
+    double i;
+
+    numChannels = 1;
+    CHList[0].QProp = 1;
+    for (i = 1; i < 10; i++)
+    {
+        CHList[i].QProp = 0;
+        CHList[i].depth = CHList[i].bankHeight;     // Bankfull conditions
+        CHList[i].width = 0.;
+        CHList[i].b2b = 0.0;
+        CHList[i].flowArea = 0.0;
+        CHList[i].flowPerim = 0.0;
+        CHList[i].hydRadius = 0.0;
+        CHList[i].ovBank = 0;
+        CHList[i].Tbed = 20.;
+        CHList[i].Tbank = 20.;
+        CHList[i].Qb_cap = 0.2;
+        CHList[i].comp_D = 0.005;
+        CHList[i].K = 0;
+    }
 }
 
 void NodeXSObject::xsGeom()                    // Given maxDepth, update flow XS area at a given node, including overbank flows

@@ -235,7 +235,6 @@ void sed::exner(RiverProfile *r)
     double upw = 0.75;                                             // Upwinding constant
     double chi = 0.7;                                              // weighting for interfacial exchange
     double dmy;
-    vector<double> fullValleyWidth( r->nnodes );
     vector<double> tmp(3);
     tmp[0] = 0;
     tmp[1] = 0;
@@ -243,15 +242,11 @@ void sed::exner(RiverProfile *r)
 
     NodeGSDObject fi, Fprime;                                      // Temporary grain-size container
 
-    fullValleyWidth[0] = r->RiverXS[0].fpWidth;
-
     for ( i = 1; i < (r->nnodes-1); i++ )                          // Calculate deta
     {
-        fullValleyWidth[i] = r->RiverXS[i].fpWidth - r->RiverXS[i].xsBedWidth;
-
         deta[i] = r->dt * ( upw * ( ( Qs[i-1] - Qs[i] ) / ( r->xx[i] - r->xx[i-1] ) )
             + ( 1 - upw ) * ( ( Qs[i] - Qs[i+1] ) / ( r->xx[i+1] - r->xx[i] ) ) )
-                      / (1.0 - r->poro) / fullValleyWidth[i];
+                      / (1.0 - r->poro) / r->RiverXS[i].fpWidth;
     }
 
     deta[0] = ( ( Qs_bc[0].Q - Qs[1] ) / ( r->xx[1] - r->xx[0] ) );
