@@ -1035,7 +1035,7 @@ void hydro::findStable( int n, int ch_idx, RiverProfile *r )
 
     // specify constants
     double converg, bank_crit;
-    double D84 = pow( 2, f.d90 ) / 1000;       // grain size in m
+    double D84 = pow( 2, f.d84 ) / 1000;       // grain size in m
     double D90 = pow( 2, f.d90 ) / 1000;
     double phi = 40.;                          // friction angle for bank sediment
     double Tol = 0.001;
@@ -1106,20 +1106,21 @@ void hydro::setRegimeWidth(RiverProfile *r)
     XS.RegimeReset();                          // Clear XS info; Start on assumption of just one bankfull channel
     regimeModel( regimeCounter, 0, r );        // Regime assessment of 1st channel
     XS.xsGeom();
+    XS.numChannels = 1;
 
     for (m = 0; m < 5; m++)                    // Number of sweeps to check for any w/d aspects >Tol
     {
         for (n = 0; n < 10; n++)               // Iterate through CH Objects
         {
             splitRatio = ((double)rand() / RAND_MAX);
-            if ( n > 0 ) { XS.CHList[n].QProp = 0; }
+            //if ( n > 0 ) { XS.CHList[n].QProp = 0; }
             if (( XS.CHList[n].aspect > Tol ) && ( XS.numChannels < 10 ))   // Any channels exceeding tolerance are split, at random proportions
             {
                 XS.numChannels++;
-                XS.CHList[n].QProp = splitRatio;
-                regimeModel( regimeCounter, n, r );   // Assess regime proportions, for given flow
-                XS.CHList[XS.numChannels-1].QProp = ( 1 - splitRatio );
-                regimeModel( regimeCounter, XS.numChannels-1, r );
+                XS.CHList[XS.numChannels-1].QProp = splitRatio * XS.CHList[n].QProp;
+                regimeModel( regimeCounter, XS.numChannels-1, r );   // Assess regime proportions, for given flow
+                XS.CHList[n].QProp *= ( 1 - splitRatio );
+                regimeModel( regimeCounter, n, r );
             }
             XS.xsGeom();
         }

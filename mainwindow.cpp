@@ -212,7 +212,7 @@ void MainWindow::setupChart(){
     ui->BankWidthPlot->graph(3)->setData( x, RightBankTop );
     ui->BankWidthPlot->graph(3)->setPen(QPen(Qt::blue));
 
-    ui->BankWidthPlot->addGraph();  // Sinuosity
+    ui->BankWidthPlot->addGraph();  // numChannels
     ui->BankWidthPlot->graph(4)->setData( x, RightBankTop );
     ui->BankWidthPlot->graph(4)->setPen(QPen(Qt::green));
 
@@ -324,7 +324,7 @@ void MainWindow::modelUpdate(){
     QVector<double> RightBankLower( rn->nnodes );
     QVector<double> LeftBankTop( rn->nnodes );
     QVector<double> RightBankTop( rn->nnodes );
-    QVector<double> Sinuosity( rn->nnodes );
+    QVector<double> ChannelCount( rn->nnodes );
     QVector<double> XsPlotX( 11 );
     QVector<double> XsPlotY( 11 );
     QVector<double> wsXS_X( 2 );
@@ -374,7 +374,7 @@ void MainWindow::modelUpdate(){
         theta_rad = rn->RiverXS[i].CHList[0].theta * PI / 180;
         LeftBankTop[i] = ( rn->RiverXS[i].CHList[0].width + (2 * ( rn->RiverXS[i].CHList[0].bankHeight - rn->RiverXS[i].CHList[0].Hmax) / tan( theta_rad ) ) ) / 2;
         RightBankTop[i] = rn->RiverXS[i].CHList[0].depth * 100;
-        Sinuosity[i] = ( rn->RiverXS[i].chSinu - 1 ) * 100;
+        ChannelCount[i] = ( rn->RiverXS[i].numChannels ) * 10;
 
         Qw_Plot[i] = wl->QwCumul[i] / 100;
         for ( j = 0; j < rn->ngsz; j++ )            // Make a cumulative dist
@@ -508,7 +508,7 @@ void MainWindow::modelUpdate(){
     ui->BankWidthPlot->graph(3)->clearData();
     ui->BankWidthPlot->graph(3)->setData( x, RightBankTop );
     ui->BankWidthPlot->graph(4)->clearData();
-    ui->BankWidthPlot->graph(4)->setData( x, Sinuosity );
+    ui->BankWidthPlot->graph(4)->setData( x, ChannelCount );
 
     ui->BankWidthPlot->xAxis->setLabel("Distance Downstream");
     ui->BankWidthPlot->yAxis->setLabel("Bank Width");
