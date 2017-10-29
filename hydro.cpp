@@ -95,7 +95,7 @@ void hydro::backWater(RiverProfile *r)
     bool bQuasiNormal = 0;                       // Flag for treating super-critical flows with quasi-normal assumption
     int lastNode = r->nnodes-1;
 
-    setQuasiSteadyNodalFlows(r);
+    setQuasiSteadyNodalFlows(r);                 // Determine flow at each node
 
 //    if (Qw[0][0].date_time.secsTo(r->cTime) < 1)  // Start of run?
 //        for (i = 0; i < r->nnodes-1; i++)         // Run through all nodes

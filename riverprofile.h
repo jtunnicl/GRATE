@@ -81,7 +81,7 @@ public:
     NodeXSObject();
 
     int node;
-    int numChannels;                           // Number of channels
+    int numChannels;                           // Number of channels (max 10)
     double wsl;                                // Water surface level (m above sea level)
     vector<NodeCHObject> CHList;               // Vector containing channel characteristics
     double fpWidth;                            // Valley width -> Floodplain width (m) = fpWidth - xsB2B
@@ -97,7 +97,7 @@ public:
     int mainChannel;                           // Channel with deepest flow
     vector <double> xsFlowArea;                // [0] Channel [1] Floodplain [2] Total area
     vector <double>  xsFlowPerim;              // [0] Channel [1] Floodplain [2] Total wetted perimeter
-    double hydRadius;                          // Hydraulic radius
+    double hydRadius;                          // Hydraulic radius (note duplicate variable for CH)
     double critDepth;                          // Critical depth
     double centr;                              // Vertical centroid of flow
     double rough;                              // Grain roughness height
