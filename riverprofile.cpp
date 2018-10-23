@@ -513,7 +513,6 @@ void RiverProfile::initData(XMLDocument &xml_params)
         std::cerr << "Error getting root element" << std::endl;
         // TODO: handle errors
     }
-    std::cout << "Root element is: " << root->Name() << std::endl;
     
     // get params element
     XMLElement *params = root->FirstChildElement("PARAMS");
@@ -538,12 +537,8 @@ void RiverProfile::initData(XMLDocument &xml_params)
         system("pause");
     }
 
-    f = getNextParam(inDatFile, "NNODES");
-    for (i = 0; i < 8; i++) g[i] = *(f++);
-    int old_nnodes = atoi(g);
     nnodes = std::stoi(params->FirstChildElement("NNODES")->GetText());
     // TODO: error handling
-    std::cout << "xml nnodes = " << nnodes << " vs " << old_nnodes << std::endl;
 
     // Allocate vectors
     xx.resize(nnodes);
@@ -553,24 +548,21 @@ void RiverProfile::initData(XMLDocument &xml_params)
     bedrock.resize(nnodes);
     RiverXS.resize(nnodes);
 
-    f = getNextParam(inDatFile, "LAYER");
-    for (i = 0; i < 8; i++) g[i] = *(f++);
-    layer = atof(g);
+    layer = std::stod(params->FirstChildElement("LAYER")->GetText());
+    // TODO: error handling
+
     toplayer.assign(nnodes, layer);               // Thickness of the top storage layer; starts at 5 and erodes down
 
-    f = getNextParam(inDatFile, "LA");
-    for (i = 0; i < 8; i++) g[i] = *(f++);
-    default_la = atof(g);
+    default_la = std::stod(params->FirstChildElement("LA")->GetText());
+    // TODO: error handling
     la.assign(nnodes, default_la);                // Default active layer thickness
 
-    f = getNextParam(inDatFile, "NLAYER");
-    for (i = 0; i < 8; i++) g[i] = *(f++);
-    nlayer = atoi(g);
+    nlayer = std::stoi(params->FirstChildElement("NLAYER")->GetText());
+    // TODO: error handling
     ntop.assign(nnodes, nlayer-15);                // Indicates # of layers remaining, below current (couple of layers left for aggradation)
 
-    f = getNextParam(inDatFile, "PORO");
-    for (i = 0; i < 8; i++) g[i] = *(f++);
-    poro = atof(g);                               // Default deposit porosity
+    poro = std::stod(params->FirstChildElement("PORO")->GetText());
+    // TODO: error handling
 
     for (i = 0; i < nlayer; i++)                  // Init storedf stratigraphy matrix
         tmp2.push_back(tmp);
@@ -581,17 +573,14 @@ void RiverProfile::initData(XMLDocument &xml_params)
         F.push_back(tmp);
     }
 
-    f = getNextParam(inDatFile, "NGSZ");
-    for (i = 0; i < 8; i++) g[i] = *(f++);
-    ngsz = atoi(g);
+    ngsz = std::stoi(params->FirstChildElement("NGSZ")->GetText());
+    // TODO: error handling
 
-    f = getNextParam(inDatFile, "NLITH");
-    for (i = 0; i < 8; i++) g[i] = *(f++);
-    nlith = atoi(g);
+    nlith = std::stoi(params->FirstChildElement("NLITH")->GetText());
+    // TODO: error handling
 
-    f = getNextParam(inDatFile, "NGRP");
-    for (i = 0; i < 8; i++) g[i] = *(f++);
-    ngrp = atoi(g);
+    ngrp = std::stoi(params->FirstChildElement("NGRP")->GetText());
+    // TODO: error handling
 
     for (i = 0; i < ngrp; i++)
         grp.push_back(tmp);
