@@ -5,7 +5,10 @@
 #include <QVector>
 #include <QDateTime>
 #include <cmath>
+#include "tinyxml2/tinyxml2.h"
+
 using namespace std;
+using namespace tinyxml2;
 
 double gammln2(double xx);
 
@@ -101,7 +104,7 @@ class RiverProfile
 
 public:
 
-    RiverProfile();                            // Constructor
+    RiverProfile(XMLDocument &xml_params);                            // Constructor
     // Profile Elements
 
     int nnodes;                                // No. of points in the computational grid
@@ -151,7 +154,7 @@ public:
 
     vector<float> N;                           // Transition matrix for coarsening or fining mixtures
 
-    void initData();
+    void initData(XMLDocument &xml_params);
     
     vector<float> hydroGraph();
 

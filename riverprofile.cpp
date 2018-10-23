@@ -16,7 +16,10 @@
 #include <cstdlib>
 #include <cstring>
 #include "riverprofile.h"
+#include "tinyxml2/tinyxml2.h"
+
 using namespace std;
+using namespace tinyxml2;
 
 #define PI 3.14159265
 #define G 9.80665
@@ -379,7 +382,7 @@ TS_Object::TS_Object()
 
 }
 
-RiverProfile::RiverProfile()
+RiverProfile::RiverProfile(XMLDocument &xml_params)
     {
 
     NodeXSObject tmp;       // to initialize RiverXS
@@ -400,6 +403,7 @@ RiverProfile::RiverProfile()
 
     RiverXS.push_back(tmp);
 
+    // TODO: should start and end time be parameters or read from ui??
     cTime.setDate(QDate(2002,12,5));
     cTime.setTime(QTime(12,0,0,0));
     startTime.setDate(QDate(2002,12,5));
@@ -456,7 +460,7 @@ RiverProfile::RiverProfile()
     if ( ( N[0] + N[1] + N[2] + N[3] + N[4] ) > 1)
        cout << "Interpolation Array is over 1.0";
 
-    initData();
+    initData(xml_params);
 
     }
 
@@ -501,8 +505,22 @@ vector<float> RiverProfile::hydroGraph()
   return fac;
 }
 
-void RiverProfile::initData()
-    {
+void RiverProfile::initData(XMLDocument &xml_params)
+{
+    // get the root element
+    XMLElement *root = xml_params.FirstChildElement();
+    if (root == NULL) {
+        std::cerr << "Error getting root element" << std::endl;
+        // TODO: handle errors
+    }
+    std::cout << "Root element is: " << root->Name() << std::endl;
+    
+    // get params element
+    XMLElement *params = root->FirstChildElement("PARAMS");
+    if (params == NULL) {
+        std::cerr << "Error getting PARAMS element" << std::endl;
+        // TODO: handle errors
+    }
 
     std::ifstream inDatFile;
 
@@ -522,7 +540,10 @@ void RiverProfile::initData()
 
     f = getNextParam(inDatFile, "NNODES");
     for (i = 0; i < 8; i++) g[i] = *(f++);
-    nnodes = atoi(g);
+    int old_nnodes = atoi(g);
+    nnodes = std::stoi(params->FirstChildElement("NNODES")->GetText());
+    // TODO: error handling
+    std::cout << "xml nnodes = " << nnodes << " vs " << old_nnodes << std::endl;
 
     // Allocate vectors
     xx.resize(nnodes);

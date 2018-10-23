@@ -17,13 +17,15 @@ SOURCES += main.cpp\
     hydro.cpp \
     qcustomplot.cpp \
     riverprofile.cpp \
-    sed.cpp
+    sed.cpp \
+    tinyxml2/tinyxml2.cpp
 
 HEADERS  += mainwindow.h \
     hydro.h \
     qcustomplot.h \
     riverprofile.h \
-    sed.h
+    sed.h \
+    tinyxml2/tinyxml2.h
 
 FORMS    += \
     RwaveWin.ui

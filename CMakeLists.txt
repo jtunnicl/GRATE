@@ -23,6 +23,7 @@ set(QT5_LIBRARIES Qt5::Widgets Qt5::PrintSupport)
 
 # Populate CMake variables with the sources
 set(CPP_SOURCES
+    tinyxml2/tinyxml2.cpp
     sed.cpp
     riverprofile.cpp
     qcustomplot.cpp
@@ -44,3 +45,4 @@ target_link_libraries(GrateRip ${QT5_LIBRARIES})
 configure_file(Input_Rip1_equil_1938.dat ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
 configure_file(hydro_series.dat ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
 configure_file(sed_series.dat ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
+configure_file(test_out.xml ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)

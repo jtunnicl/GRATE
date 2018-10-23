@@ -12,28 +12,45 @@
 
 #include "mainwindow.h"
 #include "ui_RwaveWin.h"
+#include "tinyxml2/tinyxml2.h"
 #include <iostream>
 #include <fstream>
 
 #define PI 3.14159265
 
+using namespace tinyxml2;
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow),
-    rn(new RiverProfile),                        // Long profile, channel geometry
-    wl(new hydro(rn)),                               // Channel hydraulic parameters
-    sd(new sed(rn))
-
+    ui(new Ui::MainWindow)
 {
+    // setup user interface
     ui->setupUi(this);
+
+    // load xml input file (ask for filename in dialog if default not there????)
+    std::cout << "Reading xml file" << std::endl;
+    XMLDocument xml_params;
+    if (xml_params.LoadFile("test_out.xml") != XML_SUCCESS) {
+        std::cerr << "Error reading xml parameters:" << std::endl;
+        std::cerr << xml_params.ErrorStr() << std::endl;
+        // TODO: error dialog
+    }
+
+    // initialise components
+    rn = new RiverProfile(xml_params);  // Long profile, channel geometry
+    wl = new hydro(rn);  // Channel hydraulic parameters
+    sd = new sed(rn);
+
+    // initialise
     rn->cTime = wl->Qw[0][0].date_time;
     rn->startTime = wl->Qw[0][0].date_time;
     rn->endTime = wl->Qw[0][wl->Qw[0].size() - 1].date_time;
     setupChart();                                // Setup GUI graph
     setWindowTitle("Raparapaririki River");
-    ui->textFileName->setText("Input_Rip1_equil_1938.dat");
+    ui->textFileName->setText("Input_Rip1_equil_1938.dat");  // TODO: should be an argument, or dialog popup??
     ui->VectorPlot->replot();
-                                               // Use <Refresh Plot> button to start run
+
+    // Use <Refresh Plot> button to start run
     connect(ui->refreshButton, SIGNAL(clicked()), this, SLOT(kernel()), Qt::QueuedConnection);
 }
 
@@ -563,6 +580,10 @@ void MainWindow::modelUpdate(){
     if (rn->counter % 10000 == 0)
         writeResults(rn->counter);
 
+    // temporarily limit to 50 steps for testing
+    if (rn->counter == 50) {
+        dataTimer.stop();
+    }
 }
 
 void MainWindow::writeResults(int count){
@@ -671,6 +692,8 @@ void MainWindow::writeResults(int count){
 MainWindow::~MainWindow()
 {
     delete ui;
+    delete sd;
+    delete wl;
     delete rn;
 }
 
