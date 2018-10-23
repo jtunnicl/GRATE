@@ -568,31 +568,15 @@ void RiverProfile::initData(XMLElement* params_root)
 
     ngsz = std::stoi(params->FirstChildElement("NGSZ")->GetText());
     // TODO: error handling
-//    f = getNextParam(inDatFile, "NGSZ");
-//    for (i = 0; i < 8; i++) g[i] = *(f++);
-//    int old_ngsz = atoi(g);
-//    cout << "ngsz " << ngsz << " " << old_ngsz << endl;
 
     nlith = std::stoi(params->FirstChildElement("NLITH")->GetText());
     // TODO: error handling
-//    f = getNextParam(inDatFile, "NLITH");
-//    for (i = 0; i < 8; i++) g[i] = *(f++);
-//    int old_nlith = atoi(g);
-//    cout << "nlith " << nlith << " " << old_nlith << endl;
 
     ngrp = std::stoi(params->FirstChildElement("NGRP")->GetText());
     // TODO: error handling
-//    f = getNextParam(inDatFile, "NGRP");
-//    for (i = 0; i < 8; i++) g[i] = *(f++);
-//    int old_ngrp = atoi(g);
-//    cout << "ngrp " << ngrp << " " << old_ngrp << endl;
 
     for (i = 0; i < ngrp; i++)
         grp.push_back(tmp);
-
-    //getGrainSizeLibrary(inDatFile);
-
-    //getLibraryLith(inDatFile);
 
     getGSDLibrary(params_root);
 
@@ -656,47 +640,8 @@ const char *RiverProfile::getNextParam(std::ifstream &openFile, const char *next
     return (token[2]);
 }
 
-void RiverProfile::getGrainSizeLibrary(ifstream &openFile)
-{
-    const char* token[40] = {};              // initialize to 0; 40 tokens max
-    char buf[512];                           // Max 512 chars per line
-    int Found = 0;
-    int n, grpCount = 0;
-
-    while (Found == 0)                       // Skip through comments
-    {
-        openFile.getline(buf, 512);
-        token[0] = strtok( buf, " " );                    // first token
-        if (token[0] == NULL || strcmp(token[0], "!") == 0)       // zero if line is blank or "!"
-            continue;
-        else
-        Found = 1;
-    }
-
-    for (int gsCount = 0; gsCount < ngsz; gsCount++)
-    {
-        for (n = 0; n < 50; n++)
-        {
-            token[n] = strtok(0, " ");
-            if (!token[n]) break;            // no more tokens
-        }
-
-        for (grpCount = 0; grpCount < (ngrp); grpCount++)
-            {
-                grp[grpCount].pct[0][gsCount] = atof(token[grpCount]);
-                grp[grpCount].pct[1][gsCount] = atof(token[grpCount]);
-                grp[grpCount].pct[2][gsCount] = atof(token[grpCount]);
-            }
-
-        openFile.getline(buf, 512);         // proceed to next line
-        token[0] = strtok( buf, " " );
-    }
-}
-
 void RiverProfile::getGSDLibrary(XMLElement* params_root)
 {
-    std::cout << "DEBUG: getting GSD Library from XML file" << std::endl;
-
     // loop over lithologies
     for (int lithCount = 0; lithCount < nlith; lithCount++)
     {
@@ -704,7 +649,6 @@ void RiverProfile::getGSDLibrary(XMLElement* params_root)
         std::stringstream ss;
         ss << "LITH" << lithCount + 1;
         std::string lithName = ss.str();
-        std::cout << "reading lith: " << lithName << std::endl;
 
         // get the element
         XMLElement *lithElem = params_root->FirstChildElement(lithName.c_str());
@@ -793,90 +737,6 @@ void RiverProfile::getGSDLibrary(XMLElement* params_root)
                 grp[grpCount].pct[lithCount][gsCount] = qtemp.pct[lithCount][gsCount];
         grp[grpCount].dg_and_std();
     }
-}
-
-void RiverProfile::getLibraryLith(ifstream &openFile)
-{
-    NodeGSDObject qtemp;
-    const char* token[40] = {};              // initialize to 0; 40 tokens max
-    char buf[512];                           // Max 512 chars per line
-    int Found = 0;
-    int n, gsCount, grpCount, lithCount = 0;
-
-    gsCount = 0;
-    while (Found == 0)                       // Skip through comments
-    {
-        openFile.getline(buf, 512);
-        token[0] = strtok( buf, " " );                    // first token
-        if (token[0] == NULL || strcmp(token[0], "!") == 0)       // zero if line is blank or "!"
-            continue;
-        else
-        {
-            for (lithCount = 0; lithCount < nlith; lithCount++)
-            {
-                for (n = 1; n < 50; n++)           // tokenize string
-                {
-                    token[n] = strtok(0, " "); // subsequent tokens
-                    if (!token[n]) break;            // no more tokens
-                }
-
-                for (grpCount = 0; grpCount < ngrp; grpCount++)
-                    grp[grpCount].pct[lithCount][gsCount] *= (strtod(token[grpCount+1], NULL) / 100);    //
-
-                openFile.getline(buf, 512);
-                token[0] = strtok( buf, " " );         // start loop again
-            }
-        }
-
-        gsCount++;
-        if (gsCount >= ngsz)
-            Found = 1;
-    }
-
-    // Take cumulative data and turn it into normalized fractions
-    for (grpCount = 0; grpCount < (ngrp); grpCount++)
-        for (int gsCount = ngsz; gsCount > 0; gsCount--)
-        {
-            grp[grpCount].pct[0][gsCount] -= grp[grpCount].pct[0][gsCount - 1];
-            grp[grpCount].pct[1][gsCount] -= grp[grpCount].pct[1][gsCount - 1];
-            grp[grpCount].pct[2][gsCount] -= grp[grpCount].pct[2][gsCount - 1];
-        }
-        
-    // Carry out substrate shift; for randomization work
-
-    for (grpCount = 0; grpCount < ngrp; grpCount++)
-    {
-        for (int gsCount = 0; gsCount < ngsz; gsCount++)
-        {
-            for (lithCount = 0; lithCount < nlith; lithCount++)                           // last term is a sand content addition
-            {
-                if ( gsCount == 0 )
-                    qtemp.pct[lithCount][gsCount] = N[2] * grp[grpCount].pct[gsCount][lithCount] + N[3] * grp[grpCount].pct[lithCount][gsCount+1]
-                        + N[4] * grp[grpCount].pct[lithCount][gsCount+2];
-                else if ( gsCount == 1 )
-                    qtemp.pct[lithCount][gsCount] = N[1]*grp[grpCount].pct[lithCount][gsCount-1]
-                        + N[2]*grp[grpCount].pct[lithCount][gsCount] + N[3]*grp[grpCount].pct[lithCount][gsCount+1]
-                        + N[4]*grp[grpCount].pct[lithCount][gsCount+2];
-                else if ( gsCount == ngsz-2 )
-                    qtemp.pct[lithCount][gsCount]= N[0]*grp[grpCount].pct[lithCount][gsCount-2]+ N[1]*grp[grpCount].pct[lithCount][gsCount-1]
-                        + N[2]*grp[grpCount].pct[lithCount][gsCount] + N[3]*grp[grpCount].pct[lithCount][gsCount+1];
-                else if ( gsCount == ngsz-1 )
-                    qtemp.pct[lithCount][gsCount]= N[0]*grp[grpCount].pct[lithCount][gsCount-2]+ N[1]*grp[grpCount].pct[lithCount][gsCount-1]
-                        + N[2]*grp[grpCount].pct[lithCount][gsCount];
-                else
-                    qtemp.pct[lithCount][gsCount]= N[0]*grp[grpCount].pct[lithCount][gsCount-2]+ N[1]*grp[grpCount].pct[lithCount][gsCount-1]
-                        + N[2]*grp[grpCount].pct[lithCount][gsCount] + N[3]*grp[grpCount].pct[lithCount][gsCount+1]
-                       + N[4]*grp[grpCount].pct[lithCount][gsCount+2];
-            }
-        }
-
-        qtemp.norm_frac();
-        for (int gsCount = 0; gsCount < ngsz; gsCount++)
-            for (lithCount = 0; lithCount < nlith; lithCount++)
-                grp[grpCount].pct[lithCount][gsCount] = qtemp.pct[lithCount][gsCount];
-        grp[grpCount].dg_and_std();
-    }
-    
 }
 
 void RiverProfile::getLongProfile(ifstream &openFile)
