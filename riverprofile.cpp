@@ -618,6 +618,7 @@ void RiverProfile::initData(XMLElement* params_root)
     f = getNextParam(inDatFile, "NPTS");
     for (i = 0; i < 8; i++) g[i] = *(f++);
     npts = atoi(g);
+    // CHECK: NPTS not in xml file (is it the same as NNODES??)
 
     getLongProfile(inDatFile);
 

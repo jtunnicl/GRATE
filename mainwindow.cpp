@@ -585,11 +585,11 @@ void MainWindow::modelUpdate(){
     ui->spinD90->setValue(pow(2, rn->F[n].d90));
     ui->spinHmax->setValue(rn->RiverXS[n].Hmax);
 
-    if (rn->counter % 10000 == 0)
+    if (rn->counter % 100 == 0)
         writeResults(rn->counter);
 
     // temporarily limit to 50 steps for testing
-    if (rn->counter == 50) {
+    if (rn->counter == 100) {
         dataTimer.stop();
     }
 }
