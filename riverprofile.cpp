@@ -566,38 +566,35 @@ void RiverProfile::initData(XMLElement* params_root)
         F.push_back(tmp);
     }
 
-    cout << "here1" << endl;
     ngsz = std::stoi(params->FirstChildElement("NGSZ")->GetText());
     // TODO: error handling
-    f = getNextParam(inDatFile, "NGSZ");
-    for (i = 0; i < 8; i++) g[i] = *(f++);
-    int old_ngsz = atoi(g);
-    cout << "ngsz " << ngsz << " " << old_ngsz << endl;
+//    f = getNextParam(inDatFile, "NGSZ");
+//    for (i = 0; i < 8; i++) g[i] = *(f++);
+//    int old_ngsz = atoi(g);
+//    cout << "ngsz " << ngsz << " " << old_ngsz << endl;
 
-    cout << "here2" << endl;
     nlith = std::stoi(params->FirstChildElement("NLITH")->GetText());
     // TODO: error handling
-    f = getNextParam(inDatFile, "NLITH");
-    for (i = 0; i < 8; i++) g[i] = *(f++);
-    int old_nlith = atoi(g);
-    cout << "nlith " << nlith << " " << old_nlith << endl;
+//    f = getNextParam(inDatFile, "NLITH");
+//    for (i = 0; i < 8; i++) g[i] = *(f++);
+//    int old_nlith = atoi(g);
+//    cout << "nlith " << nlith << " " << old_nlith << endl;
 
-    cout << "here3" << endl;
     ngrp = std::stoi(params->FirstChildElement("NGRP")->GetText());
     // TODO: error handling
-    f = getNextParam(inDatFile, "NGRP");
-    for (i = 0; i < 8; i++) g[i] = *(f++);
-    int old_ngrp = atoi(g);
-    cout << "ngrp " << ngrp << " " << old_ngrp << endl;
-
-    cout << "here4" << endl;
+//    f = getNextParam(inDatFile, "NGRP");
+//    for (i = 0; i < 8; i++) g[i] = *(f++);
+//    int old_ngrp = atoi(g);
+//    cout << "ngrp " << ngrp << " " << old_ngrp << endl;
 
     for (i = 0; i < ngrp; i++)
         grp.push_back(tmp);
 
-    getGrainSizeLibrary(inDatFile);
+    //getGrainSizeLibrary(inDatFile);
 
-    getLibraryLith(inDatFile);
+    //getLibraryLith(inDatFile);
+
+    getGSDLibrary(params_root);
 
     for (i = 0; i < nnodes; i++)
     {
@@ -692,6 +689,108 @@ void RiverProfile::getGrainSizeLibrary(ifstream &openFile)
 
         openFile.getline(buf, 512);         // proceed to next line
         token[0] = strtok( buf, " " );
+    }
+}
+
+void RiverProfile::getGSDLibrary(XMLElement* params_root)
+{
+    std::cout << "DEBUG: getting GSD Library from XML file" << std::endl;
+
+    // loop over lithologies
+    for (int lithCount = 0; lithCount < nlith; lithCount++)
+    {
+        // name of this element
+        std::stringstream ss;
+        ss << "LITH" << lithCount + 1;
+        std::string lithName = ss.str();
+        std::cout << "reading lith: " << lithName << std::endl;
+
+        // get the element
+        XMLElement *lithElem = params_root->FirstChildElement(lithName.c_str());
+        if (lithElem == NULL) {
+            std::cerr << "Error getting " << lithName << " element" << std::endl;
+            // TODO: handle errors
+        }
+
+        // loop over groups
+        int grpCount = 0;
+        for (XMLElement* e = lithElem->FirstChildElement("GRP"); e != NULL; e = e->NextSiblingElement("GRP")) {
+            // loop over psi
+            for (int gsCount = 0; gsCount < ngsz; gsCount++) {
+                // name of this psi element
+                // CHECK: do they alway start -3 to 9
+                std::stringstream ss_psi;
+                ss_psi << "PSI_" << gsCount - 3;
+                std::string psiName = ss_psi.str();
+                
+                // get the element
+                XMLElement* psiElem = e->FirstChildElement(psiName.c_str());
+                if (psiElem == NULL) {
+                    std::cerr << "Error getting element " << psiName << " for " << lithName << std::endl;
+                    // TODO: handle errors
+                }
+
+                // get the value
+                double tmpval;
+                if (psiElem->QueryDoubleText(&tmpval)) {
+                    std::cerr << "Error getting value for " << lithName << " - " << psiName << std::endl;
+                }
+                grp[grpCount].pct[lithCount][gsCount] = tmpval;
+
+                // TODO: get other things, i.e. ABR, RHOS
+            }
+
+            grpCount++;
+        }
+        if (grpCount != ngrp) {
+            std::cerr << "wrong number of groups for " << lithName << std::endl;
+            // TODO: handle errors
+        }
+    }
+
+    // Take cumulative data and turn it into normalized fractions
+    for (int grpCount = 0; grpCount < ngrp; grpCount++)
+        for (int gsCount = ngsz; gsCount > 0; gsCount--)
+        {
+            grp[grpCount].pct[0][gsCount] -= grp[grpCount].pct[0][gsCount - 1];
+            grp[grpCount].pct[1][gsCount] -= grp[grpCount].pct[1][gsCount - 1];
+            grp[grpCount].pct[2][gsCount] -= grp[grpCount].pct[2][gsCount - 1];
+        }
+        
+    // Carry out substrate shift; for randomization work
+    for (int grpCount = 0; grpCount < ngrp; grpCount++)
+    {
+        NodeGSDObject qtemp;
+
+        for (int gsCount = 0; gsCount < ngsz; gsCount++)
+        {
+            for (int lithCount = 0; lithCount < nlith; lithCount++)                           // last term is a sand content addition
+            {
+                if ( gsCount == 0 )
+                    qtemp.pct[lithCount][gsCount] = N[2] * grp[grpCount].pct[gsCount][lithCount] + N[3] * grp[grpCount].pct[lithCount][gsCount+1]
+                        + N[4] * grp[grpCount].pct[lithCount][gsCount+2];
+                else if ( gsCount == 1 )
+                    qtemp.pct[lithCount][gsCount] = N[1]*grp[grpCount].pct[lithCount][gsCount-1]
+                        + N[2]*grp[grpCount].pct[lithCount][gsCount] + N[3]*grp[grpCount].pct[lithCount][gsCount+1]
+                        + N[4]*grp[grpCount].pct[lithCount][gsCount+2];
+                else if ( gsCount == ngsz-2 )
+                    qtemp.pct[lithCount][gsCount]= N[0]*grp[grpCount].pct[lithCount][gsCount-2]+ N[1]*grp[grpCount].pct[lithCount][gsCount-1]
+                        + N[2]*grp[grpCount].pct[lithCount][gsCount] + N[3]*grp[grpCount].pct[lithCount][gsCount+1];
+                else if ( gsCount == ngsz-1 )
+                    qtemp.pct[lithCount][gsCount]= N[0]*grp[grpCount].pct[lithCount][gsCount-2]+ N[1]*grp[grpCount].pct[lithCount][gsCount-1]
+                        + N[2]*grp[grpCount].pct[lithCount][gsCount];
+                else
+                    qtemp.pct[lithCount][gsCount]= N[0]*grp[grpCount].pct[lithCount][gsCount-2]+ N[1]*grp[grpCount].pct[lithCount][gsCount-1]
+                        + N[2]*grp[grpCount].pct[lithCount][gsCount] + N[3]*grp[grpCount].pct[lithCount][gsCount+1]
+                       + N[4]*grp[grpCount].pct[lithCount][gsCount+2];
+            }
+        }
+
+        qtemp.norm_frac();
+        for (int gsCount = 0; gsCount < ngsz; gsCount++)
+            for (int lithCount = 0; lithCount < nlith; lithCount++)
+                grp[grpCount].pct[lithCount][gsCount] = qtemp.pct[lithCount][gsCount];
+        grp[grpCount].dg_and_std();
     }
 }
 

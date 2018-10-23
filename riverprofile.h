@@ -168,6 +168,8 @@ public:
 
     void getLibraryLith(std::ifstream &openFile);
 
+    void getGSDLibrary(XMLElement* params_root);
+
     void getStratigraphy(std::ifstream &openFile);
 
 };
