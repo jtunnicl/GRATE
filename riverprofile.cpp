@@ -382,8 +382,8 @@ TS_Object::TS_Object()
 
 }
 
-RiverProfile::RiverProfile(XMLDocument &xml_params)
-    {
+RiverProfile::RiverProfile(XMLElement* params_root)
+{
 
     NodeXSObject tmp;       // to initialize RiverXS
     nnodes = 0;
@@ -460,9 +460,9 @@ RiverProfile::RiverProfile(XMLDocument &xml_params)
     if ( ( N[0] + N[1] + N[2] + N[3] + N[4] ) > 1)
        cout << "Interpolation Array is over 1.0";
 
-    initData(xml_params);
+    initData(params_root);
 
-    }
+}
 
 vector<float> RiverProfile::hydroGraph()
 {
@@ -505,17 +505,10 @@ vector<float> RiverProfile::hydroGraph()
   return fac;
 }
 
-void RiverProfile::initData(XMLDocument &xml_params)
+void RiverProfile::initData(XMLElement* params_root)
 {
-    // get the root element
-    XMLElement *root = xml_params.FirstChildElement();
-    if (root == NULL) {
-        std::cerr << "Error getting root element" << std::endl;
-        // TODO: handle errors
-    }
-    
     // get params element
-    XMLElement *params = root->FirstChildElement("PARAMS");
+    XMLElement *params = params_root->FirstChildElement("PARAMS");
     if (params == NULL) {
         std::cerr << "Error getting PARAMS element" << std::endl;
         // TODO: handle errors
@@ -573,14 +566,31 @@ void RiverProfile::initData(XMLDocument &xml_params)
         F.push_back(tmp);
     }
 
+    cout << "here1" << endl;
     ngsz = std::stoi(params->FirstChildElement("NGSZ")->GetText());
     // TODO: error handling
+    f = getNextParam(inDatFile, "NGSZ");
+    for (i = 0; i < 8; i++) g[i] = *(f++);
+    int old_ngsz = atoi(g);
+    cout << "ngsz " << ngsz << " " << old_ngsz << endl;
 
+    cout << "here2" << endl;
     nlith = std::stoi(params->FirstChildElement("NLITH")->GetText());
     // TODO: error handling
+    f = getNextParam(inDatFile, "NLITH");
+    for (i = 0; i < 8; i++) g[i] = *(f++);
+    int old_nlith = atoi(g);
+    cout << "nlith " << nlith << " " << old_nlith << endl;
 
+    cout << "here3" << endl;
     ngrp = std::stoi(params->FirstChildElement("NGRP")->GetText());
     // TODO: error handling
+    f = getNextParam(inDatFile, "NGRP");
+    for (i = 0; i < 8; i++) g[i] = *(f++);
+    int old_ngrp = atoi(g);
+    cout << "ngrp " << ngrp << " " << old_ngrp << endl;
+
+    cout << "here4" << endl;
 
     for (i = 0; i < ngrp; i++)
         grp.push_back(tmp);

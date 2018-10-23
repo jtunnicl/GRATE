@@ -36,8 +36,16 @@ MainWindow::MainWindow(QWidget *parent) :
         // TODO: error dialog
     }
 
+    // get the root element of the XML document
+    XMLElement *params_root = xml_params.FirstChildElement();
+    if (params_root == NULL) {
+        std::cerr << "Error getting root element" << std::endl;
+        std::cerr << xml_params.ErrorStr() << std::endl;
+        // TODO: handle errors
+    }
+
     // initialise components
-    rn = new RiverProfile(xml_params);  // Long profile, channel geometry
+    rn = new RiverProfile(params_root);  // Long profile, channel geometry
     wl = new hydro(rn);  // Channel hydraulic parameters
     sd = new sed(rn);
 

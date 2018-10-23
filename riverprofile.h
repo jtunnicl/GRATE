@@ -104,7 +104,7 @@ class RiverProfile
 
 public:
 
-    RiverProfile(XMLDocument &xml_params);                            // Constructor
+    RiverProfile(XMLElement* params_root);                            // Constructor
     // Profile Elements
 
     int nnodes;                                // No. of points in the computational grid
@@ -154,7 +154,7 @@ public:
 
     vector<float> N;                           // Transition matrix for coarsening or fining mixtures
 
-    void initData(XMLDocument &xml_params);
+    void initData(XMLElement* params_root);
     
     vector<float> hydroGraph();
 
