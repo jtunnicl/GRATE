@@ -604,7 +604,7 @@ void RiverProfile::initData(XMLElement* params_root)
     npts = atoi(g);
     // CHECK: NPTS not in xml file (is it the same as NNODES??)
 
-    getLongProfile(inDatFile);
+    getLongProfile(inDatFile);  // TODO: remove once stratigraphy is in XML file
     getLongProfileXML(params_root);
 
     getStratigraphy(inDatFile);
@@ -761,108 +761,85 @@ void RiverProfile::getLongProfileXML(XMLElement* params_root)
             std::cerr << "Error getting X attribute from XX profile element " << m << std::endl;
             // TODO: error checking
         }
-        if (tmpval != xx[m]) {
-            std::cerr << "XX val differs for " << m << ": " << tmpval << " vs " << xx[m] << endl;
-        }
+        xx[m] = tmpval;
 
         // eta
         if (e->FirstChildElement("ETA")->QueryDoubleText(&tmpval)) {
             std::cerr << "Error getting ETA element from XX profile element " << m << std::endl;
             // TODO: error checking
         }
-        if (tmpval != eta[m]) {
-            std::cerr << "eta val differs for " << m << endl;
-        }
+        eta[m] = tmpval;
 
         // bedrock
         if (e->FirstChildElement("BEDROCK")->QueryFloatText(&tmpvalf)) {
             std::cerr << "Error getting BEDROCK element from XX profile element " << m << std::endl;
             // TODO: error checking
         }
-        if (tmpvalf != bedrock[m]) {
-            std::cerr << "bedrock val differs for " << m << ": " << bedrock[m] << " vs " << tmpvalf << endl;
-        }
+        bedrock[m] = tmpvalf;
+        if (bedrock[m] > eta[m])
+            bedrock[m] = eta[m];       // bedrock must be at, or lower than, initial bed
 
         // RiverXS.width
         if (e->FirstChildElement("WIDTH")->QueryDoubleText(&tmpval)) {
             std::cerr << "Error getting WIDTH element from XX profile element " << m << std::endl;
             // TODO: error checking
         }
-        if (tmpval != RiverXS[m].width) {
-            std::cerr << "width val differs for " << m << endl;
-        }
+        RiverXS[m].width = tmpval;
 
         // RiverXS.chSinu
         if (e->FirstChildElement("SINU")->QueryDoubleText(&tmpval)) {
             std::cerr << "Error getting SINU element from XX profile element " << m << std::endl;
             // TODO: error checking
         }
-        if (tmpval != RiverXS[m].chSinu) {
-            std::cerr << "sinu val differs for " << m << endl;
-        }
+        RiverXS[m].chSinu = tmpval;
 
         // RiverXS.fpWidth
         if (e->FirstChildElement("FPWIDTH")->QueryDoubleText(&tmpval)) {
             std::cerr << "Error getting FPWIDTH element from XX profile element " << m << std::endl;
             // TODO: error checking
         }
-        tmpval *= RiverXS[m].width;
-        if (tmpval != RiverXS[m].fpWidth) {
-            std::cerr << "fpWidth val differs for " << m << endl;
-        }
+        RiverXS[m].fpWidth = tmpval * RiverXS[m].width;
 
         // RiverXS.Hmax
         if (e->FirstChildElement("HMAX")->QueryDoubleText(&tmpval)) {
             std::cerr << "Error getting HMAX element from XX profile element " << m << std::endl;
             // TODO: error checking
         }
-        if (tmpval != RiverXS[m].Hmax) {
-            std::cerr << "Hmax val differs for " << m << endl;
-        }
-        if ((tmpval + 1) != RiverXS[m].bankHeight) {
-            std::cerr << "Different value for bankHeight for " << m << endl;
-        }
+/*        if ( HmaxTweak < 0.5 )
+            RiverXS[m].Hmax = atof(token[4]) + ( HmaxTweak * 2 - 0.5 );    // Add height in the range [-0.5 to +0.5]
+        else
+            RiverXS[m].Hmax = (HmaxTweak - 0.5) * 3.5 + 0.75; */             // Uniform range from 0.75 to 2.5
+        RiverXS[m].Hmax = tmpval;
+        RiverXS[m].bankHeight = RiverXS[m].Hmax + 1;  // initial guess
 
         // RiverXS.theta
         if (e->FirstChildElement("THETA")->QueryDoubleText(&tmpval)) {
             std::cerr << "Error getting THETA element from XX profile element " << m << std::endl;
             // TODO: error checking
         }
-        if (tmpval != RiverXS[m].theta) {
-            std::cerr << "theta val differs for " << m << endl;
-        }
+        RiverXS[m].theta = tmpval;
 
         // algrp
         if (e->FirstChildElement("ALGRP")->QueryIntText(&tmpvali)) {
             std::cerr << "Error getting ALGRP element from XX profile element " << m << std::endl;
             // TODO: error checking
         }
-        tmpvali--;
-        if (tmpvali != algrp[m]) {
-            std::cerr << "algrp val differs for " << m << endl;
-        }
+        algrp[m] = tmpvali - 1;
 
         // stgrp
         if (e->FirstChildElement("STGRP")->QueryIntText(&tmpvali)) {
             std::cerr << "Error getting STGRP element from XX profile element " << m << std::endl;
             // TODO: error checking
         }
-        tmpvali--;
-        if (tmpvali != stgrp[m]) {
-            std::cerr << "stgrp val differs for " << m << endl;
-        }
-
-        
+        stgrp[m] = tmpvali - 1;
 
         m++;
     }
-
-
-    
 }
 
 void RiverProfile::getLongProfile(ifstream &openFile)
 {
+    // TODO: Remove this once stratigraphy is in XML file
 
     const char* token[40] = {};              // initialize to 0; 40 tokens max
     char buf[512];                           // Max 512 chars per line
@@ -885,22 +862,22 @@ void RiverProfile::getLongProfile(ifstream &openFile)
                         if (!token[n]) break;            // no more tokens
                 }
 
-                xx[m] = atof(token[0]);
-                eta[m] = atof(token[1]);
-                bedrock[m] = atof(token[2]);
-                if (bedrock[m] > eta[m])
-                        (bedrock[m] = eta[m]);       // bedrock must be at, or lower than, initial bed
-                RiverXS[m].width = atof(token[3]);
-                RiverXS[m].fpWidth = atof(token[4]) * RiverXS[m].width;
-/*                if ( HmaxTweak < 0.5 )
-                    RiverXS[m].Hmax = atof(token[4]) + ( HmaxTweak * 2 - 0.5 );    // Add height in the range [-0.5 to +0.5]
-                else
-                    RiverXS[m].Hmax = (HmaxTweak - 0.5) * 3.5 + 0.75; */             // Uniform range from 0.75 to 2.5
-                RiverXS[m].Hmax = atof(token[5]);
-                RiverXS[m].bankHeight = RiverXS[m].Hmax + 1;  // initial guess
-                RiverXS[m].theta = atof(token[6]);
-                algrp[m] = atof(token[7]) - 1;
-                stgrp[m] = atof(token[8]) - 1;  // Ignoring STGRP for now
+//                xx[m] = atof(token[0]);
+//                eta[m] = atof(token[1]);
+//                bedrock[m] = atof(token[2]);
+//                if (bedrock[m] > eta[m])
+//                        (bedrock[m] = eta[m]);       // bedrock must be at, or lower than, initial bed
+//                RiverXS[m].width = atof(token[3]);
+//                RiverXS[m].fpWidth = atof(token[4]) * RiverXS[m].width;
+///*                if ( HmaxTweak < 0.5 )
+//                    RiverXS[m].Hmax = atof(token[4]) + ( HmaxTweak * 2 - 0.5 );    // Add height in the range [-0.5 to +0.5]
+//                else
+//                    RiverXS[m].Hmax = (HmaxTweak - 0.5) * 3.5 + 0.75; */             // Uniform range from 0.75 to 2.5
+//                RiverXS[m].Hmax = atof(token[5]);
+//                RiverXS[m].bankHeight = RiverXS[m].Hmax + 1;  // initial guess
+//                RiverXS[m].theta = atof(token[6]);
+//                algrp[m] = atof(token[7]) - 1;
+//                stgrp[m] = atof(token[8]) - 1;  // Ignoring STGRP for now
 
                 openFile.getline(buf, 512);         // proceed to next line
                 token[0] = strtok( buf, " " );
