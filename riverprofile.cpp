@@ -750,31 +750,111 @@ void RiverProfile::getLongProfileXML(XMLElement* params_root)
     }
 
     // loop over entries
-    int ptCount = 0;
+    int m = 0;
     for (XMLElement* e = profileElem->FirstChildElement("XX"); e != NULL; e = e->NextSiblingElement("XX")) {
         double tmpval;
+        float tmpvalf;
+        int tmpvali;
 
         // xx
         if (e->QueryDoubleAttribute("X", &tmpval)) {
-            std::cerr << "Error getting X attribute from XX profile element " << ptCount << std::endl;
+            std::cerr << "Error getting X attribute from XX profile element " << m << std::endl;
             // TODO: error checking
         }
-        if (tmpval != xx[ptCount]) {
-            std::cerr << "XX val differs for " << ptCount << ": " << tmpval << " vs " << xx[ptCount] << endl;
+        if (tmpval != xx[m]) {
+            std::cerr << "XX val differs for " << m << ": " << tmpval << " vs " << xx[m] << endl;
         }
 
         // eta
         if (e->FirstChildElement("ETA")->QueryDoubleText(&tmpval)) {
-            std::cerr << "Error getting ETA element from XX profile element " << ptCount << std::endl;
+            std::cerr << "Error getting ETA element from XX profile element " << m << std::endl;
             // TODO: error checking
         }
-        if (tmpval != eta[ptCount]) {
-            std::cerr << "eta val differs for " << ptCount << endl;
+        if (tmpval != eta[m]) {
+            std::cerr << "eta val differs for " << m << endl;
+        }
+
+        // bedrock
+        if (e->FirstChildElement("BEDROCK")->QueryFloatText(&tmpvalf)) {
+            std::cerr << "Error getting BEDROCK element from XX profile element " << m << std::endl;
+            // TODO: error checking
+        }
+        if (tmpvalf != bedrock[m]) {
+            std::cerr << "bedrock val differs for " << m << ": " << bedrock[m] << " vs " << tmpvalf << endl;
+        }
+
+        // RiverXS.width
+        if (e->FirstChildElement("WIDTH")->QueryDoubleText(&tmpval)) {
+            std::cerr << "Error getting WIDTH element from XX profile element " << m << std::endl;
+            // TODO: error checking
+        }
+        if (tmpval != RiverXS[m].width) {
+            std::cerr << "width val differs for " << m << endl;
+        }
+
+        // RiverXS.chSinu
+        if (e->FirstChildElement("SINU")->QueryDoubleText(&tmpval)) {
+            std::cerr << "Error getting SINU element from XX profile element " << m << std::endl;
+            // TODO: error checking
+        }
+        if (tmpval != RiverXS[m].chSinu) {
+            std::cerr << "sinu val differs for " << m << endl;
+        }
+
+        // RiverXS.fpWidth
+        if (e->FirstChildElement("FPWIDTH")->QueryDoubleText(&tmpval)) {
+            std::cerr << "Error getting FPWIDTH element from XX profile element " << m << std::endl;
+            // TODO: error checking
+        }
+        tmpval *= RiverXS[m].width;
+        if (tmpval != RiverXS[m].fpWidth) {
+            std::cerr << "fpWidth val differs for " << m << endl;
+        }
+
+        // RiverXS.Hmax
+        if (e->FirstChildElement("HMAX")->QueryDoubleText(&tmpval)) {
+            std::cerr << "Error getting HMAX element from XX profile element " << m << std::endl;
+            // TODO: error checking
+        }
+        if (tmpval != RiverXS[m].Hmax) {
+            std::cerr << "Hmax val differs for " << m << endl;
+        }
+        if ((tmpval + 1) != RiverXS[m].bankHeight) {
+            std::cerr << "Different value for bankHeight for " << m << endl;
+        }
+
+        // RiverXS.theta
+        if (e->FirstChildElement("THETA")->QueryDoubleText(&tmpval)) {
+            std::cerr << "Error getting THETA element from XX profile element " << m << std::endl;
+            // TODO: error checking
+        }
+        if (tmpval != RiverXS[m].theta) {
+            std::cerr << "theta val differs for " << m << endl;
+        }
+
+        // algrp
+        if (e->FirstChildElement("ALGRP")->QueryIntText(&tmpvali)) {
+            std::cerr << "Error getting ALGRP element from XX profile element " << m << std::endl;
+            // TODO: error checking
+        }
+        tmpvali--;
+        if (tmpvali != algrp[m]) {
+            std::cerr << "algrp val differs for " << m << endl;
+        }
+
+        // stgrp
+        if (e->FirstChildElement("STGRP")->QueryIntText(&tmpvali)) {
+            std::cerr << "Error getting STGRP element from XX profile element " << m << std::endl;
+            // TODO: error checking
+        }
+        tmpvali--;
+        if (tmpvali != stgrp[m]) {
+            std::cerr << "stgrp val differs for " << m << endl;
         }
 
         
 
-        ptCount++;
+        m++;
     }
 
 
