@@ -163,6 +163,7 @@ public:
     const char *getNextParam(ifstream &openFile, const char *nextParam);
 
     void getLongProfile(std::ifstream &openFile);
+    void getLongProfileXML(XMLElement* params_root);
 
     void getGSDLibrary(XMLElement* params_root);
 

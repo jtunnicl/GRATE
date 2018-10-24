@@ -605,6 +605,7 @@ void RiverProfile::initData(XMLElement* params_root)
     // CHECK: NPTS not in xml file (is it the same as NNODES??)
 
     getLongProfile(inDatFile);
+    getLongProfileXML(params_root);
 
     getStratigraphy(inDatFile);
 
@@ -737,6 +738,47 @@ void RiverProfile::getGSDLibrary(XMLElement* params_root)
                 grp[grpCount].pct[lithCount][gsCount] = qtemp.pct[lithCount][gsCount];
         grp[grpCount].dg_and_std();
     }
+}
+
+void RiverProfile::getLongProfileXML(XMLElement* params_root)
+{
+    // get the "profile" element
+    XMLElement *profileElem = params_root->FirstChildElement("profile");
+    if (profileElem == NULL) {
+        std::cerr << "Error getting profile element" << std::endl;
+        // TODO: handle errors
+    }
+
+    // loop over entries
+    int ptCount = 0;
+    for (XMLElement* e = profileElem->FirstChildElement("XX"); e != NULL; e = e->NextSiblingElement("XX")) {
+        double tmpval;
+
+        // xx
+        if (e->QueryDoubleAttribute("X", &tmpval)) {
+            std::cerr << "Error getting X attribute from XX profile element " << ptCount << std::endl;
+            // TODO: error checking
+        }
+        if (tmpval != xx[ptCount]) {
+            std::cerr << "XX val differs for " << ptCount << ": " << tmpval << " vs " << xx[ptCount] << endl;
+        }
+
+        // eta
+        if (e->FirstChildElement("ETA")->QueryDoubleText(&tmpval)) {
+            std::cerr << "Error getting ETA element from XX profile element " << ptCount << std::endl;
+            // TODO: error checking
+        }
+        if (tmpval != eta[ptCount]) {
+            std::cerr << "eta val differs for " << ptCount << endl;
+        }
+
+        
+
+        ptCount++;
+    }
+
+
+    
 }
 
 void RiverProfile::getLongProfile(ifstream &openFile)
