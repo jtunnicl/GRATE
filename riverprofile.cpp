@@ -530,7 +530,7 @@ void RiverProfile::initData(XMLElement* params_root)
         system("pause");
     }
 
-    nnodes = std::stoi(params->FirstChildElement("NNODES")->GetText());
+    params->FirstChildElement("NNODES")->QueryIntText(&nnodes);
     // TODO: error handling
 
     // Allocate vectors
@@ -541,20 +541,20 @@ void RiverProfile::initData(XMLElement* params_root)
     bedrock.resize(nnodes);
     RiverXS.resize(nnodes);
 
-    layer = std::stod(params->FirstChildElement("LAYER")->GetText());
+    params->FirstChildElement("LAYER")->QueryDoubleText(&layer);
     // TODO: error handling
 
     toplayer.assign(nnodes, layer);               // Thickness of the top storage layer; starts at 5 and erodes down
 
-    default_la = std::stod(params->FirstChildElement("LA")->GetText());
+    params->FirstChildElement("LA")->QueryDoubleText(&default_la);
     // TODO: error handling
     la.assign(nnodes, default_la);                // Default active layer thickness
 
-    nlayer = std::stoi(params->FirstChildElement("NLAYER")->GetText());
+    params->FirstChildElement("NLAYER")->QueryIntText(&nlayer);
     // TODO: error handling
     ntop.assign(nnodes, nlayer-15);                // Indicates # of layers remaining, below current (couple of layers left for aggradation)
 
-    poro = std::stod(params->FirstChildElement("PORO")->GetText());
+    params->FirstChildElement("PORO")->QueryDoubleText(&poro);
     // TODO: error handling
 
     for (i = 0; i < nlayer; i++)                  // Init storedf stratigraphy matrix
@@ -566,13 +566,13 @@ void RiverProfile::initData(XMLElement* params_root)
         F.push_back(tmp);
     }
 
-    ngsz = std::stoi(params->FirstChildElement("NGSZ")->GetText());
+    params->FirstChildElement("NGSZ")->QueryIntText(&ngsz);
     // TODO: error handling
 
-    nlith = std::stoi(params->FirstChildElement("NLITH")->GetText());
+    params->FirstChildElement("NLITH")->QueryIntText(&nlith);
     // TODO: error handling
 
-    ngrp = std::stoi(params->FirstChildElement("NGRP")->GetText());
+    params->FirstChildElement("NGRP")->QueryIntText(&ngrp);
     // TODO: error handling
 
     for (i = 0; i < ngrp; i++)
