@@ -44,6 +44,7 @@ private:
     QTimer dataTimer;
     QCPItemTracer *itemDemoPhaseTracer;
     int currentDemoIndex;
+    bool initialised;
 };
 
 

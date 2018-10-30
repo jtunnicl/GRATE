@@ -15,6 +15,11 @@
 #include "tinyxml2/tinyxml2.h"
 #include <iostream>
 #include <fstream>
+#include <sstream>
+#include <QFileDialog>
+#include <QString>
+#include <QDir>
+#include <QMessageBox>
 
 #define PI 3.14159265
 
@@ -22,44 +27,70 @@ using namespace tinyxml2;
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow)
+    ui(new Ui::MainWindow),
+    initialised(false)
 {
     // setup user interface
     ui->setupUi(this);
 
-    // load xml input file (ask for filename in dialog if default not there????)
-    std::cout << "Reading xml file" << std::endl;
+    // default input file name
+    std::string param_file = "test_out.xml";
+
+    // check if file exists
+    if (not std::fstream(param_file)) {
+        std::cerr << "File does not exist... Need to specify..." << std::endl;
+        QString fileName = QFileDialog::getOpenFileName(this, "Load Parameter File",
+                                                        QDir::currentPath(),
+                                                        "XML files (*.xml);;All files (*)");
+        if (not fileName.isEmpty())
+            param_file = fileName.toStdString();
+    }
+
+    // load xml input file
+    std::cout << "Reading xml file: '" << param_file << "'" << std::endl;
     XMLDocument xml_params;
-    if (xml_params.LoadFile("test_out.xml") != XML_SUCCESS) {
+    if (xml_params.LoadFile(param_file.c_str()) != XML_SUCCESS) {
         std::cerr << "Error reading xml parameters:" << std::endl;
         std::cerr << xml_params.ErrorStr() << std::endl;
-        // TODO: error dialog
+        // just show error message if file wasn't loaded
+        QMessageBox errorBox;
+        std::stringstream error_stream;
+        error_stream << "Error loading parameter file - try restarting and specifying the correct file";
+        error_stream << std::endl << std::endl << xml_params.ErrorStr();
+        std::string error_msg = error_stream.str();
+        errorBox.critical(this, "Error loading parameter file", error_msg.c_str());
     }
+    else {
+        // file was loaded so initialise everything
 
-    // get the root element of the XML document
-    XMLElement *params_root = xml_params.FirstChildElement();
-    if (params_root == NULL) {
-        std::cerr << "Error getting root element" << std::endl;
-        std::cerr << xml_params.ErrorStr() << std::endl;
-        // TODO: handle errors
+        // get the root element of the XML document
+        XMLElement *params_root = xml_params.FirstChildElement();
+        if (params_root == NULL) {
+            std::cerr << "Error getting root element" << std::endl;
+            std::cerr << xml_params.ErrorStr() << std::endl;
+            // TODO: handle errors
+        }
+
+        // initialise components
+        rn = new RiverProfile(params_root);  // Long profile, channel geometry
+        wl = new hydro(rn);  // Channel hydraulic parameters
+        sd = new sed(rn);
+
+        // initialise
+        rn->cTime = wl->Qw[0][0].date_time;
+        rn->startTime = wl->Qw[0][0].date_time;
+        rn->endTime = wl->Qw[0][wl->Qw[0].size() - 1].date_time;
+        setupChart();                                // Setup GUI graph
+        setWindowTitle("Raparapaririki River");
+        //ui->textFileName->setText("Input_Rip1_equil_1938.dat");
+        ui->textFileName->setText(param_file.c_str());
+        ui->VectorPlot->replot();
+
+        // Use <Refresh Plot> button to start run
+        connect(ui->refreshButton, SIGNAL(clicked()), this, SLOT(kernel()), Qt::QueuedConnection);
+
+        initialised = true;
     }
-
-    // initialise components
-    rn = new RiverProfile(params_root);  // Long profile, channel geometry
-    wl = new hydro(rn);  // Channel hydraulic parameters
-    sd = new sed(rn);
-
-    // initialise
-    rn->cTime = wl->Qw[0][0].date_time;
-    rn->startTime = wl->Qw[0][0].date_time;
-    rn->endTime = wl->Qw[0][wl->Qw[0].size() - 1].date_time;
-    setupChart();                                // Setup GUI graph
-    setWindowTitle("Raparapaririki River");
-    ui->textFileName->setText("Input_Rip1_equil_1938.dat");  // TODO: should be an argument, or dialog popup??
-    ui->VectorPlot->replot();
-
-    // Use <Refresh Plot> button to start run
-    connect(ui->refreshButton, SIGNAL(clicked()), this, SLOT(kernel()), Qt::QueuedConnection);
 }
 
 void MainWindow::setupChart(){
@@ -700,8 +731,10 @@ void MainWindow::writeResults(int count){
 MainWindow::~MainWindow()
 {
     delete ui;
-    delete sd;
-    delete wl;
-    delete rn;
+    if (initialised) {
+        delete sd;
+        delete wl;
+        delete rn;
+    }
 }
 
