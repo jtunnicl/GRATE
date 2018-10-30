@@ -53,12 +53,10 @@ MainWindow::MainWindow(QWidget *parent) :
         std::cerr << "Error reading xml parameters:" << std::endl;
         std::cerr << xml_params.ErrorStr() << std::endl;
         // just show error message if file wasn't loaded
-        QMessageBox errorBox;
         std::stringstream error_stream;
         error_stream << "Error loading parameter file - try restarting and specifying the correct file";
         error_stream << std::endl << std::endl << xml_params.ErrorStr();
-        std::string error_msg = error_stream.str();
-        errorBox.critical(this, "Error loading parameter file", error_msg.c_str());
+        showErrorMessage("Error loading parameter file", error_stream);
     }
     else {
         // file was loaded so initialise everything
@@ -66,31 +64,42 @@ MainWindow::MainWindow(QWidget *parent) :
         // get the root element of the XML document
         XMLElement *params_root = xml_params.FirstChildElement();
         if (params_root == NULL) {
-            std::cerr << "Error getting root element" << std::endl;
+            std::cerr << "Error getting root element from XML file" << std::endl;
             std::cerr << xml_params.ErrorStr() << std::endl;
-            // TODO: handle errors
+            // show dialog with error message
+            std::stringstream error_stream;
+            error_stream << "Error reading root element from XML file - check file format";
+            error_stream << std::endl << std::endl << xml_params.ErrorStr();
+            showErrorMessage("Error reading root element from XML file", error_stream);
         }
+        else {
+            // initialise components
+            rn = new RiverProfile(params_root);  // Long profile, channel geometry
+            wl = new hydro(rn);  // Channel hydraulic parameters
+            sd = new sed(rn);
 
-        // initialise components
-        rn = new RiverProfile(params_root);  // Long profile, channel geometry
-        wl = new hydro(rn);  // Channel hydraulic parameters
-        sd = new sed(rn);
+            // initialise
+            rn->cTime = wl->Qw[0][0].date_time;
+            rn->startTime = wl->Qw[0][0].date_time;
+            rn->endTime = wl->Qw[0][wl->Qw[0].size() - 1].date_time;
+            setupChart();                                // Setup GUI graph
+            setWindowTitle("Raparapaririki River");
+            //ui->textFileName->setText("Input_Rip1_equil_1938.dat");
+            ui->textFileName->setText(param_file.c_str());
+            ui->VectorPlot->replot();
 
-        // initialise
-        rn->cTime = wl->Qw[0][0].date_time;
-        rn->startTime = wl->Qw[0][0].date_time;
-        rn->endTime = wl->Qw[0][wl->Qw[0].size() - 1].date_time;
-        setupChart();                                // Setup GUI graph
-        setWindowTitle("Raparapaririki River");
-        //ui->textFileName->setText("Input_Rip1_equil_1938.dat");
-        ui->textFileName->setText(param_file.c_str());
-        ui->VectorPlot->replot();
+            // Use <Refresh Plot> button to start run
+            connect(ui->refreshButton, SIGNAL(clicked()), this, SLOT(kernel()), Qt::QueuedConnection);
 
-        // Use <Refresh Plot> button to start run
-        connect(ui->refreshButton, SIGNAL(clicked()), this, SLOT(kernel()), Qt::QueuedConnection);
-
-        initialised = true;
+            initialised = true;
+        }
     }
+}
+
+void MainWindow::showErrorMessage(const char *title, std::stringstream &msg_stream) {
+    std::string msg = msg_stream.str();
+    QMessageBox messageBox;
+    messageBox.critical(this, title, msg.c_str());
 }
 
 void MainWindow::setupChart(){

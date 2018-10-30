@@ -36,6 +36,7 @@ signals:
     void drawChart();
 
 private:
+    void showErrorMessage(const char *title, std::stringstream &msg_stream);
     Ui::MainWindow *ui;
     RiverProfile *rn;
     hydro *wl;
