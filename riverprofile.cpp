@@ -17,6 +17,7 @@
 #include <cstring>
 #include "riverprofile.h"
 #include "tinyxml2/tinyxml2.h"
+#include "tinyxml2_wrapper.h"
 
 using namespace std;
 using namespace tinyxml2;
@@ -510,8 +511,7 @@ void RiverProfile::initData(XMLElement* params_root)
     // get params element
     XMLElement *params = params_root->FirstChildElement("PARAMS");
     if (params == NULL) {
-        std::cerr << "Error getting PARAMS element" << std::endl;
-        // TODO: handle errors
+        throw std::string("Error getting PARAMS element from XML file");
     }
 
     std::ifstream inDatFile;
@@ -530,8 +530,7 @@ void RiverProfile::initData(XMLElement* params_root)
         system("pause");
     }
 
-    params->FirstChildElement("NNODES")->QueryIntText(&nnodes);
-    // TODO: error handling
+    nnodes = getIntValue(params, "NNODES");
 
     // Allocate vectors
     xx.resize(nnodes);
@@ -541,21 +540,17 @@ void RiverProfile::initData(XMLElement* params_root)
     bedrock.resize(nnodes);
     RiverXS.resize(nnodes);
 
-    params->FirstChildElement("LAYER")->QueryDoubleText(&layer);
-    // TODO: error handling
+    layer = getDoubleValue(params, "LAYER");
 
     toplayer.assign(nnodes, layer);               // Thickness of the top storage layer; starts at 5 and erodes down
 
-    params->FirstChildElement("LA")->QueryDoubleText(&default_la);
-    // TODO: error handling
+    default_la = getDoubleValue(params, "LA");
     la.assign(nnodes, default_la);                // Default active layer thickness
 
-    params->FirstChildElement("NLAYER")->QueryIntText(&nlayer);
-    // TODO: error handling
+    nlayer = getIntValue(params, "NLAYER");
     ntop.assign(nnodes, nlayer-15);                // Indicates # of layers remaining, below current (couple of layers left for aggradation)
 
-    params->FirstChildElement("PORO")->QueryDoubleText(&poro);
-    // TODO: error handling
+    poro = getDoubleValue(params, "PORO");
 
     for (i = 0; i < nlayer; i++)                  // Init storedf stratigraphy matrix
         tmp2.push_back(tmp);
@@ -566,14 +561,11 @@ void RiverProfile::initData(XMLElement* params_root)
         F.push_back(tmp);
     }
 
-    params->FirstChildElement("NGSZ")->QueryIntText(&ngsz);
-    // TODO: error handling
+    ngsz = getIntValue(params, "NGSZ");
 
-    params->FirstChildElement("NLITH")->QueryIntText(&nlith);
-    // TODO: error handling
+    nlith = getIntValue(params, "NLITH");
 
-    params->FirstChildElement("NGRP")->QueryIntText(&ngrp);
-    // TODO: error handling
+    ngrp = getIntValue(params, "NGRP");
 
     for (i = 0; i < ngrp; i++)
         grp.push_back(tmp);
@@ -745,8 +737,7 @@ void RiverProfile::getLongProfileXML(XMLElement* params_root)
     // get the "profile" element
     XMLElement *profileElem = params_root->FirstChildElement("profile");
     if (profileElem == NULL) {
-        std::cerr << "Error getting profile element" << std::endl;
-        // TODO: handle errors
+        throw std::string("Error getting profile element from XML file");
     }
 
     // loop over entries
@@ -758,80 +749,33 @@ void RiverProfile::getLongProfileXML(XMLElement* params_root)
 
         // xx
         if (e->QueryDoubleAttribute("X", &tmpval)) {
-            std::cerr << "Error getting X attribute from XX profile element " << m << std::endl;
-            // TODO: error checking
+            throw std::string("Error getting X attribute from XX profile element");
         }
         xx[m] = tmpval;
 
-        // eta
-        if (e->FirstChildElement("ETA")->QueryDoubleText(&tmpval)) {
-            std::cerr << "Error getting ETA element from XX profile element " << m << std::endl;
-            // TODO: error checking
-        }
-        eta[m] = tmpval;
+        eta[m] = getDoubleValue(e, "ETA");
 
-        // bedrock
-        if (e->FirstChildElement("BEDROCK")->QueryFloatText(&tmpvalf)) {
-            std::cerr << "Error getting BEDROCK element from XX profile element " << m << std::endl;
-            // TODO: error checking
-        }
-        bedrock[m] = tmpvalf;
+        bedrock[m] = getFloatValue(e, "BEDROCK");
         if (bedrock[m] > eta[m])
             bedrock[m] = eta[m];       // bedrock must be at, or lower than, initial bed
 
-        // RiverXS.width
-        if (e->FirstChildElement("WIDTH")->QueryDoubleText(&tmpval)) {
-            std::cerr << "Error getting WIDTH element from XX profile element " << m << std::endl;
-            // TODO: error checking
-        }
-        RiverXS[m].width = tmpval;
+        RiverXS[m].width = getDoubleValue(e, "WIDTH");
 
-        // RiverXS.chSinu
-        if (e->FirstChildElement("SINU")->QueryDoubleText(&tmpval)) {
-            std::cerr << "Error getting SINU element from XX profile element " << m << std::endl;
-            // TODO: error checking
-        }
-        RiverXS[m].chSinu = tmpval;
+        RiverXS[m].chSinu = getDoubleValue(e, "SINU");
 
-        // RiverXS.fpWidth
-        if (e->FirstChildElement("FPWIDTH")->QueryDoubleText(&tmpval)) {
-            std::cerr << "Error getting FPWIDTH element from XX profile element " << m << std::endl;
-            // TODO: error checking
-        }
-        RiverXS[m].fpWidth = tmpval * RiverXS[m].width;
+        RiverXS[m].fpWidth = getDoubleValue(e, "FPWIDTH") * RiverXS[m].width;
 
-        // RiverXS.Hmax
-        if (e->FirstChildElement("HMAX")->QueryDoubleText(&tmpval)) {
-            std::cerr << "Error getting HMAX element from XX profile element " << m << std::endl;
-            // TODO: error checking
-        }
 /*        if ( HmaxTweak < 0.5 )
             RiverXS[m].Hmax = atof(token[4]) + ( HmaxTweak * 2 - 0.5 );    // Add height in the range [-0.5 to +0.5]
         else
             RiverXS[m].Hmax = (HmaxTweak - 0.5) * 3.5 + 0.75; */             // Uniform range from 0.75 to 2.5
-        RiverXS[m].Hmax = tmpval;
+        RiverXS[m].Hmax = getDoubleValue(e, "HMAX");
         RiverXS[m].bankHeight = RiverXS[m].Hmax + 1;  // initial guess
 
-        // RiverXS.theta
-        if (e->FirstChildElement("THETA")->QueryDoubleText(&tmpval)) {
-            std::cerr << "Error getting THETA element from XX profile element " << m << std::endl;
-            // TODO: error checking
-        }
-        RiverXS[m].theta = tmpval;
+        RiverXS[m].theta = getDoubleValue(e, "THETA");
 
-        // algrp
-        if (e->FirstChildElement("ALGRP")->QueryIntText(&tmpvali)) {
-            std::cerr << "Error getting ALGRP element from XX profile element " << m << std::endl;
-            // TODO: error checking
-        }
-        algrp[m] = tmpvali - 1;
-
-        // stgrp
-        if (e->FirstChildElement("STGRP")->QueryIntText(&tmpvali)) {
-            std::cerr << "Error getting STGRP element from XX profile element " << m << std::endl;
-            // TODO: error checking
-        }
-        stgrp[m] = tmpvali - 1;
+        algrp[m] = getIntValue(e, "ALGRP") - 1;
+        stgrp[m] = getIntValue(e, "STGRP") - 1;
 
         m++;
     }

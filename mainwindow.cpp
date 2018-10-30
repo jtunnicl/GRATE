@@ -74,24 +74,32 @@ MainWindow::MainWindow(QWidget *parent) :
         }
         else {
             // initialise components
-            rn = new RiverProfile(params_root);  // Long profile, channel geometry
-            wl = new hydro(rn);  // Channel hydraulic parameters
-            sd = new sed(rn);
+            try {
+                rn = new RiverProfile(params_root);  // Long profile, channel geometry
+                wl = new hydro(rn);  // Channel hydraulic parameters
+                sd = new sed(rn);
 
-            // initialise
-            rn->cTime = wl->Qw[0][0].date_time;
-            rn->startTime = wl->Qw[0][0].date_time;
-            rn->endTime = wl->Qw[0][wl->Qw[0].size() - 1].date_time;
-            setupChart();                                // Setup GUI graph
-            setWindowTitle("Raparapaririki River");
-            //ui->textFileName->setText("Input_Rip1_equil_1938.dat");
-            ui->textFileName->setText(param_file.c_str());
-            ui->VectorPlot->replot();
+                // initialise
+                rn->cTime = wl->Qw[0][0].date_time;
+                rn->startTime = wl->Qw[0][0].date_time;
+                rn->endTime = wl->Qw[0][wl->Qw[0].size() - 1].date_time;
+                setupChart();                                // Setup GUI graph
+                setWindowTitle("Raparapaririki River");
+                //ui->textFileName->setText("Input_Rip1_equil_1938.dat");
+                ui->textFileName->setText(param_file.c_str());
+                ui->VectorPlot->replot();
 
-            // Use <Refresh Plot> button to start run
-            connect(ui->refreshButton, SIGNAL(clicked()), this, SLOT(kernel()), Qt::QueuedConnection);
+                // Use <Refresh Plot> button to start run
+                connect(ui->refreshButton, SIGNAL(clicked()), this, SLOT(kernel()), Qt::QueuedConnection);
 
-            initialised = true;
+                initialised = true;
+            }
+            catch (std::string msg) {
+                std::cerr << "Error while initialising components: " << msg << std::endl;
+                std::stringstream error_stream;
+                error_stream << "Error while initialising components" << std::endl << std::endl << msg;
+                showErrorMessage("Error initialising components", error_stream);
+            }
         }
     }
 }

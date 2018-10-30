@@ -24,6 +24,7 @@ set(QT5_LIBRARIES Qt5::Widgets Qt5::PrintSupport)
 # Populate CMake variables with the sources
 set(CPP_SOURCES
     tinyxml2/tinyxml2.cpp
+    tinyxml2_wrapper.cpp
     sed.cpp
     riverprofile.cpp
     qcustomplot.cpp
