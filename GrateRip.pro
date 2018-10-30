@@ -18,6 +18,7 @@ SOURCES += main.cpp\
     qcustomplot.cpp \
     riverprofile.cpp \
     sed.cpp \
+    tinyxml2_wrapper.cpp \
     tinyxml2/tinyxml2.cpp
 
 HEADERS  += mainwindow.h \
@@ -25,6 +26,7 @@ HEADERS  += mainwindow.h \
     qcustomplot.h \
     riverprofile.h \
     sed.h \
+    tinyxml2_wrapper.h \
     tinyxml2/tinyxml2.h
 
 FORMS    += \

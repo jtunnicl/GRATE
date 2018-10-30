@@ -743,15 +743,10 @@ void RiverProfile::getLongProfileXML(XMLElement* params_root)
     // loop over entries
     int m = 0;
     for (XMLElement* e = profileElem->FirstChildElement("XX"); e != NULL; e = e->NextSiblingElement("XX")) {
-        double tmpval;
-        float tmpvalf;
-        int tmpvali;
-
         // xx
-        if (e->QueryDoubleAttribute("X", &tmpval)) {
+        if (e->QueryDoubleAttribute("X", &xx[m])) {
             throw std::string("Error getting X attribute from XX profile element");
         }
-        xx[m] = tmpval;
 
         eta[m] = getDoubleValue(e, "ETA");
 
