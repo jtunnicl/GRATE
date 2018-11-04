@@ -29,6 +29,7 @@ set(CPP_SOURCES
     riverprofile.cpp
     qcustomplot.cpp
     hydro.cpp
+    model.cpp
     mainwindow.cpp
     main.cpp
 )

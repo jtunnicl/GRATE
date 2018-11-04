@@ -13,7 +13,8 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        mainwindow.cpp \
+    mainwindow.cpp \
+    model.cpp \
     hydro.cpp \
     qcustomplot.cpp \
     riverprofile.cpp \
@@ -22,6 +23,7 @@ SOURCES += main.cpp\
     tinyxml2/tinyxml2.cpp
 
 HEADERS  += mainwindow.h \
+    model.h \
     hydro.h \
     qcustomplot.h \
     riverprofile.h \
