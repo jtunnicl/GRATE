@@ -17,3 +17,22 @@ The code has been developed using the Qt open source IDE (https://www1.qt.io/dow
 The code consists essentially of four modules - MainWindow, RiverProfile, Hydro and Sed. MainWindow sets up the Qt graphical interface and handles user input, including start of the simulation. RiverProfile builds the data object that contains all of the cross-section and river profile information. It reads in the model setup information from a .dat file. The Hydro and Sed modules handle all of the routines that relate to hydraulics and sediment transport, respectively.
 
 As development work proceeds, more documentation will be provided here.
+
+## Building the code
+
+### QtCreator (Windows, Linux, Mac)
+
+Load either the `GrateRip.pro` or `CMakeLists.txt` as a project in QtCreator.
+
+### Command line (Linux, Mac)
+
+Using CMake:
+
+```
+mkdir build
+cd build
+cmake ..
+make
+```
+
+This will build two executables; `GrateRip` is the GUI version, `GrateRipCLI` is the command line version. The same input files work with both.
