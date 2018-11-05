@@ -20,7 +20,7 @@ set(CMAKE_AUTOMOC ON)
 # Create code from a list of Qt designer ui files
 set(CMAKE_AUTOUIC ON)
 
-# generic sources
+# common sources
 set(CPP_SOURCES
     tinyxml2/tinyxml2.cpp
     tinyxml2_wrapper.cpp
@@ -45,6 +45,13 @@ set(CLI_SOURCES
     cli.cpp
 )
 
+# QtCore always required (CLI version uses QDateTime)
+find_package(Qt5Core REQUIRED)
+
+# build library from common sources
+add_library(grate_common ${CPP_SOURCES})
+target_link_libraries(grate_common Qt5::Core)
+
 # GUI build
 if (BUILD_GUI)
     # Find the Qt libraries
@@ -53,20 +60,17 @@ if (BUILD_GUI)
     set(QT5_LIBRARIES Qt5::Widgets Qt5::PrintSupport)
 
     # Tell CMake to create the GrateRip executable
-    add_executable(GrateRip ${UI_SOURCES} ${CPP_SOURCES} ${GUI_SOURCES})
+    add_executable(GrateRip ${UI_SOURCES} ${GUI_SOURCES})
 
     # Link against Qt 5 libraries
-    target_link_libraries(GrateRip ${QT5_LIBRARIES})
+    target_link_libraries(GrateRip grate_common ${QT5_LIBRARIES})
 endif()
 
 # CLI build
 if (BUILD_CLI)
-    # QtCore still required due to use of QDateTime
-    find_package(Qt5Core REQUIRED)
-
     # create CLI executable and link
-    add_executable(GrateRipCLI ${CPP_SOURCES} ${CLI_SOURCES})
-    target_link_libraries(GrateRipCLI Qt5::Core)
+    add_executable(GrateRipCLI ${CLI_SOURCES})
+    target_link_libraries(GrateRipCLI grate_common)
 endif()
 
 # copy input files to build dir for testing
