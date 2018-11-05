@@ -13,6 +13,7 @@
 
 
 int main() {
+    const int nsteps = 100;  // TODO: number of steps (or end time) should be parameter
     Model *model;
 
     // default input file name
@@ -48,10 +49,11 @@ int main() {
         }
     }
 
-    // do we need to initialise anything else????
-
-
     // run the model
-    std::cout << "Ready to run model..." << std::endl;
+    std::cout << "Running model for " << nsteps << " steps..." << std::endl;
+    for (int i = 0; i < nsteps; i++) {
+        model->iteration();
+    }
 
+    std::cout << "Finished!" << std::endl;
 }
