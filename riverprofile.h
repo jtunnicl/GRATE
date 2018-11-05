@@ -2,7 +2,6 @@
 #define RIVERPROFILE_H
 
 #include <vector>
-#include <QVector>
 #include <QDateTime>
 #include <cmath>
 #include "tinyxml2/tinyxml2.h"
