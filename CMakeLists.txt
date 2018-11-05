@@ -5,6 +5,9 @@ project(Grate LANGUAGES CXX)
 option(BUILD_GUI "Build Qt5 GUI version" ON)
 option(BUILD_CLI "Build command line version" ON)
 
+# enable testing (disable with -DBUILD_TESTING=OFF)
+include(CTest)
+
 # option to gather profiling data
 option(ENABLE_PROFILING "Enable gprof profiling" OFF)
 if (ENABLE_PROFILING)
@@ -78,3 +81,6 @@ configure_file(Input_Rip1_equil_1938.dat ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
 configure_file(hydro_series.dat ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
 configure_file(sed_series.dat ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
 configure_file(test_out.xml ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
+
+# add tests
+add_subdirectory(tests)
