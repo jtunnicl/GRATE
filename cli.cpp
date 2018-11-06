@@ -13,7 +13,7 @@
 
 
 int main() {
-    const int nsteps = 100;  // TODO: number of steps (or end time) should be parameter
+    const int nsteps = 800;  // TODO: number of steps (or end time) should be parameter
     Model *model;
 
     // default input file name

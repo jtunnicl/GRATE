@@ -628,8 +628,8 @@ void MainWindow::modelUpdate(){
 //    if (rn->counter % 100 == 0)
 //        writeResults(rn->counter);
 
-    // temporarily limit to 50 steps for testing
-    if (rn->counter == 100) {
+    // temporarily limit to 80 steps for testing
+    if (rn->counter == 800) {
         dataTimer.stop();
     }
 }

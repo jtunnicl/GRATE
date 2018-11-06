@@ -36,7 +36,7 @@ endif (status)
 #
 execute_process(
     COMMAND ${CMAKE_COMMAND} -E compare_files ${TEST_RUN_DIR}/Run_Results.txt
-                                              ${TEST_SRC_DIR}/Run_Results_Ref100.txt
+                                              ${TEST_SRC_DIR}/Run_Results_Ref800.txt
     RESULT_VARIABLE status
 )
 if (status)
