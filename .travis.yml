@@ -21,3 +21,4 @@ install:
 
 script:
     - ctest --output-on-failure
+    - diff ../tests/Run_Results_Ref800.txt tests/GrateRipCLIFullTest/Run_Results.txt
