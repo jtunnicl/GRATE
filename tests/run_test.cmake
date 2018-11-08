@@ -5,6 +5,7 @@ message(STATUS "Running GrateRipCLI test")
 message(STATUS "  Test run directory: ${TEST_RUN_DIR}")
 message(STATUS "  Test src directory: ${TEST_SRC_DIR}")
 message(STATUS "  Test binary: ${TEST_BINARY}")
+message(STATUS "  Compare binary: ${COMPARE_BINARY}")
 
 #
 # make the test directory
@@ -34,9 +35,14 @@ endif (status)
 #
 # check the results
 #
+#execute_process(
+#    COMMAND ${CMAKE_COMMAND} -E compare_files ${TEST_RUN_DIR}/Run_Results.txt
+#                                              ${TEST_SRC_DIR}/Run_Results_Ref800.txt
+#    RESULT_VARIABLE status
+#)
 execute_process(
-    COMMAND ${CMAKE_COMMAND} -E compare_files ${TEST_RUN_DIR}/Run_Results.txt
-                                              ${TEST_SRC_DIR}/Run_Results_Ref800.txt
+    COMMAND ${COMPARE_BINARY} ${TEST_SRC_DIR}/Run_Results_Ref800.txt
+                              ${TEST_RUN_DIR}/Run_Results.txt
     RESULT_VARIABLE status
 )
 if (status)
