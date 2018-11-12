@@ -55,5 +55,8 @@ int main() {
         model->iteration();
     }
 
+    // free model object
+    delete model;
+
     std::cout << "Finished!" << std::endl;
 }

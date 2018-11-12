@@ -29,10 +29,10 @@ Load either the `GrateRip.pro` or `CMakeLists.txt` as a project in QtCreator.
 Using CMake:
 
 ```
-mkdir build
-cd build
-cmake ..
-make
+mkdir build && cd build  # create a directory for the build and change to it
+cmake .. -DBUILD_CLI=ON  # configure the build (we enable the CLI version since it is disabled by default)
+make                     # build the code
+ctest                    # test the code
 ```
 
 This will build two executables; `GrateRip` is the GUI version, `GrateRipCLI` is the command line version. The same input files work with both.

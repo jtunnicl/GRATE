@@ -3,7 +3,7 @@ project(Grate LANGUAGES CXX)
 
 # options to build CLI and GUI versions
 option(BUILD_GUI "Build Qt5 GUI version" ON)
-option(BUILD_CLI "Build command line version" ON)
+option(BUILD_CLI "Build command line version" OFF)
 
 # enable testing (disable with -DBUILD_TESTING=OFF)
 include(CTest)
