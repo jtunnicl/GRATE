@@ -1,0 +1,10 @@
+Output file for program Grate_NESI
+there are twenty-four columns in the output.  they are:
+column no. 1:  X coordinates in meters
+column no. 2:  Bed elevation in meters
+column no. 3:  Flow depth in meters
+column no. 4:  Channel width (m)
+column no. 5:  Channel theta (deg)
+column no. 6:  Number of channels
+column no. 7:  Geometric mean grain size (mm) below the surface layer
+column no. 8:  Geometric mean grain size (mm) of the surface layer
