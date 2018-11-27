@@ -480,7 +480,7 @@ void hydro::fullyDynamic(RiverProfile *r){
     float K;
 
     vector<double> Q, Y, C1, C2, C2A, DF, tmp;
-    vector<vector<double>> EQN;
+    vector<vector<double> > EQN;
 
     setQuasiSteadyNodalFlows(r);
 
@@ -769,7 +769,7 @@ void hydro::fullyDynamic(RiverProfile *r){
     }
 }
 
-vector<double> hydro::matsol(int N, vector<vector<double>> A){
+vector<double> hydro::matsol(int N, vector<vector<double> > A){
 
     int i, j, k, inode, M;
     double t1, t2, t3, t4, d;

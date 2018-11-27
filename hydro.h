@@ -34,7 +34,7 @@ public:
 
     void fullyDynamic(RiverProfile *r);                            // Preissmann Scheme approximation of water-surface profile
 
-    vector<double> matsol(int N, vector<vector<double>> EQN);      // Matrix solver
+    vector<double> matsol(int N, vector<vector<double> > EQN);      // Matrix solver
 
     void regimeModel(int n, RiverProfile *r);                           // Compute Millar-Eaton equilibrium channel width
 
