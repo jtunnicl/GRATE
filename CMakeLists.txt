@@ -8,6 +8,11 @@ option(BUILD_CLI "Build command line version" OFF)
 # enable testing (disable with -DBUILD_TESTING=OFF)
 include(CTest)
 
+# default to RELEASE build if not specified
+if (NOT CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "")
+    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "" FORCE)
+endif()
+
 # option to gather profiling data
 option(ENABLE_PROFILING "Enable gprof profiling" OFF)
 if (ENABLE_PROFILING)
