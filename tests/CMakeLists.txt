@@ -26,8 +26,16 @@ set_tests_properties(
     PROPERTIES WILL_FAIL TRUE
 )
 
+# test GrateTime object
+add_executable(test_gratetime test_gratetime.cpp)
+target_link_libraries(test_gratetime grate_common)
+add_test(
+    NAME GrateTime
+    COMMAND test_gratetime
+)
+
+# test the CLI version
 if (BUILD_CLI)
-    # add the test of GrateRipCLI
     set(TEST_RUN_DIR ${CMAKE_CURRENT_BINARY_DIR}/GrateRipCLIFullTest)
     add_test(
         NAME GrateRipCLIFullTest

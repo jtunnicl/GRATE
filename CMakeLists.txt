@@ -27,6 +27,7 @@ set(CMAKE_AUTOUIC ON)
 set(CPP_SOURCES
     tinyxml2/tinyxml2.cpp
     tinyxml2_wrapper.cpp
+    gratetime.cpp
     sed.cpp
     riverprofile.cpp
     hydro.cpp
@@ -48,19 +49,17 @@ set(CLI_SOURCES
     cli.cpp
 )
 
-# QtCore always required (CLI version uses QDateTime)
-find_package(Qt5Core REQUIRED)
-
 # build library from common sources
 add_library(grate_common ${CPP_SOURCES})
-target_link_libraries(grate_common Qt5::Core)
+target_include_directories(grate_common PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 # GUI build
 if (BUILD_GUI)
     # Find the Qt libraries
+    find_package(Qt5Core REQUIRED)
     find_package(Qt5Widgets REQUIRED)
     find_package(Qt5PrintSupport REQUIRED)
-    set(QT5_LIBRARIES Qt5::Widgets Qt5::PrintSupport)
+    set(QT5_LIBRARIES Qt5::Core Qt5::Widgets Qt5::PrintSupport)
 
     # Tell CMake to create the GrateRip executable
     add_executable(GrateRip ${UI_SOURCES} ${GUI_SOURCES})

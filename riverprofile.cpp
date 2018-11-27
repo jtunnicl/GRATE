@@ -375,8 +375,8 @@ void NodeXSObject::xsStressTerms(NodeGSDObject F, double bedSlope)
 TS_Object::TS_Object()
 {
 
-    date_time.setDate(QDate(2000,1,1));
-    date_time.setTime(QTime(12, 0, 0, 0));
+    date_time.setDate(2000, 1, 1);
+    date_time.setTime(12, 0, 0);
     Q = 0.;
     Coord = 0.;
     GRP = 1;
@@ -405,12 +405,12 @@ RiverProfile::RiverProfile(XMLElement* params_root)
     RiverXS.push_back(tmp);
 
     // TODO: should start and end time be parameters or read from ui??
-    cTime.setDate(QDate(2002,12,5));
-    cTime.setTime(QTime(12,0,0,0));
-    startTime.setDate(QDate(2002,12,5));
-    startTime.setTime(QTime(12,0,0,0));
-    endTime.setDate(QDate(2002,12,5));
-    endTime.setTime(QTime(12,0,0,0));
+    cTime.setDate(2002, 12, 5);
+    cTime.setTime(12, 0, 0);
+    startTime.setDate(2002, 12, 5);
+    startTime.setTime(12, 0, 0);
+    endTime.setDate(2002, 12, 5);
+    endTime.setTime(12, 0, 0);
 
     counter = 0;
     yearCounter = 0;        // Counter that resets every 5 days

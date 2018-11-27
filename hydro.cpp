@@ -43,12 +43,12 @@ void hydro::initHydro(int nodes)
     int v9 = 0;
     double v1 = 0.;
     double v8 = 0.;                    // Coord, Qw
-    QDateTime NewDate;
+    GrateTime NewDate;
     vector< TS_Object > tmp;
     TS_Object NewEntry;
 
-    NewDate.setDate(QDate(2000,1,1));
-    NewDate.setTime(QTime(0,0,0));
+    NewDate.setDate(2000, 1, 1);
+    NewDate.setTime(0, 0, 0);
     NewEntry.date_time = NewDate;
     NewEntry.Q = 0;
     NewEntry.Coord = 0;
@@ -62,8 +62,8 @@ void hydro::initHydro(int nodes)
     {
         if(inHydroFile >> v1 >> v2 >> v3 >> v4 >> v5 >> v6 >> v7 >> v8 >> v9)
         {
-            NewDate.setDate(QDate(v2, v3, v4));
-            NewDate.setTime(QTime(v5, v6, v7));
+            NewDate.setDate(v2, v3, v4);
+            NewDate.setTime(v5, v6, v7);
             NewEntry.date_time = NewDate;
             NewEntry.Q = v8;
             NewEntry.Coord = v1;

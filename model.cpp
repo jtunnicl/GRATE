@@ -50,7 +50,7 @@ void Model::iteration() {
 }
 
 void Model::stepTime(){
-    rn->cTime = rn->cTime.addSecs(rn->dt);
+    rn->cTime.addSecs(rn->dt);
     rn->counter++;
     rn->yearCounter++;
     if (rn->yearCounter > 899) {

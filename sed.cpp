@@ -15,12 +15,12 @@ void sed::initSedSeries(int nodes)
     double currentCoord = 0.;
     int v2, v3, v4, v5, v6, v7, v9;        // Yr, Mt, Day, Hr, Mn, Sec, GRP
     double v1, v8;                         // Coord, Qs
-    QDateTime NewDate;
+    GrateTime NewDate;
     vector< TS_Object > tmp;
     TS_Object NewEntry;
 
-    NewDate.setDate(QDate(2000,1,1));
-    NewDate.setTime(QTime(0,0,0));
+    NewDate.setDate(2000, 1, 1);
+    NewDate.setTime(0, 0, 0);
 
     inSedFile.open("sed_series.dat", ios::in);
 
@@ -30,8 +30,8 @@ void sed::initSedSeries(int nodes)
     {
         if(inSedFile >> v1 >> v2 >> v3 >> v4 >> v5 >> v6 >> v7 >> v8 >> v9)
         {
-            NewDate.setDate(QDate(v2, v3, v4));
-            NewDate.setTime(QTime(v5, v6, v7));
+            NewDate.setDate(v2, v3, v4);
+            NewDate.setTime(v5, v6, v7);
             NewEntry.date_time = NewDate;
             NewEntry.Q = v8;
             NewEntry.Coord = v1;

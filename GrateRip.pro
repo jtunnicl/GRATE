@@ -20,7 +20,8 @@ SOURCES += main.cpp\
     riverprofile.cpp \
     sed.cpp \
     tinyxml2_wrapper.cpp \
-    tinyxml2/tinyxml2.cpp
+    tinyxml2/tinyxml2.cpp \
+    gratetime.cpp
 
 HEADERS  += mainwindow.h \
     model.h \
@@ -29,7 +30,8 @@ HEADERS  += mainwindow.h \
     riverprofile.h \
     sed.h \
     tinyxml2_wrapper.h \
-    tinyxml2/tinyxml2.h
+    tinyxml2/tinyxml2.h \
+    gratetime.h
 
 FORMS    += \
     RwaveWin.ui

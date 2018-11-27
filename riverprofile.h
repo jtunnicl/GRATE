@@ -2,8 +2,9 @@
 #define RIVERPROFILE_H
 
 #include <vector>
-#include <QDateTime>
 #include <cmath>
+#include <fstream>
+#include "gratetime.h"
 #include "tinyxml2/tinyxml2.h"
 
 using namespace std;
@@ -92,7 +93,7 @@ public:
 
     TS_Object();
 
-    QDateTime date_time;       // Date and time of inputs (see QDateTime doc)
+    GrateTime date_time;       // Date and time of inputs
     double Q;                  // m3/s (Qw) for water, m3/s (Qs) for sediment
     int Coord;                  // Stream-wise coordinate of input (m)
     int GRP;                       // For sediment : sed group
@@ -108,9 +109,9 @@ public:
 
     int nnodes;                                // No. of points in the computational grid
     int npts;                                  // No. of points in the long-profile supplied (later interpolated to nnodes, if necessary)
-    QDateTime cTime;                           // Current model time
-    QDateTime startTime;
-    QDateTime endTime;
+    GrateTime cTime;                           // Current model time
+    GrateTime startTime;
+    GrateTime endTime;
     int counter;
     int yearCounter;
     int dt;                                    // Delta t in seconds

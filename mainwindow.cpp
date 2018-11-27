@@ -345,7 +345,7 @@ void MainWindow::setupChart(){
     for ( i = 1; i < 7 ; i++ )
            ui->GSD_Dash->graph(i)->setPen(QPen(QColor((i * 30), 254 - (i * 30), 113)));
 
-    ui->grateDateTime->setDateTime(rn->cTime);
+    ui->grateDateTime->setDateTime(QDateTime::fromTime_t(rn->cTime.getTime_t()));
     ui->reportStep->setValue(rn->counter);
     ui->reportYear->setValue(rn->yearCounter);
 
@@ -364,7 +364,7 @@ void MainWindow::setupChart(){
 
 void MainWindow::kernel(){
 
-    ui->grateDateTime->setDateTime(model->rn->cTime);
+    ui->grateDateTime->setDateTime(QDateTime::fromTime_t(model->rn->cTime.getTime_t()));
 
     connect(&dataTimer, SIGNAL(timeout()), this, SLOT(modelUpdate()));
     dataTimer.start(0); // Interval 0 means to refresh as fast as possible    
@@ -604,7 +604,7 @@ void MainWindow::modelUpdate(){
     ui->BedloadPlot->replot();
     ui->QwSeries->replot();
     ui->GSD_Dash->replot();
-    ui->grateDateTime->setDateTime(rn->cTime);
+    ui->grateDateTime->setDateTime(QDateTime::fromTime_t(rn->cTime.getTime_t()));
 
     // Progress bar
     prog = (rn->startTime.secsTo(rn->cTime) * 100) / (rn->startTime.secsTo(rn->endTime));
