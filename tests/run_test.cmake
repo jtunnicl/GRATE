@@ -8,6 +8,11 @@ message(STATUS "  Test binary: ${TEST_BINARY}")
 message(STATUS "  Compare binary: ${COMPARE_BINARY}")
 
 #
+# number of steps to run the test for
+#
+set(TEST_NUM_STEPS 800)
+
+#
 # make the test directory
 #
 execute_process(COMMAND ${CMAKE_COMMAND} -E remove_directory ${TEST_RUN_DIR})
@@ -25,7 +30,7 @@ file(COPY ${TEST_SRC_DIR}/test_out.xml DESTINATION ${TEST_RUN_DIR})
 # run the code
 #
 execute_process(
-    COMMAND ${CMAKE_COMMAND} -E chdir ${TEST_RUN_DIR} ${TEST_BINARY}
+    COMMAND ${CMAKE_COMMAND} -E chdir ${TEST_RUN_DIR} ${TEST_BINARY} ${TEST_NUM_STEPS}
     RESULT_VARIABLE status
 )
 if (status)
