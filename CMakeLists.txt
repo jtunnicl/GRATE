@@ -17,6 +17,11 @@ endif()
 option(ENABLE_PROFILING "Enable gprof profiling" OFF)
 if (ENABLE_PROFILING)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pg")
+
+    # disable some optimisations as recommended here: https://github.com/jrfonseca/gprof2dot
+    if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-omit-frame-pointer -fno-inline-functions -fno-inline-functions-called-once -fno-optimize-sibling-calls")
+    endif()
 endif()
 
 # Find includes in corresponding build directories
