@@ -36,6 +36,21 @@ add_test(
 
 # test the CLI version
 if (BUILD_CLI)
+    if (ENABLE_PROFILING)
+        # look for gprof, gprof2dot and dot
+        find_program(GPROF_PROGRAM NAMES gprof)
+        find_program(GPROF2DOT_PROGRAM NAMES gprof2dot gprof2dot.py)
+        find_program(DOT_PROGRAM NAMES dot)
+        if (GPROF_PROGRAM AND GPROF2DOT_PROGRAM AND DOT_PROGRAM)
+            set(DOING_PROFILING TRUE)
+        else()
+            set(DOING_PROFILING FALSE)
+        endif()
+    else()
+        set(DOING_PROFILING FALSE)
+    endif()
+
+    # add the test
     set(TEST_RUN_DIR ${CMAKE_CURRENT_BINARY_DIR}/GrateRipCLIFullTest)
     add_test(
         NAME GrateRipCLIFullTest
@@ -44,6 +59,10 @@ if (BUILD_CLI)
             -DTEST_SRC_DIR=${CMAKE_CURRENT_SOURCE_DIR}
             -DTEST_BINARY=$<TARGET_FILE:GrateRipCLI>
             -DCOMPARE_BINARY=$<TARGET_FILE:compare>
+            -DDOING_PROFILING=${DOING_PROFILING}
+            -DGPROF_PROGRAM=${GPROF_PROGRAM}
+            -DGPROF2DOT_PROGRAM=${GPROF2DOT_PROGRAM}
+            -DDOT_PROGRAM=${DOT_PROGRAM}
             -P ${CMAKE_CURRENT_SOURCE_DIR}/run_test.cmake
     )
 endif (BUILD_CLI)
