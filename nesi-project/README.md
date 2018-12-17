@@ -18,7 +18,7 @@
 Change input files to XML (so can be exported from Excel).
 
 * Implemented `tinyxml2` library to read the XML files within the code
-* Converted most of *Input_Rip1_equil_1938.dat* (**Still to do:** Stratigraphy array
+* Converted most of *Input_Rip1_equil_1938.dat* (**Still to do:** Stratigraphy array)
 * **Still to do:** convert *hydro_series.dat* and *sed_series.dat*
 
 
@@ -99,7 +99,7 @@ If you want to use Travis with the main repository then you can follow steps 1-3
 
 ## Profiling headless version
 
-[grate-cli-5000steps.png](![Profiling results](grate-cli-5000steps.png))
+![Profiling results](grate-cli-5000steps.png)
 
 * `NodeGSDObject::dg_and_std` and `NodeGSDObject::norm_frac` have the most self-time
 * In `hydro`: `regimeModel`, `findStable` and `energyConserve` have lots of time under them
