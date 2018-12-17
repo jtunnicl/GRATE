@@ -130,10 +130,6 @@ void NodeGSDObject::dg_and_std()
     stdv = 0.0;
     for ( int j = 0; j < ngsz; j++ )
     {
-//        ktot[j] = 0;
-//        for ( int k = 0; k < nlith; k++ )
-//            ktot[j] = ktot[j] + pct[k][j];
-
         tdev = 0.5 * (psi[j] + psi[j+1]) - dsg;
         stdv += 0.5 * tdev * tdev * ktot[j];
     }

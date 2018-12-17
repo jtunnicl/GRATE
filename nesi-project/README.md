@@ -127,3 +127,5 @@ float ktot[ngsz];
 There is a (small) overhead to creating a `vector` and resizing it. Since these function get
 called a large number of times, making this change resulted in a reasonable performance improvement.
 
+The `ktot` array values were calculated twice; the second calculation was removed (i.e. values from
+the first calculation were reused) as part of this change too.
