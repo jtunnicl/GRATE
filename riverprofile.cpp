@@ -67,12 +67,13 @@ NodeGSDObject::NodeGSDObject()
 void NodeGSDObject::norm_frac()
 // Normalize grainsize fractions to 100%
 {
-    float ngsz, nlith, cumtot;
-    vector<float> ktot;
-    ktot.resize(psi.size());
+    int ngsz, nlith;
+    float cumtot;
 
     ngsz = psi.size() - 2;
     nlith = abrasion.size();
+
+    float ktot[ngsz];
 
     sand_pct = 0;
 
@@ -102,12 +103,12 @@ void NodeGSDObject::dg_and_std()
 // Routines to calculate grainsize statistics, including D50,D84,D90 and standard deviation
 {
     float tdev;
-    float ngsz, nlith;
-    vector<float> ktot;
-    ktot.resize(psi.size());
+    int ngsz, nlith;
 
     ngsz = psi.size() - 2;
     nlith = abrasion.size();
+    
+    float ktot[ngsz];
 
     dsg = 0.0;
     d84 = 0.0;
@@ -129,9 +130,9 @@ void NodeGSDObject::dg_and_std()
     stdv = 0.0;
     for ( int j = 0; j < ngsz; j++ )
     {
-        ktot[j] = 0;
-        for ( int k = 0; k < nlith; k++ )
-            ktot[j] = ktot[j] + pct[k][j];
+//        ktot[j] = 0;
+//        for ( int k = 0; k < nlith; k++ )
+//            ktot[j] = ktot[j] + pct[k][j];
 
         tdev = 0.5 * (psi[j] + psi[j+1]) - dsg;
         stdv += 0.5 * tdev * tdev * ktot[j];

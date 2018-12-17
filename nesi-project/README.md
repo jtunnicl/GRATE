@@ -103,3 +103,26 @@ If you want to use Travis with the main repository then you can follow steps 1-3
 
 * `NodeGSDObject::dg_and_std` and `NodeGSDObject::norm_frac` have the most self-time
 * In `hydro`: `regimeModel`, `findStable` and `energyConserve` have lots of time under them
+
+
+## Optimisation in `dg_and_std` and `norm_frac`
+
+A small change to use statically allocated arrays, instead of `std::vector` results in around
+15-20% reduction in run times (depending on compiler).
+
+The change was from:
+
+```cpp
+vector<float> ktot;
+ktot.resize(psi.size());
+```
+
+to:
+
+```cpp
+float ktot[ngsz];
+```
+
+There is a (small) overhead to creating a `vector` and resizing it. Since these function get
+called a large number of times, making this change resulted in a reasonable performance improvement.
+
