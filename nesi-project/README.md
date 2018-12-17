@@ -107,8 +107,9 @@ If you want to use Travis with the main repository then you can follow steps 1-3
 
 ## Optimisation in `dg_and_std` and `norm_frac`
 
-A small change to use statically allocated arrays, instead of `std::vector` results in around
-15-20% reduction in run times (depending on compiler).
+A [small change](https://github.com/chrisdjscott/GRATE/commit/98b342caf8a8089d8b651ab27eabd8226ce0a466)
+to use statically allocated arrays, instead of `std::vector` results in around 15-20% reduction
+in run times (depending on compiler).
 
 The change was from:
 
