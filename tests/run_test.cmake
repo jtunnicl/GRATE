@@ -27,7 +27,6 @@ execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${TEST_RUN_DIR})
 #
 file(COPY ${TEST_SRC_DIR}/Input_Rip1_equil_1938.dat DESTINATION ${TEST_RUN_DIR})
 file(COPY ${TEST_SRC_DIR}/hydro_series.dat DESTINATION ${TEST_RUN_DIR})
-file(COPY ${TEST_SRC_DIR}/sed_series.dat DESTINATION ${TEST_RUN_DIR})
 file(COPY ${TEST_SRC_DIR}/test_out.xml DESTINATION ${TEST_RUN_DIR})
 
 #

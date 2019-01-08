@@ -88,7 +88,6 @@ endif()
 # copy input files to build dir for testing
 configure_file(Input_Rip1_equil_1938.dat ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
 configure_file(hydro_series.dat ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
-configure_file(sed_series.dat ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
 configure_file(test_out.xml ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
 
 # add tests

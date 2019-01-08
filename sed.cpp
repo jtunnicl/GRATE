@@ -14,10 +14,7 @@ sed::sed(RiverProfile *r, XMLElement *params_root)
 void sed::initSedSeries(int nodes, XMLElement *params_root)
 {
     double currentCoord = 0.;
-    GrateTime NewDate;
     vector< TS_Object > tmp;
-    TS_Object NewEntry;
-
 
     // get sed_series element from XML file
     XMLElement *sed_series = params_root->FirstChildElement("sed_series");
@@ -25,7 +22,7 @@ void sed::initSedSeries(int nodes, XMLElement *params_root)
         throw std::string("Error getting sed_series element from XML file");
     }
 
-    int stepCount = 0;
+    // loop over all "STEP" elements in the XML file
     for (XMLElement* e = sed_series->FirstChildElement("STEP"); e != NULL; e = e->NextSiblingElement("STEP")) {
         int year = getIntValue(e, "year");
         int month = getIntValue(e, "month");
@@ -33,9 +30,9 @@ void sed::initSedSeries(int nodes, XMLElement *params_root)
         int hour = getIntValue(e, "hour");
         int minute = getIntValue(e, "minute");
         int second = getIntValue(e, "second");
-        NewDate.setDate(year, month, day);
-        NewDate.setTime(hour, minute, second);
+        GrateTime NewDate(year, month, day, hour, minute, second);
 
+        TS_Object NewEntry;
         NewEntry.date_time = NewDate;
         NewEntry.Q = getDoubleValue(e, "Qs");
         NewEntry.Coord = getDoubleValue(e, "loc");
@@ -50,39 +47,7 @@ void sed::initSedSeries(int nodes, XMLElement *params_root)
         else {
             tmp.push_back(NewEntry);
         }
-
-        stepCount++;
     }
-    std::cerr << "DEBUG: sed series step count from xml = " << stepCount << std::endl;
-
-//    NewDate.setDate(2000, 1, 1);
-//    NewDate.setTime(0, 0, 0);
-//
-//    inSedFile.open("sed_series.dat", ios::in);
-//
-//    if (!inSedFile) cout << "file couldn't open sed file properly" << endl;
-//    
-//    while(! inSedFile.eof() )
-//    {
-//        if(inSedFile >> v1 >> v2 >> v3 >> v4 >> v5 >> v6 >> v7 >> v8 >> v9)
-//        {
-//            NewDate.setDate(v2, v3, v4);
-//            NewDate.setTime(v5, v6, v7);
-//            NewEntry.date_time = NewDate;
-//            NewEntry.Q = v8;
-//            NewEntry.Coord = v1;
-//            NewEntry.GRP = v9 - 1;
-//
-//            if (v1 > currentCoord){            // Have we moved to a new source coordinate?
-//                Qs_series.push_back( tmp );
-//                tmp.clear();
-//                currentCoord = v1;
-//                tmp.push_back(NewEntry);  // Start new tmp
-//                }
-//            else
-//                tmp.push_back(NewEntry);
-//        }
-//    }
 
     Qs_series.push_back( tmp );                 // Final tmp loaded into Qs_series array
     Qs.resize(nodes);                                       // Bedload transport (m3/s) at each node
