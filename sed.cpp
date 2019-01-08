@@ -15,6 +15,8 @@ void sed::initSedSeries(int nodes, XMLElement *params_root)
 {
     double currentCoord = 0.;
     vector< TS_Object > tmp;
+    GrateTime NewDate;
+    TS_Object NewEntry;
 
     // get sed_series element from XML file
     XMLElement *sed_series = params_root->FirstChildElement("sed_series");
@@ -30,9 +32,9 @@ void sed::initSedSeries(int nodes, XMLElement *params_root)
         int hour = getIntValue(e, "hour");
         int minute = getIntValue(e, "minute");
         int second = getIntValue(e, "second");
-        GrateTime NewDate(year, month, day, hour, minute, second);
+        NewDate.setDate(year, month, day);
+        NewDate.setTime(hour, minute, second);
 
-        TS_Object NewEntry;
         NewEntry.date_time = NewDate;
         NewEntry.Q = getDoubleValue(e, "Qs");
         NewEntry.Coord = getDoubleValue(e, "loc");
