@@ -643,8 +643,9 @@ void RiverProfile::getGSDLibrary(XMLElement* params_root)
         // get the element
         XMLElement *lithElem = params_root->FirstChildElement(lithName.c_str());
         if (lithElem == NULL) {
-            std::cerr << "Error getting " << lithName << " element" << std::endl;
-            // TODO: handle errors
+            std::ostringstream oss;
+            oss << "Error getting " << lithName << " element";
+            throw oss.str();
         }
 
         // loop over groups
@@ -661,8 +662,9 @@ void RiverProfile::getGSDLibrary(XMLElement* params_root)
                 // get the element
                 XMLElement* psiElem = e->FirstChildElement(psiName.c_str());
                 if (psiElem == NULL) {
-                    std::cerr << "Error getting element " << psiName << " for " << lithName << std::endl;
-                    // TODO: handle errors
+                    std::ostringstream oss;
+                    oss << "Error getting element " << psiName << " for " << lithName;
+                    throw oss.str();
                 }
 
                 // get the value
@@ -678,8 +680,9 @@ void RiverProfile::getGSDLibrary(XMLElement* params_root)
             grpCount++;
         }
         if (grpCount != ngrp) {
-            std::cerr << "wrong number of groups for " << lithName << std::endl;
-            // TODO: handle errors
+            std::ostringstream oss;
+            oss << "Wrong number of groups for " << lithName;
+            throw oss.str();
         }
     }
 
