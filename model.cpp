@@ -14,7 +14,7 @@ Model::Model(XMLElement* params_root) :
 {
     rn = new RiverProfile(params_root);  // Long profile, channel geometry
     wl = new hydro(rn);  // Channel hydraulic parameters
-    sd = new sed(rn);
+    sd = new sed(rn, params_root);
 
     // initialise
     rn->cTime = wl->Qw[0][0].date_time;

@@ -2,51 +2,87 @@
 #include <math.h>
 #include<iostream>
 #include<fstream>
+#include "tinyxml2/tinyxml2.h"
+#include "tinyxml2_wrapper.h"
 using namespace std;
 
-sed::sed(RiverProfile *r)
+sed::sed(RiverProfile *r, XMLElement *params_root)
 {
-    initSedSeries(r->nnodes);
+    initSedSeries(r->nnodes, params_root);
 }
 
-void sed::initSedSeries(int nodes)
+void sed::initSedSeries(int nodes, XMLElement *params_root)
 {
-    std::ifstream inSedFile;
     double currentCoord = 0.;
-    int v2, v3, v4, v5, v6, v7, v9;        // Yr, Mt, Day, Hr, Mn, Sec, GRP
-    double v1, v8;                         // Coord, Qs
     GrateTime NewDate;
     vector< TS_Object > tmp;
     TS_Object NewEntry;
 
-    NewDate.setDate(2000, 1, 1);
-    NewDate.setTime(0, 0, 0);
 
-    inSedFile.open("sed_series.dat", ios::in);
-
-    if (!inSedFile) cout << "file couldn't open sed file properly" << endl;
-    
-    while(! inSedFile.eof() )
-    {
-        if(inSedFile >> v1 >> v2 >> v3 >> v4 >> v5 >> v6 >> v7 >> v8 >> v9)
-        {
-            NewDate.setDate(v2, v3, v4);
-            NewDate.setTime(v5, v6, v7);
-            NewEntry.date_time = NewDate;
-            NewEntry.Q = v8;
-            NewEntry.Coord = v1;
-            NewEntry.GRP = v9 - 1;
-
-            if (v1 > currentCoord){            // Have we moved to a new source coordinate?
-                Qs_series.push_back( tmp );
-                tmp.clear();
-                currentCoord = v1;
-                tmp.push_back(NewEntry);  // Start new tmp
-                }
-            else
-                tmp.push_back(NewEntry);
-        }
+    // get sed_series element from XML file
+    XMLElement *sed_series = params_root->FirstChildElement("sed_series");
+    if (sed_series == NULL) {
+        throw std::string("Error getting sed_series element from XML file");
     }
+
+    int stepCount = 0;
+    for (XMLElement* e = sed_series->FirstChildElement("STEP"); e != NULL; e = e->NextSiblingElement("STEP")) {
+        int year = getIntValue(e, "year");
+        int month = getIntValue(e, "month");
+        int day = getIntValue(e, "day");
+        int hour = getIntValue(e, "hour");
+        int minute = getIntValue(e, "minute");
+        int second = getIntValue(e, "second");
+        NewDate.setDate(year, month, day);
+        NewDate.setTime(hour, minute, second);
+
+        NewEntry.date_time = NewDate;
+        NewEntry.Q = getDoubleValue(e, "Qs");
+        NewEntry.Coord = getDoubleValue(e, "loc");
+        NewEntry.GRP = getIntValue(e, "GSD") - 1;
+
+        if (NewEntry.Coord > currentCoord) {            // Have we moved to a new source coordinate?
+            Qs_series.push_back( tmp );
+            tmp.clear();
+            currentCoord = NewEntry.Coord;
+            tmp.push_back(NewEntry);  // Start new tmp
+        }
+        else {
+            tmp.push_back(NewEntry);
+        }
+
+        stepCount++;
+    }
+    std::cerr << "DEBUG: sed series step count from xml = " << stepCount << std::endl;
+
+//    NewDate.setDate(2000, 1, 1);
+//    NewDate.setTime(0, 0, 0);
+//
+//    inSedFile.open("sed_series.dat", ios::in);
+//
+//    if (!inSedFile) cout << "file couldn't open sed file properly" << endl;
+//    
+//    while(! inSedFile.eof() )
+//    {
+//        if(inSedFile >> v1 >> v2 >> v3 >> v4 >> v5 >> v6 >> v7 >> v8 >> v9)
+//        {
+//            NewDate.setDate(v2, v3, v4);
+//            NewDate.setTime(v5, v6, v7);
+//            NewEntry.date_time = NewDate;
+//            NewEntry.Q = v8;
+//            NewEntry.Coord = v1;
+//            NewEntry.GRP = v9 - 1;
+//
+//            if (v1 > currentCoord){            // Have we moved to a new source coordinate?
+//                Qs_series.push_back( tmp );
+//                tmp.clear();
+//                currentCoord = v1;
+//                tmp.push_back(NewEntry);  // Start new tmp
+//                }
+//            else
+//                tmp.push_back(NewEntry);
+//        }
+//    }
 
     Qs_series.push_back( tmp );                 // Final tmp loaded into Qs_series array
     Qs.resize(nodes);                                       // Bedload transport (m3/s) at each node

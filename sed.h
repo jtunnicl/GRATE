@@ -4,6 +4,7 @@
 #include <vector>
 #include "riverprofile.h"
 #include "hydro.h"
+#include "tinyxml2/tinyxml2.h"
 
 using namespace std;
 
@@ -22,9 +23,9 @@ public:
     vector <double> deta;                      // Delta bed elevation change
     vector <double> dLa_over_dt;
 
-    sed(RiverProfile *r);
+    sed(RiverProfile *r, XMLElement *params_root);
 
-    void initSedSeries(int nodes);                      // Set inputs
+    void initSedSeries(int nodes, XMLElement *params_root);    // Set inputs
 
     void setNodalSedInputs(RiverProfile *r);
 

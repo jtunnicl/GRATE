@@ -1086,188 +1086,74 @@
 		</STEP>
 		<STEP/>
 	</hydro_series>
-	<sed_series>
-		<STEP src="Upstream">
-			<loc>0</loc>
-			<datetime>36683.5</datetime>
-			<Qs>3</Qs>
-			<GSD>4</GSD>
-		</STEP>
-		<STEP src="Upstream">
-			<loc>0</loc>
-			<datetime>36684.5</datetime>
-			<Qs>3</Qs>
-			<GSD>4</GSD>
-		</STEP>
-		<STEP src="Upstream">
-			<loc>0</loc>
-			<datetime>36685.5</datetime>
-			<Qs>3</Qs>
-			<GSD>4</GSD>
-		</STEP>
-		<STEP src="Upstream">
-			<loc>0</loc>
-			<datetime>36686.5</datetime>
-			<Qs>3</Qs>
-			<GSD>4</GSD>
-		</STEP>
-		<STEP src="Upstream">
-			<loc>0</loc>
-			<datetime>36687.5</datetime>
-			<Qs>3</Qs>
-			<GSD>4</GSD>
-		</STEP>
-		<STEP src="Upstream">
-			<loc>0</loc>
-			<datetime>36688.5</datetime>
-			<Qs>3</Qs>
-			<GSD>4</GSD>
-		</STEP>
-		<STEP src="Upstream">
-			<loc>0</loc>
-			<datetime>36689.5</datetime>
-			<Qs>3</Qs>
-			<GSD>4</GSD>
-		</STEP>
-		<STEP src="Upstream">
-			<loc>0</loc>
-			<datetime>36690.5</datetime>
-			<Qs>3</Qs>
-			<GSD>4</GSD>
-		</STEP>
-		<STEP src="Upstream">
-			<loc>0</loc>
-			<datetime>36691.5</datetime>
-			<Qs>3</Qs>
-			<GSD>4</GSD>
-		</STEP>
-		<STEP src="Upstream">
-			<loc>0</loc>
-			<datetime>36692.5</datetime>
-			<Qs>3</Qs>
-			<GSD>4</GSD>
-		</STEP>
-		<STEP src="Upstream">
-			<loc>0</loc>
-			<datetime>36693.5</datetime>
-			<Qs>3</Qs>
-			<GSD>4</GSD>
-		</STEP>
-		<STEP src="Upstream">
-			<loc>0</loc>
-			<datetime>36694.5</datetime>
-			<Qs>3</Qs>
-			<GSD>4</GSD>
-		</STEP>
-		<STEP src="Upstream">
-			<loc>0</loc>
-			<datetime>36695.5</datetime>
-			<Qs>3</Qs>
-			<GSD>4</GSD>
-		</STEP>
-		<STEP src="Upstream">
-			<loc>0</loc>
-			<datetime>36696.5</datetime>
-			<Qs>3</Qs>
-			<GSD>4</GSD>
-		</STEP>
-		<STEP src="Upstream">
-			<loc>0</loc>
-			<datetime>36697.5</datetime>
-			<Qs>3</Qs>
-			<GSD>4</GSD>
-		</STEP>
-		<STEP src="Trib1">
-			<loc>250</loc>
-			<datetime>36683.5</datetime>
-			<Qs>1</Qs>
-			<GSD>1</GSD>
-		</STEP>
-		<STEP src="Trib1">
-			<loc>250</loc>
-			<datetime>36684.5</datetime>
-			<Qs>1</Qs>
-			<GSD>1</GSD>
-		</STEP>
-		<STEP src="Trib1">
-			<loc>250</loc>
-			<datetime>36685.5</datetime>
-			<Qs>1</Qs>
-			<GSD>1</GSD>
-		</STEP>
-		<STEP src="Trib1">
-			<loc>250</loc>
-			<datetime>36686.5</datetime>
-			<Qs>1</Qs>
-			<GSD>1</GSD>
-		</STEP>
-		<STEP src="Trib1">
-			<loc>250</loc>
-			<datetime>36687.5</datetime>
-			<Qs>1</Qs>
-			<GSD>1</GSD>
-		</STEP>
-		<STEP src="Trib1">
-			<loc>250</loc>
-			<datetime>36688.5</datetime>
-			<Qs>1</Qs>
-			<GSD>1</GSD>
-		</STEP>
-		<STEP src="Trib1">
-			<loc>250</loc>
-			<datetime>36689.5</datetime>
-			<Qs>1</Qs>
-			<GSD>1</GSD>
-		</STEP>
-		<STEP src="Trib1">
-			<loc>250</loc>
-			<datetime>36690.5</datetime>
-			<Qs>1</Qs>
-			<GSD>1</GSD>
-		</STEP>
-		<STEP src="Trib1">
-			<loc>250</loc>
-			<datetime>36691.5</datetime>
-			<Qs>1</Qs>
-			<GSD>1</GSD>
-		</STEP>
-		<STEP src="Trib1">
-			<loc>250</loc>
-			<datetime>36692.5</datetime>
-			<Qs>1</Qs>
-			<GSD>1</GSD>
-		</STEP>
-		<STEP src="Trib1">
-			<loc>250</loc>
-			<datetime>36693.5</datetime>
-			<Qs>1</Qs>
-			<GSD>1</GSD>
-		</STEP>
-		<STEP src="Trib1">
-			<loc>250</loc>
-			<datetime>36694.5</datetime>
-			<Qs>1</Qs>
-			<GSD>1</GSD>
-		</STEP>
-		<STEP src="Trib1">
-			<loc>250</loc>
-			<datetime>36695.5</datetime>
-			<Qs>1</Qs>
-			<GSD>1</GSD>
-		</STEP>
-		<STEP src="Trib1">
-			<loc>250</loc>
-			<datetime>36696.5</datetime>
-			<Qs>1</Qs>
-			<GSD>1</GSD>
-		</STEP>
-		<STEP src="Trib1">
-			<loc>250</loc>
-			<datetime>36697.5</datetime>
-			<Qs>1</Qs>
-			<GSD>1</GSD>
-		</STEP>
-	</sed_series>
+    <sed_series>
+        <STEP src="Upstream">
+            <loc>0</loc>
+            <year>2000</year>
+            <month>1</month>
+            <day>12</day>
+            <hour>1</hour>
+            <minute>0</minute>
+            <second>0</second>
+            <Qs>0.75</Qs>
+            <GSD>7</GSD>
+        </STEP>
+        <STEP src="Upstream">
+            <loc>0</loc>
+            <year>2000</year>
+            <month>7</month>
+            <day>12</day>
+            <hour>1</hour>
+            <minute>0</minute>
+            <second>0</second>
+            <Qs>0.75</Qs>
+            <GSD>7</GSD>
+        </STEP>
+        <STEP src="Upstream">
+            <loc>0</loc>
+            <year>2000</year>
+            <month>7</month>
+            <day>14</day>
+            <hour>1</hour>
+            <minute>0</minute>
+            <second>0</second>
+            <Qs>7.5</Qs>
+            <GSD>7</GSD>
+        </STEP>
+        <STEP src="Upstream">
+            <loc>0</loc>
+            <year>2000</year>
+            <month>12</month>
+            <day>12</day>
+            <hour>1</hour>
+            <minute>0</minute>
+            <second>0</second>
+            <Qs>7.5</Qs>
+            <GSD>7</GSD>
+        </STEP>
+        <STEP src="Upstream">
+            <loc>0</loc>
+            <year>2000</year>
+            <month>12</month>
+            <day>14</day>
+            <hour>1</hour>
+            <minute>0</minute>
+            <second>0</second>
+            <Qs>0.75</Qs>
+            <GSD>7</GSD>
+        </STEP>
+        <STEP src="Upstream">
+            <loc>0</loc>
+            <year>2001</year>
+            <month>12</month>
+            <day>12</day>
+            <hour>1</hour>
+            <minute>0</minute>
+            <second>0</second>
+            <Qs>0.10</Qs>
+            <GSD>7</GSD>
+        </STEP>
+    </sed_series>
 	<LITH1>
 		<GRP>
 			<ID>Hillslope Source Area (Coarsest)</ID>
