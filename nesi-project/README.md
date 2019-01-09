@@ -82,8 +82,6 @@ The headless version now builds without any requirement on Qt.
 
 ## Continuous integration
 
-
-
 * automatically run tests when pushing changes to the repository
 * notifies you if tests fail
 * instructions to set up for main repo
@@ -130,3 +128,11 @@ called a large number of times, making this change resulted in a reasonable perf
 
 The `ktot` array values were calculated twice; the second calculation was removed (i.e. values from
 the first calculation were reused) as part of this change too.
+
+
+## Merging changes
+
+Merging in the changes Jon has made to the GUI:
+
+* get those changes into github
+* try to use the merge feature from git/github
