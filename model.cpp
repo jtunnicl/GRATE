@@ -13,7 +13,7 @@ Model::Model(XMLElement* params_root) :
     rn(nullptr), wl(nullptr), sd(nullptr)
 {
     rn = new RiverProfile(params_root);  // Long profile, channel geometry
-    wl = new hydro(rn);  // Channel hydraulic parameters
+    wl = new hydro(rn, params_root);  // Channel hydraulic parameters
     sd = new sed(rn, params_root);
 
     // initialise

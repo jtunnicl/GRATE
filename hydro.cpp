@@ -14,6 +14,8 @@
 #include <iostream>
 #include <algorithm>
 #include <fstream>
+#include "tinyxml2/tinyxml2.h"
+#include "tinyxml2_wrapper.h"
 using namespace std;
 
 #define PI 3.14159265
@@ -21,63 +23,52 @@ using namespace std;
 #define RHO 1000  // water density
 #define Gs 1.65   // submerged specific gravity
 
-hydro::hydro(RiverProfile *r)
+hydro::hydro(RiverProfile *r, XMLElement *params_root)
 {
     preissTheta = 0.7;
     hydUpw = 0.3;
     regimeCounter = (r->nnodes-2);
 
-    initHydro(r->nnodes);
+    initHydro(r->nnodes, params_root);
 }
 
-void hydro::initHydro(int nodes)
+void hydro::initHydro(int nodes, XMLElement *params_root)
 {
-    ifstream inHydroFile;
     double currentCoord = 0.;
-    int v2 = 0; // Yr, Mt, Day, Hr, Mn, Sec, GRP
-    int v3 = 0;
-    int v4 = 0;
-    int v5 = 0;
-    int v6 = 0;
-    int v7 = 0;
-    int v9 = 0;
-    double v1 = 0.;
-    double v8 = 0.;                    // Coord, Qw
     GrateTime NewDate;
     vector< TS_Object > tmp;
     TS_Object NewEntry;
 
-    NewDate.setDate(2000, 1, 1);
-    NewDate.setTime(0, 0, 0);
-    NewEntry.date_time = NewDate;
-    NewEntry.Q = 0;
-    NewEntry.Coord = 0;
-    NewEntry.GRP = 1;
-    //tmp.push_back(NewEntry);
+    // get hydro_series element from XML file
+    XMLElement *hydro_series = params_root->FirstChildElement("hydro_series");
+    if (hydro_series == NULL) {
+        throw std::string("Error getting hydro_series element from XML file");
+    }
 
-    inHydroFile.open("hydro_series.dat");
-    if (!inHydroFile) cout << "file couldn't open properly" << endl;
+    // loop over all "STEP" elements in the XML file
+    for (XMLElement* e = hydro_series->FirstChildElement("STEP"); e != NULL; e = e->NextSiblingElement("STEP")) {
+        int year = getIntValue(e, "year");
+        int month = getIntValue(e, "month");
+        int day = getIntValue(e, "day");
+        int hour = getIntValue(e, "hour");
+        int minute = getIntValue(e, "minute");
+        int second = getIntValue(e, "second");
+        NewDate.setDate(year, month, day);
+        NewDate.setTime(hour, minute, second);
 
-    while(!inHydroFile.eof() )
-    {
-        if(inHydroFile >> v1 >> v2 >> v3 >> v4 >> v5 >> v6 >> v7 >> v8 >> v9)
-        {
-            NewDate.setDate(v2, v3, v4);
-            NewDate.setTime(v5, v6, v7);
-            NewEntry.date_time = NewDate;
-            NewEntry.Q = v8;
-            NewEntry.Coord = v1;
-            NewEntry.GRP = v9;
+        NewEntry.date_time = NewDate;
+        NewEntry.Q = getDoubleValue(e, "Qw");
+        NewEntry.Coord = getDoubleValue(e, "loc");
+        NewEntry.GRP = 1;  // this could be added to the XML file if desired...
 
-            if (v1 > currentCoord)        // Have we moved to a new source coordinate?
-            {
-                Qw.push_back( tmp );
-                tmp.clear();
-                currentCoord = v1;
-                tmp.push_back(NewEntry);  // Start new tmp
-            }
-            else
-                tmp.push_back(NewEntry);
+        if (NewEntry.Coord > currentCoord) {            // Have we moved to a new source coordinate?
+            Qw.push_back( tmp );
+            tmp.clear();
+            currentCoord = NewEntry.Coord;
+            tmp.push_back(NewEntry);  // Start new tmp
+        }
+        else {
+            tmp.push_back(NewEntry);
         }
     }
 

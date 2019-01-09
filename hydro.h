@@ -2,6 +2,7 @@
 #define HYDRO_H
 
 #include "riverprofile.h"
+#include "tinyxml2/tinyxml2.h"
 using namespace std;
 
 class hydro
@@ -18,11 +19,11 @@ public:
     vector<double> QwCumul;
     vector<double> bedSlope;                   // Bedslope
 
-    hydro(RiverProfile *r);                                   // Constructor
+    hydro(RiverProfile *r, XMLElement *params_root);                                   // Constructor
 
     void backWater(RiverProfile *r);           // Principal Hydro routine: calculate water surface profile
 
-    void initHydro(int nodes);
+    void initHydro(int nodes, XMLElement *params_root);
 
     void setQuasiSteadyNodalFlows(RiverProfile *r);
 

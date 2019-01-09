@@ -935,156 +935,584 @@
 	<hydro_series>
 		<STEP src="Upstream">
 			<loc>0</loc>
-			<datetime>36683.5</datetime>
-			<Qw>302</Qw>
+			<year>2000</year>
+			<month>1</month>
+			<day>12</day>
+			<hour>1</hour>
+			<minute>0</minute>
+			<second>0</second>
+			<Qw>52</Qw>
 		</STEP>
 		<STEP src="Upstream">
 			<loc>0</loc>
-			<datetime>36684.5</datetime>
-			<Qw>303</Qw>
+			<year>2002</year>
+			<month>6</month>
+			<day>12</day>
+			<hour>1</hour>
+			<minute>0</minute>
+			<second>0</second>
+			<Qw>52</Qw>
 		</STEP>
 		<STEP src="Upstream">
-			<loc>0</loc>
-			<datetime>36685.5</datetime>
-			<Qw>305</Qw>
+			<loc>250</loc>
+			<year>2000</year>
+			<month>1</month>
+			<day>12</day>
+			<hour>1</hour>
+			<minute>0</minute>
+			<second>0</second>
+			<Qw>3.5</Qw>
 		</STEP>
 		<STEP src="Upstream">
-			<loc>0</loc>
-			<datetime>36686.5</datetime>
-			<Qw>310</Qw>
+			<loc>250</loc>
+			<year>2002</year>
+			<month>6</month>
+			<day>12</day>
+			<hour>1</hour>
+			<minute>0</minute>
+			<second>0</second>
+			<Qw>3.5</Qw>
 		</STEP>
 		<STEP src="Upstream">
-			<loc>0</loc>
-			<datetime>36687.5</datetime>
-			<Qw>305</Qw>
+			<loc>500</loc>
+			<year>2000</year>
+			<month>1</month>
+			<day>12</day>
+			<hour>1</hour>
+			<minute>0</minute>
+			<second>0</second>
+			<Qw>3.5</Qw>
 		</STEP>
 		<STEP src="Upstream">
-			<loc>0</loc>
-			<datetime>36688.5</datetime>
-			<Qw>302.402695895382</Qw>
+			<loc>500</loc>
+			<year>2002</year>
+			<month>6</month>
+			<day>12</day>
+			<hour>1</hour>
+			<minute>0</minute>
+			<second>0</second>
+			<Qw>3.5</Qw>
 		</STEP>
 		<STEP src="Upstream">
-			<loc>0</loc>
-			<datetime>36689.5</datetime>
-			<Qw>299.827509786213</Qw>
+			<loc>750</loc>
+			<year>2000</year>
+			<month>1</month>
+			<day>12</day>
+			<hour>1</hour>
+			<minute>0</minute>
+			<second>0</second>
+			<Qw>3.5</Qw>
 		</STEP>
 		<STEP src="Upstream">
-			<loc>0</loc>
-			<datetime>36690.5</datetime>
-			<Qw>297.274253321146</Qw>
+			<loc>750</loc>
+			<year>2002</year>
+			<month>6</month>
+			<day>12</day>
+			<hour>1</hour>
+			<minute>0</minute>
+			<second>0</second>
+			<Qw>3.5</Qw>
 		</STEP>
 		<STEP src="Upstream">
-			<loc>0</loc>
-			<datetime>36691.5</datetime>
-			<Qw>294.742739752791</Qw>
+			<loc>1000</loc>
+			<year>2000</year>
+			<month>1</month>
+			<day>12</day>
+			<hour>1</hour>
+			<minute>0</minute>
+			<second>0</second>
+			<Qw>3.5</Qw>
 		</STEP>
 		<STEP src="Upstream">
-			<loc>0</loc>
-			<datetime>36692.5</datetime>
-			<Qw>292.232783924049</Qw>
+			<loc>1000</loc>
+			<year>2002</year>
+			<month>6</month>
+			<day>12</day>
+			<hour>1</hour>
+			<minute>0</minute>
+			<second>0</second>
+			<Qw>3.5</Qw>
 		</STEP>
 		<STEP src="Upstream">
-			<loc>0</loc>
-			<datetime>36693.5</datetime>
-			<Qw>289.744202254574</Qw>
+			<loc>1250</loc>
+			<year>2000</year>
+			<month>1</month>
+			<day>12</day>
+			<hour>1</hour>
+			<minute>0</minute>
+			<second>0</second>
+			<Qw>3.5</Qw>
 		</STEP>
 		<STEP src="Upstream">
-			<loc>0</loc>
-			<datetime>36694.5</datetime>
-			<Qw>287.276812727344</Qw>
+			<loc>1250</loc>
+			<year>2002</year>
+			<month>6</month>
+			<day>12</day>
+			<hour>1</hour>
+			<minute>0</minute>
+			<second>0</second>
+			<Qw>3.5</Qw>
 		</STEP>
 		<STEP src="Upstream">
-			<loc>0</loc>
-			<datetime>36695.5</datetime>
-			<Qw>284.83043487535</Qw>
+			<loc>1500</loc>
+			<year>2000</year>
+			<month>1</month>
+			<day>12</day>
+			<hour>1</hour>
+			<minute>0</minute>
+			<second>0</second>
+			<Qw>3.5</Qw>
 		</STEP>
 		<STEP src="Upstream">
-			<loc>0</loc>
-			<datetime>36696.5</datetime>
-			<Qw>282.404889768393</Qw>
+			<loc>1500</loc>
+			<year>2002</year>
+			<month>6</month>
+			<day>12</day>
+			<hour>1</hour>
+			<minute>0</minute>
+			<second>0</second>
+			<Qw>3.5</Qw>
 		</STEP>
 		<STEP src="Upstream">
-			<loc>0</loc>
-			<datetime>36697.5</datetime>
-			<Qw>280</Qw>
+			<loc>1750</loc>
+			<year>2000</year>
+			<month>1</month>
+			<day>12</day>
+			<hour>1</hour>
+			<minute>0</minute>
+			<second>0</second>
+			<Qw>3.5</Qw>
 		</STEP>
-		<STEP/>
-		<STEP src="Trib1">
-			<loc>250</loc>
-			<datetime>36683.5</datetime>
-			<Qw>102</Qw>
+		<STEP src="Upstream">
+			<loc>1750</loc>
+			<year>2002</year>
+			<month>6</month>
+			<day>12</day>
+			<hour>1</hour>
+			<minute>0</minute>
+			<second>0</second>
+			<Qw>3.5</Qw>
 		</STEP>
-		<STEP src="Trib1">
-			<loc>250</loc>
-			<datetime>36684.5</datetime>
-			<Qw>103</Qw>
+		<STEP src="Upstream">
+			<loc>2000</loc>
+			<year>2000</year>
+			<month>1</month>
+			<day>12</day>
+			<hour>1</hour>
+			<minute>0</minute>
+			<second>0</second>
+			<Qw>3.5</Qw>
 		</STEP>
-		<STEP src="Trib1">
-			<loc>250</loc>
-			<datetime>36685.5</datetime>
-			<Qw>105</Qw>
+		<STEP src="Upstream">
+			<loc>2000</loc>
+			<year>2002</year>
+			<month>6</month>
+			<day>12</day>
+			<hour>1</hour>
+			<minute>0</minute>
+			<second>0</second>
+			<Qw>3.5</Qw>
 		</STEP>
-		<STEP src="Trib1">
-			<loc>250</loc>
-			<datetime>36686.5</datetime>
-			<Qw>110</Qw>
+		<STEP src="Upstream">
+			<loc>2250</loc>
+			<year>2000</year>
+			<month>1</month>
+			<day>12</day>
+			<hour>1</hour>
+			<minute>0</minute>
+			<second>0</second>
+			<Qw>3.5</Qw>
 		</STEP>
-		<STEP src="Trib1">
-			<loc>250</loc>
-			<datetime>36687.5</datetime>
-			<Qw>105</Qw>
+		<STEP src="Upstream">
+			<loc>2250</loc>
+			<year>2002</year>
+			<month>6</month>
+			<day>12</day>
+			<hour>1</hour>
+			<minute>0</minute>
+			<second>0</second>
+			<Qw>3.5</Qw>
 		</STEP>
-		<STEP src="Trib1">
-			<loc>250</loc>
-			<datetime>36688.5</datetime>
-			<Qw>102.402695895382</Qw>
+		<STEP src="Upstream">
+			<loc>2500</loc>
+			<year>2000</year>
+			<month>1</month>
+			<day>12</day>
+			<hour>1</hour>
+			<minute>0</minute>
+			<second>0</second>
+			<Qw>3.5</Qw>
 		</STEP>
-		<STEP src="Trib1">
-			<loc>250</loc>
-			<datetime>36689.5</datetime>
-			<Qw>99.8275097862127</Qw>
+		<STEP src="Upstream">
+			<loc>2500</loc>
+			<year>2002</year>
+			<month>6</month>
+			<day>12</day>
+			<hour>1</hour>
+			<minute>0</minute>
+			<second>0</second>
+			<Qw>3.5</Qw>
 		</STEP>
-		<STEP src="Trib1">
-			<loc>250</loc>
-			<datetime>36690.5</datetime>
-			<Qw>97.2742533211465</Qw>
+		<STEP src="Upstream">
+			<loc>2750</loc>
+			<year>2000</year>
+			<month>1</month>
+			<day>12</day>
+			<hour>1</hour>
+			<minute>0</minute>
+			<second>0</second>
+			<Qw>3.5</Qw>
 		</STEP>
-		<STEP src="Trib1">
-			<loc>250</loc>
-			<datetime>36691.5</datetime>
-			<Qw>94.7427397527914</Qw>
+		<STEP src="Upstream">
+			<loc>2750</loc>
+			<year>2002</year>
+			<month>6</month>
+			<day>12</day>
+			<hour>1</hour>
+			<minute>0</minute>
+			<second>0</second>
+			<Qw>3.5</Qw>
 		</STEP>
-		<STEP src="Trib1">
-			<loc>250</loc>
-			<datetime>36692.5</datetime>
-			<Qw>92.2327839240493</Qw>
+		<STEP src="Upstream">
+			<loc>3000</loc>
+			<year>2000</year>
+			<month>1</month>
+			<day>12</day>
+			<hour>1</hour>
+			<minute>0</minute>
+			<second>0</second>
+			<Qw>3.5</Qw>
 		</STEP>
-		<STEP src="Trib1">
-			<loc>250</loc>
-			<datetime>36693.5</datetime>
-			<Qw>89.7442022545741</Qw>
+		<STEP src="Upstream">
+			<loc>3000</loc>
+			<year>2002</year>
+			<month>6</month>
+			<day>12</day>
+			<hour>1</hour>
+			<minute>0</minute>
+			<second>0</second>
+			<Qw>3.5</Qw>
 		</STEP>
-		<STEP src="Trib1">
-			<loc>250</loc>
-			<datetime>36694.5</datetime>
-			<Qw>87.2768127273442</Qw>
+		<STEP src="Upstream">
+			<loc>3250</loc>
+			<year>2000</year>
+			<month>1</month>
+			<day>12</day>
+			<hour>1</hour>
+			<minute>0</minute>
+			<second>0</second>
+			<Qw>3.5</Qw>
 		</STEP>
-		<STEP src="Trib1">
-			<loc>250</loc>
-			<datetime>36695.5</datetime>
-			<Qw>84.8304348753497</Qw>
+		<STEP src="Upstream">
+			<loc>3250</loc>
+			<year>2002</year>
+			<month>6</month>
+			<day>12</day>
+			<hour>1</hour>
+			<minute>0</minute>
+			<second>0</second>
+			<Qw>3.5</Qw>
 		</STEP>
-		<STEP src="Trib1">
-			<loc>250</loc>
-			<datetime>36696.5</datetime>
-			<Qw>82.4048897683925</Qw>
+		<STEP src="Upstream">
+			<loc>3500</loc>
+			<year>2000</year>
+			<month>1</month>
+			<day>12</day>
+			<hour>1</hour>
+			<minute>0</minute>
+			<second>0</second>
+			<Qw>3.5</Qw>
 		</STEP>
-		<STEP src="Trib1">
-			<loc>250</loc>
-			<datetime>36697.5</datetime>
-			<Qw>80.0000000000002</Qw>
+		<STEP src="Upstream">
+			<loc>3500</loc>
+			<year>2002</year>
+			<month>6</month>
+			<day>12</day>
+			<hour>1</hour>
+			<minute>0</minute>
+			<second>0</second>
+			<Qw>3.5</Qw>
 		</STEP>
-		<STEP/>
+		<STEP src="Upstream">
+			<loc>3750</loc>
+			<year>2000</year>
+			<month>1</month>
+			<day>12</day>
+			<hour>1</hour>
+			<minute>0</minute>
+			<second>0</second>
+			<Qw>3.5</Qw>
+		</STEP>
+		<STEP src="Upstream">
+			<loc>3750</loc>
+			<year>2002</year>
+			<month>6</month>
+			<day>12</day>
+			<hour>1</hour>
+			<minute>0</minute>
+			<second>0</second>
+			<Qw>3.5</Qw>
+		</STEP>
+		<STEP src="Upstream">
+			<loc>4000</loc>
+			<year>2000</year>
+			<month>1</month>
+			<day>12</day>
+			<hour>1</hour>
+			<minute>0</minute>
+			<second>0</second>
+			<Qw>3.5</Qw>
+		</STEP>
+		<STEP src="Upstream">
+			<loc>4000</loc>
+			<year>2002</year>
+			<month>6</month>
+			<day>12</day>
+			<hour>1</hour>
+			<minute>0</minute>
+			<second>0</second>
+			<Qw>3.5</Qw>
+		</STEP>
+		<STEP src="Upstream">
+			<loc>4250</loc>
+			<year>2000</year>
+			<month>1</month>
+			<day>12</day>
+			<hour>1</hour>
+			<minute>0</minute>
+			<second>0</second>
+			<Qw>3.5</Qw>
+		</STEP>
+		<STEP src="Upstream">
+			<loc>4250</loc>
+			<year>2002</year>
+			<month>6</month>
+			<day>12</day>
+			<hour>1</hour>
+			<minute>0</minute>
+			<second>0</second>
+			<Qw>3.5</Qw>
+		</STEP>
+		<STEP src="Upstream">
+			<loc>4500</loc>
+			<year>2000</year>
+			<month>1</month>
+			<day>12</day>
+			<hour>1</hour>
+			<minute>0</minute>
+			<second>0</second>
+			<Qw>3.5</Qw>
+		</STEP>
+		<STEP src="Upstream">
+			<loc>4500</loc>
+			<year>2002</year>
+			<month>6</month>
+			<day>12</day>
+			<hour>1</hour>
+			<minute>0</minute>
+			<second>0</second>
+			<Qw>3.5</Qw>
+		</STEP>
+		<STEP src="Upstream">
+			<loc>4750</loc>
+			<year>2000</year>
+			<month>1</month>
+			<day>12</day>
+			<hour>1</hour>
+			<minute>0</minute>
+			<second>0</second>
+			<Qw>3.5</Qw>
+		</STEP>
+		<STEP src="Upstream">
+			<loc>4750</loc>
+			<year>2002</year>
+			<month>6</month>
+			<day>12</day>
+			<hour>1</hour>
+			<minute>0</minute>
+			<second>0</second>
+			<Qw>3.5</Qw>
+		</STEP>
+		<STEP src="Upstream">
+			<loc>5000</loc>
+			<year>2000</year>
+			<month>1</month>
+			<day>12</day>
+			<hour>1</hour>
+			<minute>0</minute>
+			<second>0</second>
+			<Qw>3.5</Qw>
+		</STEP>
+		<STEP src="Upstream">
+			<loc>5000</loc>
+			<year>2002</year>
+			<month>6</month>
+			<day>12</day>
+			<hour>1</hour>
+			<minute>0</minute>
+			<second>0</second>
+			<Qw>3.5</Qw>
+		</STEP>
+		<STEP src="Upstream">
+			<loc>5250</loc>
+			<year>2000</year>
+			<month>1</month>
+			<day>12</day>
+			<hour>1</hour>
+			<minute>0</minute>
+			<second>0</second>
+			<Qw>3.5</Qw>
+		</STEP>
+		<STEP src="Upstream">
+			<loc>5250</loc>
+			<year>2002</year>
+			<month>6</month>
+			<day>12</day>
+			<hour>1</hour>
+			<minute>0</minute>
+			<second>0</second>
+			<Qw>3.5</Qw>
+		</STEP>
+		<STEP src="Upstream">
+			<loc>5500</loc>
+			<year>2000</year>
+			<month>1</month>
+			<day>12</day>
+			<hour>1</hour>
+			<minute>0</minute>
+			<second>0</second>
+			<Qw>3.5</Qw>
+		</STEP>
+		<STEP src="Upstream">
+			<loc>5500</loc>
+			<year>2002</year>
+			<month>6</month>
+			<day>12</day>
+			<hour>1</hour>
+			<minute>0</minute>
+			<second>0</second>
+			<Qw>3.5</Qw>
+		</STEP>
+		<STEP src="Upstream">
+			<loc>5750</loc>
+			<year>2000</year>
+			<month>1</month>
+			<day>12</day>
+			<hour>1</hour>
+			<minute>0</minute>
+			<second>0</second>
+			<Qw>3.5</Qw>
+		</STEP>
+		<STEP src="Upstream">
+			<loc>5750</loc>
+			<year>2002</year>
+			<month>6</month>
+			<day>12</day>
+			<hour>1</hour>
+			<minute>0</minute>
+			<second>0</second>
+			<Qw>3.5</Qw>
+		</STEP>
+		<STEP src="Upstream">
+			<loc>6000</loc>
+			<year>2000</year>
+			<month>1</month>
+			<day>12</day>
+			<hour>1</hour>
+			<minute>0</minute>
+			<second>0</second>
+			<Qw>3.5</Qw>
+		</STEP>
+		<STEP src="Upstream">
+			<loc>6000</loc>
+			<year>2002</year>
+			<month>6</month>
+			<day>12</day>
+			<hour>1</hour>
+			<minute>0</minute>
+			<second>0</second>
+			<Qw>3.5</Qw>
+		</STEP>
+		<STEP src="Upstream">
+			<loc>6250</loc>
+			<year>2000</year>
+			<month>1</month>
+			<day>12</day>
+			<hour>1</hour>
+			<minute>0</minute>
+			<second>0</second>
+			<Qw>3.5</Qw>
+		</STEP>
+		<STEP src="Upstream">
+			<loc>6250</loc>
+			<year>2002</year>
+			<month>6</month>
+			<day>12</day>
+			<hour>1</hour>
+			<minute>0</minute>
+			<second>0</second>
+			<Qw>3.5</Qw>
+		</STEP>
+		<STEP src="Upstream">
+			<loc>6500</loc>
+			<year>2000</year>
+			<month>1</month>
+			<day>12</day>
+			<hour>1</hour>
+			<minute>0</minute>
+			<second>0</second>
+			<Qw>3.5</Qw>
+		</STEP>
+		<STEP src="Upstream">
+			<loc>6500</loc>
+			<year>2002</year>
+			<month>6</month>
+			<day>12</day>
+			<hour>1</hour>
+			<minute>0</minute>
+			<second>0</second>
+			<Qw>3.5</Qw>
+		</STEP>
+		<STEP src="Upstream">
+			<loc>6750</loc>
+			<year>2000</year>
+			<month>1</month>
+			<day>12</day>
+			<hour>1</hour>
+			<minute>0</minute>
+			<second>0</second>
+			<Qw>3.5</Qw>
+		</STEP>
+		<STEP src="Upstream">
+			<loc>6750</loc>
+			<year>2002</year>
+			<month>6</month>
+			<day>12</day>
+			<hour>1</hour>
+			<minute>0</minute>
+			<second>0</second>
+			<Qw>3.5</Qw>
+		</STEP>
+		<STEP src="Upstream">
+			<loc>7000</loc>
+			<year>2000</year>
+			<month>1</month>
+			<day>12</day>
+			<hour>1</hour>
+			<minute>0</minute>
+			<second>0</second>
+			<Qw>3.5</Qw>
+		</STEP>
+		<STEP src="Upstream">
+			<loc>7000</loc>
+			<year>2002</year>
+			<month>6</month>
+			<day>12</day>
+			<hour>1</hour>
+			<minute>0</minute>
+			<second>0</second>
+			<Qw>3.5</Qw>
+		</STEP>
 	</hydro_series>
     <sed_series>
         <STEP src="Upstream">
