@@ -36,3 +36,21 @@ ctest                    # test the code
 ```
 
 This will build two executables; `GrateRip` is the GUI version, `GrateRipCLI` is the command line version. The same input files work with both.
+
+The CLI/headless version has no dependency on Qt. To build without Qt, disable the GUI version and enable the CLI version at the configure step:
+
+```
+...
+cmake .. -DBUILD_CLI=ON -DBUILD_GUI=OFF
+...
+```
+
+This will build only the `GrateRipCLI` command line version.
+
+Different compilers can be specified at the configure step by setting the `CXX` environment variable. For example, if you have the Intel C++ compiler (`icpc`) installed and wish to use it:
+
+```
+...
+CXX=icpc cmake .. [OTHER_OPTIONS]
+...
+```
