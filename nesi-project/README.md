@@ -19,7 +19,8 @@ Change input files to XML (so can be exported from Excel).
 
 * Implemented `tinyxml2` library to read the XML files within the code
 * Converted most of *Input_Rip1_equil_1938.dat* (**Still to do:** Stratigraphy array)
-* **Still to do:** convert *hydro_series.dat* and *sed_series.dat*
+* Converted *hydro_series.dat* and *sed_series.dat*
+  - made some assumptions about the XML structure here, needs to be checked
 
 
 ## CMake build
