@@ -54,3 +54,7 @@ Different compilers can be specified at the configure step by setting the `CXX` 
 CXX=icpc cmake .. [OTHER_OPTIONS]
 ...
 ```
+
+### CMake (Windows)
+
+It should be possible to build the CMake version on Windows too.
