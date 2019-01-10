@@ -160,14 +160,11 @@ public:
 
     void readData();
 
-    const char *getNextParam(ifstream &openFile, const char *nextParam);
-
-    void getLongProfile(std::ifstream &openFile);
-    void getLongProfileXML(XMLElement* params_root);
+    void getLongProfile(XMLElement* params_root);
 
     void getGSDLibrary(XMLElement* params_root);
 
-    void getStratigraphy(std::ifstream &openFile, XMLElement* params_root);
+    void getStratigraphy(XMLElement* params_root);
 
 };
 

@@ -18,7 +18,9 @@
 Change input files to XML (so can be exported from Excel).
 
 * Implemented `tinyxml2` library to read the XML files within the code
-* Converted most of *Input_Rip1_equil_1938.dat* (**Still to do:** Stratigraphy array)
+* Converted *Input_Rip1_equil_1938.dat*
+  - made some assumptions, e.g. `npts = nnodes` (`npts` was not defined in the
+    xml file but was in the old dat input file)
 * Converted *hydro_series.dat* and *sed_series.dat*
   - made some assumptions about the XML structure here, needs to be checked
 
@@ -71,7 +73,7 @@ cmake -DBUILD_CLI=ON ..
 There was still a dependency on Qt due to the use of `QDateTime`. This was removed
 by adding a custom date/time object in *gratetime.cpp*.
 
-The headless version now builds without any requirement on Qt.
+The headless version now builds without any dependency on Qt.
 
 
 ## Testing

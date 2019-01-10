@@ -511,21 +511,8 @@ void RiverProfile::initData(XMLElement* params_root)
         throw std::string("Error getting PARAMS element from XML file");
     }
 
-    std::ifstream inDatFile;
-
     NodeGSDObject tmp;
     vector < NodeGSDObject > tmp2;
-    const char * f;
-    int i = 0;
-    char g[8];
-
-    inDatFile.open("Input_Rip1_equil_1938.dat");
-
-    if( !inDatFile )                           //test the file open.
-    {
-        cout<<"Error opening intput file.."<<endl;
-        system("pause");
-    }
 
     nnodes = getIntValue(params, "NNODES");
 
@@ -549,10 +536,10 @@ void RiverProfile::initData(XMLElement* params_root)
 
     poro = getDoubleValue(params, "PORO");
 
-    for (i = 0; i < nlayer; i++)                  // Init storedf stratigraphy matrix
+    for (int i = 0; i < nlayer; i++)                  // Init storedf stratigraphy matrix
         tmp2.push_back(tmp);
 
-    for (i = 0; i < nnodes; i++)
+    for (int i = 0; i < nnodes; i++)
     {
         storedf.push_back(tmp2);
         F.push_back(tmp);
@@ -564,12 +551,12 @@ void RiverProfile::initData(XMLElement* params_root)
 
     ngrp = getIntValue(params, "NGRP");
 
-    for (i = 0; i < ngrp; i++)
+    for (int i = 0; i < ngrp; i++)
         grp.push_back(tmp);
 
     getGSDLibrary(params_root);
 
-    for (i = 0; i < nnodes; i++)
+    for (int i = 0; i < nnodes; i++)
     {
         RiverXS[i].depth = 1.5;
         RiverXS[i].width = 30.;
@@ -588,46 +575,16 @@ void RiverProfile::initData(XMLElement* params_root)
             bedrock[i] = eta[i] - ( nlayer * layer );
     }
 
-    f = getNextParam(inDatFile, "NPTS");
-    for (i = 0; i < 8; i++) g[i] = *(f++);
-    npts = atoi(g);
-    // TODO: NPTS not in xml file (is it the same as NNODES??)
+    // TODO: NPTS not in xml file but was in the old dat file (is it the same as NNODES??)
+    npts = nnodes;
 
-    getLongProfile(inDatFile);  // TODO: remove once stratigraphy is in XML file
-    getLongProfileXML(params_root);
+    getLongProfile(params_root);
 
-    getStratigraphy(inDatFile, params_root);
+    getStratigraphy(params_root);
 
     dx = xx[1]-xx[0];                       // Assume uniform grid
     dt = 10;
 
-}
-
-const char *RiverProfile::getNextParam(std::ifstream &openFile, const char *nextParam)
-{
-
-    const char *token[40] = {};              // initialize to 0; 40 tokens max
-    char buf[512];                           // Max 512 chars per line
-    int Found = 0;
-    int n = 0;
-
-    while (Found == 0)
-    {
-        openFile.getline(buf, 512);
-        token[0] = strtok( buf, " " );       // first token
-        if (token[0] == NULL || strcmp(token[0], "!") == 0)       // zero if line is blank or "!"
-            continue;
-        else
-            for (n = 1; n < 10; n++)
-            {
-                token[n] = strtok(0, " ");   // subsequent tokens
-                if (!token[n]) break;        // no more tokens
-            }
-        if (strcmp(token[0], nextParam) == 0 )
-            Found = 1;
-    }
-
-    return (token[2]);
 }
 
 void RiverProfile::getGSDLibrary(XMLElement* params_root)
@@ -732,7 +689,7 @@ void RiverProfile::getGSDLibrary(XMLElement* params_root)
     }
 }
 
-void RiverProfile::getLongProfileXML(XMLElement* params_root)
+void RiverProfile::getLongProfile(XMLElement* params_root)
 {
     // get the "profile" element
     XMLElement *profileElem = params_root->FirstChildElement("profile");
@@ -776,69 +733,15 @@ void RiverProfile::getLongProfileXML(XMLElement* params_root)
     }
 }
 
-void RiverProfile::getLongProfile(ifstream &openFile)
+void RiverProfile::getStratigraphy(XMLElement* params_root)
 {
-    // TODO: Remove this once stratigraphy is in XML file
-
-    const char* token[40] = {};              // initialize to 0; 40 tokens max
-    char buf[512];                           // Max 512 chars per line
-    int m, n = 0;
-    int Found = 0;
-
-    while (Found == 0)
-    {
-        openFile.getline(buf, 512);
-        token[0] = strtok( buf, " " );                    // first token
-        if (token[0] == NULL || strcmp(token[0], "!") == 0)       // zero if line is blank or "!"
-            continue;
-        else
-        {
-            for (m = 0; m < npts; m++)                  // Loop through grid points
-            {
-                for (n = 1; n < 10; n++)
-                {
-                    token[n] = strtok(0, " ");
-                        if (!token[n]) break;            // no more tokens
-                }
-
-//                xx[m] = atof(token[0]);
-//                eta[m] = atof(token[1]);
-//                bedrock[m] = atof(token[2]);
-//                if (bedrock[m] > eta[m])
-//                        (bedrock[m] = eta[m]);       // bedrock must be at, or lower than, initial bed
-//                RiverXS[m].width = atof(token[3]);
-//                RiverXS[m].fpWidth = atof(token[4]) * RiverXS[m].width;
-///*                if ( HmaxTweak < 0.5 )
-//                    RiverXS[m].Hmax = atof(token[4]) + ( HmaxTweak * 2 - 0.5 );    // Add height in the range [-0.5 to +0.5]
-//                else
-//                    RiverXS[m].Hmax = (HmaxTweak - 0.5) * 3.5 + 0.75; */             // Uniform range from 0.75 to 2.5
-//                RiverXS[m].Hmax = atof(token[5]);
-//                RiverXS[m].bankHeight = RiverXS[m].Hmax + 1;  // initial guess
-//                RiverXS[m].theta = atof(token[6]);
-//                algrp[m] = atof(token[7]) - 1;
-//                stgrp[m] = atof(token[8]) - 1;  // Ignoring STGRP for now
-
-                openFile.getline(buf, 512);         // proceed to next line
-                token[0] = strtok( buf, " " );
-            }
-            Found = 1;
-        }
-    }
-}
-
-void RiverProfile::getStratigraphy(ifstream &openFile, XMLElement* params_root)
-{
-//    const char* token[150] = {};              // initialize to 0; 40 tokens max
-//    char buf[512];                           // Max 512 chars per line
-//    int m, n, i, j, k, idx;
-//    int Found = 0;
-
     // get the "stratigraphy" element
     XMLElement *stratElem = params_root->FirstChildElement("stratigraphy");
     if (stratElem == NULL) {
         throw std::string("Error getting stratigraphy element from XML file");
     }
 
+    // read the data
     int layerCount = 0;
     for (XMLElement* layer = stratElem->FirstChildElement("layer"); layer != NULL; layer = layer->NextSiblingElement("layer")) {
         int ptCount = 0;
@@ -871,40 +774,6 @@ void RiverProfile::getStratigraphy(ifstream &openFile, XMLElement* params_root)
         std::cerr << "Warning: number of layers in stratigraphy array not equal to nlayer\n";
     }
 
-//    idx = 0;
-//
-//    while (Found == 0)
-//    {
-//        openFile.getline(buf, 512);
-//        token[0] = strtok( buf, " " );                    // first token
-//        if (token[0] == NULL || strcmp(token[0], "!") == 0)       // zero if line is blank or "!"
-//            continue;
-//        else
-//            Found = 1;
-//    }
-//
-//    for (m = 0; m < nlayer; m++)
-//    {
-//
-//        for (n = 1; n < 150; n++)
-//        {
-//            token[n] = strtok(0, " ");
-//                if (!token[n]) break;            // no more tokens
-//        }
-//
-//        for (i = 0; i < npts; i++)
-//        {
-//            idx = atof(token[i]);
-//            for (j = 0; j < ngsz; j++)
-//                for (k = 0; k < nlith; k++)
-//                    storedf[i][m].pct[k][j] = grp[idx-1].pct[k][j];  // 'idx-1' because of C++ indexing
-//            token[i] = NULL;
-//        }
-//
-//        openFile.getline(buf, 512);         // proceed to next line
-//        token[0] = strtok( buf, " " );
-//    }
-
     for (int i = 0; i < nnodes; i++)            // Populate initial active layer bed GSD
     {
         for (int j = 0; j < ngsz; j++)
@@ -916,6 +785,4 @@ void RiverProfile::getStratigraphy(ifstream &openFile, XMLElement* params_root)
         F[i].abrasion[1] = randAbr;
         F[i].abrasion[2] = randAbr;
     }
-
 }
-
