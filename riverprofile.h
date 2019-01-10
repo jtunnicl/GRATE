@@ -167,7 +167,7 @@ public:
 
     void getGSDLibrary(XMLElement* params_root);
 
-    void getStratigraphy(std::ifstream &openFile);
+    void getStratigraphy(std::ifstream &openFile, XMLElement* params_root);
 
 };
 

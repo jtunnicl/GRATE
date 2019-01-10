@@ -591,12 +591,12 @@ void RiverProfile::initData(XMLElement* params_root)
     f = getNextParam(inDatFile, "NPTS");
     for (i = 0; i < 8; i++) g[i] = *(f++);
     npts = atoi(g);
-    // CHECK: NPTS not in xml file (is it the same as NNODES??)
+    // TODO: NPTS not in xml file (is it the same as NNODES??)
 
     getLongProfile(inDatFile);  // TODO: remove once stratigraphy is in XML file
     getLongProfileXML(params_root);
 
-    getStratigraphy(inDatFile);
+    getStratigraphy(inDatFile, params_root);
 
     dx = xx[1]-xx[0];                       // Assume uniform grid
     dt = 10;
@@ -826,51 +826,89 @@ void RiverProfile::getLongProfile(ifstream &openFile)
     }
 }
 
-void RiverProfile::getStratigraphy(ifstream &openFile)
+void RiverProfile::getStratigraphy(ifstream &openFile, XMLElement* params_root)
 {
-    const char* token[150] = {};              // initialize to 0; 40 tokens max
-    char buf[512];                           // Max 512 chars per line
-    int m, n, i, j, k, idx;
-    int Found = 0;
+//    const char* token[150] = {};              // initialize to 0; 40 tokens max
+//    char buf[512];                           // Max 512 chars per line
+//    int m, n, i, j, k, idx;
+//    int Found = 0;
 
-    idx = 0;
-
-    while (Found == 0)
-    {
-        openFile.getline(buf, 512);
-        token[0] = strtok( buf, " " );                    // first token
-        if (token[0] == NULL || strcmp(token[0], "!") == 0)       // zero if line is blank or "!"
-            continue;
-        else
-            Found = 1;
+    // get the "stratigraphy" element
+    XMLElement *stratElem = params_root->FirstChildElement("stratigraphy");
+    if (stratElem == NULL) {
+        throw std::string("Error getting stratigraphy element from XML file");
     }
 
-    for (m = 0; m < nlayer; m++)
-    {
+    int layerCount = 0;
+    for (XMLElement* layer = stratElem->FirstChildElement("layer"); layer != NULL; layer = layer->NextSiblingElement("layer")) {
+        int ptCount = 0;
+        for (XMLElement *pt = layer->FirstChildElement("pt"); pt != NULL; pt = pt->NextSiblingElement("pt")) {
+            int idx;
+            if (pt->QueryIntText(&idx) != XML_SUCCESS) {
+                std::stringstream error_stream;
+                error_stream << "Error getting double value for stratigraphy element: " << layerCount << ", " << ptCount;
+                std::string msg = error_stream.str();
+                throw msg;
+            }
 
-        for (n = 1; n < 150; n++)
-        {
-            token[n] = strtok(0, " ");
-                if (!token[n]) break;            // no more tokens
+            for (int j = 0; j < ngsz; j++) {
+                for (int k = 0; k < nlith; k++) {
+                    storedf[ptCount][layerCount].pct[k][j] = grp[idx-1].pct[k][j];  // 'idx-1' because of C++ indexing
+                }
+            }
+
+            ptCount++;
         }
 
-        for (i = 0; i < npts; i++)
-        {
-            idx = atof(token[i]);
-            for (j = 0; j < ngsz; j++)
-                for (k = 0; k < nlith; k++)
-                    storedf[i][m].pct[k][j] = grp[idx-1].pct[k][j];  // 'idx-1' because of C++ indexing
-            token[i] = NULL;
+        if (ptCount != npts) {
+            std::cerr << "Warning: number of points in stratigraphy layer " << layerCount << " not equal to npts\n";
         }
 
-        openFile.getline(buf, 512);         // proceed to next line
-        token[0] = strtok( buf, " " );
+        layerCount++;
+    }
+    
+    if (layerCount != nlayer) {
+        std::cerr << "Warning: number of layers in stratigraphy array not equal to nlayer\n";
     }
 
-    for (i = 0; i < nnodes; i++)            // Populate initial active layer bed GSD
+//    idx = 0;
+//
+//    while (Found == 0)
+//    {
+//        openFile.getline(buf, 512);
+//        token[0] = strtok( buf, " " );                    // first token
+//        if (token[0] == NULL || strcmp(token[0], "!") == 0)       // zero if line is blank or "!"
+//            continue;
+//        else
+//            Found = 1;
+//    }
+//
+//    for (m = 0; m < nlayer; m++)
+//    {
+//
+//        for (n = 1; n < 150; n++)
+//        {
+//            token[n] = strtok(0, " ");
+//                if (!token[n]) break;            // no more tokens
+//        }
+//
+//        for (i = 0; i < npts; i++)
+//        {
+//            idx = atof(token[i]);
+//            for (j = 0; j < ngsz; j++)
+//                for (k = 0; k < nlith; k++)
+//                    storedf[i][m].pct[k][j] = grp[idx-1].pct[k][j];  // 'idx-1' because of C++ indexing
+//            token[i] = NULL;
+//        }
+//
+//        openFile.getline(buf, 512);         // proceed to next line
+//        token[0] = strtok( buf, " " );
+//    }
+
+    for (int i = 0; i < nnodes; i++)            // Populate initial active layer bed GSD
     {
-        for (j = 0; j < ngsz; j++)
-            for (k = 0; k < nlith; k++)
+        for (int j = 0; j < ngsz; j++)
+            for (int k = 0; k < nlith; k++)
                 F[i].pct[k][j] = grp[algrp[i]].pct[k][j];
         F[i].norm_frac();
         F[i].dg_and_std();
