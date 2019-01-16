@@ -27,12 +27,6 @@ endif()
 # Find includes in corresponding build directories
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-# Instruct CMake to run moc automatically when needed
-set(CMAKE_AUTOMOC ON)
-
-# Create code from a list of Qt designer ui files
-set(CMAKE_AUTOUIC ON)
-
 # common sources
 set(CPP_SOURCES
     tinyxml2/tinyxml2.cpp
@@ -65,6 +59,12 @@ target_include_directories(grate_common PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 # GUI build
 if (BUILD_GUI)
+    # Instruct CMake to run moc automatically when needed
+    set(CMAKE_AUTOMOC ON)
+
+    # Create code from a list of Qt designer ui files
+    set(CMAKE_AUTOUIC ON)
+
     # Find the Qt libraries
     find_package(Qt5Core REQUIRED)
     find_package(Qt5Widgets REQUIRED)
