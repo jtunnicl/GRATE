@@ -22,9 +22,10 @@ Convert input files from custom format to XML (that can be exported from Excel).
 * Added `tinyxml2` library for reading in the XML files
 * Converted *Input_Rip1_equil_1938.dat*
   - made some assumptions, e.g. `npts = nnodes` (`npts` was not defined in the
-    xml file but was in the old dat input file)
+    xml file but was in the old dat input file) - **needs to be checked**
+  - made up xml structure for stratigraphy - **needs to be checked**
 * Converted *hydro_series.dat* and *sed_series.dat*
-  - made some assumptions about the XML structure here, needs to be checked
+  - made some assumptions about the XML structure here - **needs to be checked**
 
 
 ## CMake build
