@@ -81,6 +81,16 @@ by adding a custom date/time object in *gratetime.cpp*.
 
 The headless version now builds without any dependency on Qt.
 
+### Headless vs GUI performance
+
+Comparing headless vs GUI versions, running for 10,000 timesteps:
+
+- GUI version: 120.81 seconds
+- CLI version:  78.14 seconds
+
+The headless version gives a 1.5x speedup over the GUI version (35% reduction
+in run time).
+
 
 ## Testing
 
