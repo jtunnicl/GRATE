@@ -150,6 +150,24 @@ called a large number of times, making this change resulted in a reasonable perf
 Also, the `ktot` array values were being calculated twice and the second calculation was removed
 (i.e. values from the first calculation were reused) as part of this change too.
 
+## Looking into optimisation routines
+
+Optimisation routines such as `regimeModel`, `findStable`:
+
+* Look into using Brent's method instead of bisection
+
+### Comparison of Brent's method vs bisection in `regimeModel`
+
+A test code was written to compare Brent's method from the GSL library to the
+bisection optimiser currently used in `regimeModel`. It gave over 3x speedup for this specific test case.
+This is probably an
+upper limit on the speedup we can expect since Brent's method uses inverse quadratic interpolation, so will
+work well on the quadratic test function. The bracketing method was also improved and this
+gain was included in the 3x speedup above.
+
+See the test code and results [here](https://github.com/chrisdjscott/compare-grate-opt).
+
+A bug needs to be fixed in GRATE before this is implemented and tested within GRATE.
 
 ## Merging changes (TODO)
 
@@ -157,10 +175,3 @@ Merging in the changes Jon has made to the GUI:
 
 * get those changes into github
 * try to use the merge feature from git/github
-
-
-## Looking into optimisation routines (TODO)
-
-Optimisation routines such as `regimeModel`, `findStable`:
-
-* Look into using Brent's method instead of bisection
