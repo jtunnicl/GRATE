@@ -311,7 +311,7 @@ void MainWindow::kernel(){
 
 void MainWindow::modelUpdate(){
 
-    int i, j, k, n, inc = 0;
+    unsigned int i, j, k, n, inc = 0;
     float theta_rad, a, b, c;
     float topFp, ovBank, ovFp;
     QVector<double> WSL( rn->nnodes );
@@ -342,20 +342,15 @@ void MainWindow::modelUpdate(){
 
     int prog;   // Model run progress
 
-    //if (rn->counter == 0)                          // Use Backwater to set the first w.s. profile
     wl->backWater(rn);
-    //  else
-    //    wl->fullyDynamic(rn);
-
     sd->computeTransport(rn);
     stepTime();
     rn->qwTweak = rn->tweakArray[rn->yearCounter];
 
-    if ( (rn->counter % 2 == 0) && ( rn->qwTweak < 1 ) )
+    if ( (rn->counter % 4 == 0) && ( rn->qwTweak < 1 ) )
             wl->setRegimeWidth(rn);         // kick off regime restraints, once hydraulics are working
 
     // dt control
-
     rn->dt = ui->deltaT->value();
     ui->dt_disp->setValue(rn->dt);                    // Control dt with slider
     

@@ -24,7 +24,7 @@ public:
 
     sed(RiverProfile *r);
 
-    void initSedSeries(int nodes);                      // Set inputs
+    void initSedSeries(unsigned int nodes);                      // Set inputs
 
     void setNodalSedInputs(RiverProfile *r);
 

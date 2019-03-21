@@ -9,7 +9,7 @@ sed::sed(RiverProfile *r)
     initSedSeries(r->nnodes);
 }
 
-void sed::initSedSeries(int nodes)
+void sed::initSedSeries(unsigned int nodes)
 {
     std::ifstream inSedFile;
     double currentCoord = 0.;
@@ -33,9 +33,9 @@ void sed::initSedSeries(int nodes)
             NewDate.setDate(QDate(v2, v3, v4));
             NewDate.setTime(QTime(v5, v6, v7));
             NewEntry.date_time = NewDate;
-            NewEntry.Q = v8;
-            NewEntry.Coord = v1;
-            NewEntry.GRP = v9 - 1;
+            NewEntry.Q = double(v8);
+            NewEntry.Coord = int(v1);
+            NewEntry.GRP = int(v9) - 1;
 
             if (v1 > currentCoord){            // Have we moved to a new source coordinate?
                 Qs_series.push_back( tmp );
@@ -58,7 +58,7 @@ void sed::initSedSeries(int nodes)
 
 void sed::setNodalSedInputs(RiverProfile *r)
 {
-    int j = 0;
+    unsigned int j = 0;
     unsigned int i = 0;
 
     if ( Qs_series[0][0].date_time.secsTo( r->cTime ) < 1 )        // Start of run?
@@ -94,9 +94,9 @@ NodeGSDObject sed::multiplyGSD(NodeGSDObject &M, NodeGSDObject &N, double weight
 
     NodeGSDObject fi;                          // return GSD object
 
-    for ( int j = 0; j < r->ngsz; j++ )
+    for ( unsigned int j = 0; j < r->ngsz; j++ )
     {
-        for ( int k = 0; k < r->nlith; k++ )
+        for ( unsigned int k = 0; k < r->nlith; k++ )
         {
             fi.pct[k][j] = weight * M.pct[k][j] + ( 1.0 - weight ) * N.pct[k][j];
         }
@@ -110,10 +110,10 @@ NodeGSDObject sed::multiplyGSD(NodeGSDObject &M, NodeGSDObject &N, double weight
 void sed::computeTransport(RiverProfile *r)
 {
     unsigned int bc;
-    int i, j, k;
-    int inode;
+    unsigned int i, j, k;
+    unsigned int inode;
     NodeGSDObject qtemp;             // temporary, for storing grain size fractions
-    double ngsz, nlith;
+    unsigned int ngsz, nlith;
     double taussrg;                 // Wilcock - reference (median) shear
     double b;                       // b exponent for each size fraction
     double arg;                     // decision for G
@@ -179,7 +179,7 @@ void sed::computeTransport(RiverProfile *r)
 
             if (FGSum > 0)
                 Qs[i] = FGSum * pow( r->RiverXS[i].ustar, 3 ) / specWt /
-                        9.81 * ( r->RiverXS[i].width ) * ( r->RiverXS[i].noChannels );
+                        9.81 * ( r->RiverXS[i].width );
             else
                 Qs[i] = 0.0;
         }
@@ -232,7 +232,7 @@ void sed::computeTransport(RiverProfile *r)
 
 void sed::exner(RiverProfile *r)
 {
-    int i, j, k, m = 0;
+    unsigned int i, j, k, m = 0;
     double upw = 0.75;                                             // Upwinding constant
     double chi = 0.7;                                              // weighting for interfacial exchange
     double dmy;
@@ -260,7 +260,7 @@ void sed::exner(RiverProfile *r)
     for ( i = 1; i < r->nnodes-1; i++ )                            // Upstream boundary - if floating, i = 0
         r->eta[i] += deta[i];
 
-    //r->eta[r->nnodes-1] += deta[r->nnodes-2];                    // Downstream boundary - uncomment if floating
+    r->eta[r->nnodes-1] += deta[r->nnodes-2];                    // Downstream boundary - uncomment if floating
 
     for ( i = 1; i < r->nnodes-1; i++ )      // Calculate grain size changes
     {
