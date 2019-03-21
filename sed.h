@@ -25,7 +25,7 @@ public:
 
     sed(RiverProfile *r, XMLElement *params_root);
 
-    void initSedSeries(int nodes, XMLElement *params_root);    // Set inputs
+    void initSedSeries(unsigned int nodes, XMLElement *params_root);    // Set inputs
 
     void setNodalSedInputs(RiverProfile *r);
 

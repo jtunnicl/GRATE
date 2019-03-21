@@ -372,7 +372,7 @@ void MainWindow::kernel(){
 
 void MainWindow::modelUpdate(){
 
-    int i, j, k, n, inc = 0;
+    unsigned int i, j, k, n, inc = 0;
     float theta_rad, a, b, c;
     float topFp, ovBank, ovFp;
     RiverProfile* rn = model->rn;
@@ -405,18 +405,6 @@ void MainWindow::modelUpdate(){
     GSD_Cumul.fill(tmp, 13);
 
     int prog;   // Model run progress
-
-    //if (rn->counter == 0)                          // Use Backwater to set the first w.s. profile
-//    wl->backWater(rn);
-//    //  else
-//    //    wl->fullyDynamic(rn);
-//
-//    sd->computeTransport(rn);
-//    stepTime();
-//    rn->qwTweak = rn->tweakArray[rn->yearCounter];
-//
-//    if ( (rn->counter % 2 == 0) && ( rn->qwTweak < 1 ) )
-//            wl->setRegimeWidth(rn);         // kick off regime restraints, once hydraulics are working
 
     // model iteration
     model->iteration();
@@ -624,9 +612,6 @@ void MainWindow::modelUpdate(){
     ui->spinDcomp->setValue(rn->RiverXS[n].comp_D);
     ui->spinD90->setValue(pow(2, rn->F[n].d90));
     ui->spinHmax->setValue(rn->RiverXS[n].Hmax);
-
-//    if (rn->counter % 100 == 0)
-//        writeResults(rn->counter);
 
     // temporarily limit to 80 steps for testing
     if (rn->counter == 800) {

@@ -31,18 +31,13 @@ Model::~Model() {
 }
 
 void Model::iteration() {
-    //if (rn->counter == 0)                          // Use Backwater to set the first w.s. profile
     wl->backWater(rn);
-    //  else
-    //    wl->fullyDynamic(rn);
-    
     sd->computeTransport(rn);
     stepTime();
     rn->qwTweak = rn->tweakArray[rn->yearCounter];
 
-    if ( (rn->counter % 2 == 0) && ( rn->qwTweak < 1 ) ) {
-        wl->setRegimeWidth(rn);         // kick off regime restraints, once hydraulics are working
-    }
+    if ( (rn->counter % 4 == 0) && ( rn->qwTweak < 1 ) )
+            wl->setRegimeWidth(rn);         // kick off regime restraints, once hydraulics are working
 
     if (rn->counter % writeInterval == 0) {
         writeResults(rn->counter);

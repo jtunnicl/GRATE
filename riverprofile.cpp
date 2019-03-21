@@ -67,22 +67,22 @@ NodeGSDObject::NodeGSDObject()
 void NodeGSDObject::norm_frac()
 // Normalize grainsize fractions to 100%
 {
-    int ngsz, nlith;
-    float cumtot;
+    unsigned int ngsz, nlith;
+    double cumtot;
 
     ngsz = psi.size() - 2;
     nlith = abrasion.size();
 
-    float ktot[ngsz];
+    double ktot[ngsz];
 
     sand_pct = 0;
 
     // Normalize
     cumtot = 0.0;
-    for ( int j = 0; j < ngsz; j++ )           // Sum mass fractions
+    for ( unsigned int j = 0; j < ngsz; j++ )           // Sum mass fractions
     {
         ktot[j] = 0.0;
-        for ( int k = 0; k < nlith; k++ )
+        for ( unsigned int k = 0; k < nlith; k++ )
             if (pct[k][j] > 0)              // Solves problems with rounding
                 ktot[j] += pct[k][j];
             else
@@ -90,8 +90,8 @@ void NodeGSDObject::norm_frac()
         cumtot += ktot[j];
     }
 
-    for ( int j = 0; j < ngsz; j++ )
-        for ( int k = 0; k < nlith; k++ )
+    for ( unsigned int j = 0; j < ngsz; j++ )
+        for ( unsigned int k = 0; k < nlith; k++ )
         {
             if (pct[k][j] > 0)
                 pct[k][j] /= cumtot;
@@ -102,24 +102,24 @@ void NodeGSDObject::norm_frac()
 void NodeGSDObject::dg_and_std()
 // Routines to calculate grainsize statistics, including D50,D84,D90 and standard deviation
 {
-    float tdev;
-    int ngsz, nlith;
+    double tdev;
+    unsigned int ngsz, nlith;
 
     ngsz = psi.size() - 2;
     nlith = abrasion.size();
     
-    float ktot[ngsz];
+    double ktot[ngsz];
 
     dsg = 0.0;
     d84 = 0.0;
     d90 = 0.0;
 
-    for ( int j = 0; j < ngsz; j++ )
+    for ( unsigned int j = 0; j < ngsz; j++ )
     {
         //if (psi[j] >= -1)   // ***!!!*** Dg50 is based on gsizes >= 2 mm (psi = -1 or less)
         //{
         ktot[j] = 0;
-        for ( int k = 0; k < nlith; k++ )
+        for ( unsigned int k = 0; k < nlith; k++ )
             ktot[j] += pct[k][j];               // lithology values for each size fraction are summed.
         dsg += 0.50 * (psi[j] + psi[j+1]) * ktot[j];
         d84 += 0.84 * (psi[j] + psi[j+1]) * ktot[j];
@@ -128,7 +128,7 @@ void NodeGSDObject::dg_and_std()
     }
 
     stdv = 0.0;
-    for ( int j = 0; j < ngsz; j++ )
+    for ( unsigned int j = 0; j < ngsz; j++ )
     {
         tdev = 0.5 * (psi[j] + psi[j+1]) - dsg;
         stdv += 0.5 * tdev * tdev * ktot[j];
@@ -173,6 +173,7 @@ NodeXSObject::NodeXSObject()                  //Initialize list
      Qb_cap = 0.2;
      comp_D = 0.005;
      K = 0;
+     deltaW = 0;
 }
 
 void NodeXSObject::xsArea()
@@ -304,21 +305,32 @@ void NodeXSObject::xsCentr()
 void NodeXSObject::xsECI(NodeGSDObject F)
 {
 
+    // The energy coefficient is the ratio of the true kinetic-energy flow rate
+    // to the flow rate computed using the average velocity.
+    double D_50;
+
     F.norm_frac();
     F.dg_and_std();                                    // Update grain size statistics
 
-    rough = 2 * pow( 2, F.dsg ) / 1000. * pow( F.stdv, 1.28 );              // roughness height, ks, 2*D90
+    D_50 = pow( 2, F.dsg ) / 1000.;
+    rough = 2 * D_50 * pow( F.stdv, 1.28 );              // roughness height, ks, 2*D90
     if (rough <= 0)         // indicates problems with previous F calcs
         rough = 0.01;
-    omega = 2.5 * log( 11.0 * ( depth / rough ) );                          // Parker (1991), Dingman 6.25, p.224
-    double K_ch = flow_area[0] * omega * sqrt( 9.81 * depth );              // Dingman, (2009) 8B2.3C, p.300
+    // N_m = 0.0474 * pow(D_50, 0.1667);                                // Manning's n, as per Dingman (2009) 6.43b, p.250
+    // Keulegan Model
+    omega = 1 / ( 2.5 * log( 11.0 * ( depth / rough ) ) );                  // Revised 15/03/19: Parker (1991), Dingman 6.25, p.224
+    // Ferguson Model
+    //omega = pow( pow( 6.5, 2 ) + pow ( 2.5, 2 ) * pow( depth / rough, 1.667 ), 0.5) /
+    //            6.5 * 2.5 * (depth / rough);
+
+    double K_ch = flow_area[0] * sqrt( 9.81 * depth ) / omega;              // Dingman, (2009) 8B2.3C, p.300
     double K_fp = 0;
     k_mean = 0;
     double ovBank = depth - bankHeight;
 
     if (ovBank > 0)
     {
-        K_fp = flow_area[1] * rough * sqrt( 9.81 * ovBank * 0.5 );   // Depth halfway across the floodplain
+        K_fp = flow_area[1] * sqrt( 9.81 * ovBank * 0.5 ) / omega;   // Depth halfway across the floodplain. Resistance should perhaps be lower for floodplains?
         k_mean = K_ch + K_fp;
         eci = ( pow(K_ch,3) / pow(flow_area[0],2) + pow(K_fp,3) / pow(flow_area[1],2) ) /
                 ( pow(k_mean,3) / pow(flow_area[2],2) );                   // Dingman, (2009) 8B2.4, Chaudhry (2nd ed) 4-41
@@ -335,16 +347,19 @@ void NodeXSObject::xsStressTerms(NodeGSDObject F, double bedSlope)
     // Compute stresses, transport capacity
     double X;                      // tau_bed / tau_ref for Wilcock equation
     double SFbank = 0;
-    double tau_star_ref, tau_ref, totstress, W_star;
     double D50 = pow( 2, F.dsg ) / 1000.;
-    float theta_rad = theta * PI / 180.;
+    double theta_rad = theta * PI / 180.;
+    double totstress;
+
+    ustar = sqrt( 9.81 * depth * bedSlope );
+    velocity = 1 / omega * ustar;
 
     // use the equations from Knight and others to partition stress
-
     SFbank = pow( 10.0, ( -1.4026 * log10( width /
-            ( flow_perim[2] - width ) + 1.5 ) + 0.247 ) );    // partioning equation, M&Q93 Eqn.8, E&M04 Eqn.2
+            ( flow_perim[2] - width ) + 1.5 ) + 0.3516 ) );    // partioning equation, M&Q93 Eqn.8, E&M04 Eqn.2
     totstress = G * RHO * depth * bedSlope;
-    Tbed =  totstress * (1 - SFbank) *
+
+    Tbed =  totstress * (1 - SFbank / 100) *
             ( b2b / (2. * width) + 0.5 );           // bed_str = stress acting on the bed, M&Q93 Eqn.10, E&M04 Eqn.4
     Tbank =  totstress * SFbank *
             ( b2b + width ) * sin( theta_rad ) / (4 * depth );
@@ -355,18 +370,72 @@ void NodeXSObject::xsStressTerms(NodeGSDObject F, double bedSlope)
     // estimate the division between key stones and bed material load
     //   (this corresponds to the approximate limit of full mobility)
     K = Tbed / (0.04 * G * RHO * Gs);
+}
 
+void NodeXSObject::xsWilcockTransport(NodeGSDObject F){
     // use Wilcock and Crowe to estimate the sediment transport rate
-    tau_star_ref = 0.021 + 0.015 * exp (-20 * F.sand_pct);
-    tau_ref = tau_star_ref * G * RHO * Gs * D50;
-    X = Tbed / tau_ref;
 
-    if (X < 1.35)
-        W_star = 0.002 * pow( X, 7.5 );
+    unsigned int j, k, ngsz, nlith;
+    double taussrg;                 // Wilcock - reference (median) shear
+    double b;                       // b exponent for each size fraction
+    double arg;                     // decision for G
+    double phisgo;
+    double dj;                      // grain size;
+    double ds50;
+    double specWt;                  // submerged specific weight of gravel
+    double a0;
+    double Wwc;                     // Wi* from Wilcock Crowe
+    double FGSum;
+    vector<double> ktot, ktotn;
+    NodeGSDObject fpp;                         // Bedload temp item
+
+    ngsz = F.psi.size() - 2;
+    nlith = F.abrasion.size();
+    ktot.resize(ngsz);
+    ktotn.resize(ngsz);
+
+    specWt = 0.65; //(2650 - 1000) / 1000 - 1.;
+
+    for ( j = 0; j < ngsz; j++ )                        // iterate grain size
+        for ( k = 0; k < nlith; k++ )                   // iterate lithology
+            fpp.pct[k][j] = F.pct[k][j];                // temp bl is extracted from the surface layer
+
+    fpp.norm_frac();                                       // Normalize f fractions
+    fpp.dg_and_std();
+
+    taussrg = 0.021 + 0.015 * exp( -20 * fpp.sand_pct );
+    phisgo = ( ( ustar * ustar ) / specWt / 9.81 / (pow( 2, fpp.dsg ) / 1000)) / taussrg;
+    FGSum = 1e-10;
+    Wwc = 0.;
+
+    for ( j = 0; j < ngsz; j++ )
+    {
+        ktot[j] = 0;
+        a0 = ( 0.5 * ( fpp.psi[j] + fpp.psi[j+1] ) );
+        ds50 = pow( 2.0, fpp.dsg ) / 1000;
+        dj = pow( 2.0, a0 ) / 1000;
+        b = 0.67 / (1 + exp( 1.5 - ( dj / ds50 ) ) );    // Wilcock eqn. (4)
+        arg = phisgo * pow( ( dj / ds50 ), -b );
+
+        if (arg < 1.35)
+            Wwc = 0.002 * pow( arg, 7.5 );                 // eqn.7a
+        else
+            Wwc = 14 * pow( ( 1 - 0.894 / sqrt(arg) ), 4.5 );  //eqn. 7b
+
+        for ( k = 0; k < nlith; k++ )
+        {
+            fpp.pct[k][j] *= Wwc;
+            ktot[j] += fpp.pct[k][j];
+        }
+
+        FGSum += ktot[j];
+    }
+
+    if (FGSum > 0)
+        Qb_cap = FGSum * pow( ustar, 3 ) / specWt / 9.81 * width;
     else
-        W_star = 14 * pow( ( 1 - ( 0.894 / pow( X, 0.5 ) ) ), ( 4.5 ) );
+        Qb_cap = 0.0;
 
-    Qb_cap = width * ( W_star / ( Gs * G ) ) * pow( ( Tbed / RHO ), ( 3.0 / 2.0 ) );
 }
 
 TS_Object::TS_Object()
@@ -462,13 +531,13 @@ RiverProfile::RiverProfile(XMLElement* params_root)
 
 }
 
-vector<float> RiverProfile::hydroGraph()
+vector<double> RiverProfile::hydroGraph()
 {
     /* This routine creates a hydrograph, based on the gamma distribution,
        meant to simulate the range of flow experienced over the course of
        1 year.
     */
-  int i = 0;
+  unsigned int i = 0;
 
   double max_flow = 1.6;  // Up to 1.6 * 50 = 80 m3/s
   double min_flow = 0.8;
@@ -477,17 +546,17 @@ vector<float> RiverProfile::hydroGraph()
   double beta = 5;
   double delta = 0.0052;
   double factor = 0;
-  vector<float> x, xx, fac;
+  vector<double> x, xx, fac;
 
-  for (int i=0; i<elems; ++i)
+  for (i = 0; i < elems; ++i)
   {
     x.push_back(0);
     xx.push_back(0);
     fac.push_back(0);
   }
 
-  x[i] = -1.5;
-  for (int i=1; i<elems; ++i)
+  x[0] = -1.5;
+  for (i = 1; i < elems; ++i)
   {
     x[i] = x[i-1] + delta;
     xx[i] = pow(10,x[i]);
@@ -536,10 +605,10 @@ void RiverProfile::initData(XMLElement* params_root)
 
     poro = getDoubleValue(params, "PORO");
 
-    for (int i = 0; i < nlayer; i++)                  // Init storedf stratigraphy matrix
+    for (unsigned int i = 0; i < nlayer; i++)                  // Init storedf stratigraphy matrix
         tmp2.push_back(tmp);
 
-    for (int i = 0; i < nnodes; i++)
+    for (unsigned int i = 0; i < nnodes; i++)
     {
         storedf.push_back(tmp2);
         F.push_back(tmp);
@@ -551,12 +620,12 @@ void RiverProfile::initData(XMLElement* params_root)
 
     ngrp = getIntValue(params, "NGRP");
 
-    for (int i = 0; i < ngrp; i++)
+    for (unsigned int i = 0; i < ngrp; i++)
         grp.push_back(tmp);
 
     getGSDLibrary(params_root);
 
-    for (int i = 0; i < nnodes; i++)
+    for (unsigned int i = 0; i < nnodes; i++)
     {
         RiverXS[i].depth = 1.5;
         RiverXS[i].width = 30.;
@@ -590,7 +659,7 @@ void RiverProfile::initData(XMLElement* params_root)
 void RiverProfile::getGSDLibrary(XMLElement* params_root)
 {
     // loop over lithologies
-    for (int lithCount = 0; lithCount < nlith; lithCount++)
+    for (unsigned int lithCount = 0; lithCount < nlith; lithCount++)
     {
         // name of this element
         std::stringstream ss;
