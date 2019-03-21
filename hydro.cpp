@@ -30,7 +30,7 @@ hydro::hydro(RiverProfile *r)
     initHydro(r->nnodes);
 }
 
-void hydro::initHydro(int nodes)
+void hydro::initHydro(unsigned int nodes)
 {
     ifstream inHydroFile;
     double currentCoord = 0.;
@@ -66,7 +66,7 @@ void hydro::initHydro(int nodes)
             NewDate.setTime(QTime(v5, v6, v7));
             NewEntry.date_time = NewDate;
             NewEntry.Q = v8;
-            NewEntry.Coord = v1;
+            NewEntry.Coord = int(v1);
             NewEntry.GRP = v9;
 
             if (v1 > currentCoord)        // Have we moved to a new source coordinate?
@@ -93,9 +93,9 @@ void hydro::backWater(RiverProfile *r)
     double g = 9.81;
     double FrN2 = 0.8 * 0.8;                     // Threshold for critical flow - 0.8 (squared)
     int iret = 0;
-    int n = 0;
+    unsigned int n = 0;
     bool bQuasiNormal = 0;
-    int lastNode = r->nnodes-1;
+    unsigned int lastNode = r->nnodes-1;
 
     setQuasiSteadyNodalFlows(r);
 
@@ -132,7 +132,7 @@ void hydro::backWater(RiverProfile *r)
     r->RiverXS[lastNode].depth = 0.3 * pow( QwCumul[lastNode],0.3 );
     r->RiverXS[lastNode].wsl = r->eta[lastNode] + r->RiverXS[lastNode].depth;
 
-    for (int n = r->nnodes-2; n > 0 ; n--)
+    for (unsigned int n = r->nnodes-2; n > 0 ; n--)
     {
         xsCritDepth( n, r, QwCumul[n] );       // Calculate critical depth
 
@@ -223,15 +223,17 @@ void hydro::setQuasiSteadyNodalFlows(RiverProfile *r){
     }
 }
 
-void hydro::xsCritDepth(int n, RiverProfile *r, double Q){
+void hydro::xsCritDepth(unsigned int n, RiverProfile *r, double Q){
 
     // Compute critical depth, given a flow
 
+    NodeXSObject& xs = r->RiverXS[n];
     int it = 0;
     int itmax = 50;                        // Max iterations
     double toler = 0.0005;                 // Convergence criteria
     double ymin = 0.15;
-    double ymax = r->RiverXS[n].bankHeight + 1.5;           //
+    double ymax = xs.bankHeight + 1.5;           //
+    double orig_depth = xs.depth;
     double dy = 0;
     double y1 = 0;
     double y2 = 0;                         // dummy variables
@@ -243,18 +245,20 @@ void hydro::xsCritDepth(int n, RiverProfile *r, double Q){
     while (ff > 0)
     {
         if (it > 0)
-            ymax *= 1.5;
+            ymax *= 1.25;
 
-        r->RiverXS[n].depth = ymax;
-        r->RiverXS[n].xsArea();                          // Update statistics at node
-        r->RiverXS[n].xsPerim();
-        r->RiverXS[n].xsCentr();                         // re-calc topW
+        xs.depth = ymax;
+        xs.xsArea();                          // Update statistics at node
+        xs.xsPerim();
+        xs.xsCentr();                         // re-calc topW
+        xs.xsECI(r->F[n]);
+        xs.velocity = Q / xs.flow_area[2];
+        ff = r->RiverXS[n].eci * r->RiverXS[n].velocity / ( 9.81 * xs.depth ) - 1.0;
 
-        ff = Q / r->RiverXS[n].flow_area[2] / sqrt( 9.81 * r->RiverXS[n].hydRadius ) - 1.0;
         it++;
         if (it > itmax)
         {
-            // cout << "Unable to initialise max depth for critical depth calculation at xc = \n";
+            cout << "Unable to initialise max depth for critical depth calculation at xc = \n";
             exit(1);
         }
     }
@@ -265,12 +269,14 @@ void hydro::xsCritDepth(int n, RiverProfile *r, double Q){
 
     while (it < itmax)
     {
-        r->RiverXS[n].depth = y1;
-        r->RiverXS[n].xsArea();
-        r->RiverXS[n].xsPerim();
-        r->RiverXS[n].xsCentr();
+        xs.depth = y1;
+        xs.xsArea();
+        xs.xsPerim();
+        xs.xsCentr();
+        xs.xsECI(r->F[n]);
+        xs.velocity = Q / xs.flow_area[2];
+        ff = r->RiverXS[n].eci * r->RiverXS[n].velocity / ( 9.81 * r->RiverXS[n].depth ) - 1.0;
 
-        ff = Q / r->RiverXS[n].flow_area[2] / sqrt( 9.81 * r->RiverXS[n].hydRadius ) - 1.0;
         if (ff < 0)
             ymax = y1;
         else
@@ -292,10 +298,19 @@ void hydro::xsCritDepth(int n, RiverProfile *r, double Q){
         }
     }
     //Success ... return critical depth
-    r->RiverXS[n].critdepth = y2;
+    xs.critdepth = y2;
+
+    // Job done, return appropriate depth to XS
+    xs.depth =orig_depth;
+
+    xs.xsArea();
+    xs.xsPerim();
+    xs.xsCentr();
+    xs.xsECI(r->F[n]);
+    xs.velocity = Q / xs.flow_area[2];
 }
 
-int hydro::energyConserve(int n, RiverProfile *r)
+int hydro::energyConserve(unsigned int n, RiverProfile *r)
     {
 
     // Energy conservation between the two nodes - using bisection algorithm
@@ -304,8 +319,8 @@ int hydro::energyConserve(int n, RiverProfile *r)
     double ff;                  // Objective function
     double h1, h2, hu2;         // Straddle points in bisection
     double Sf, Sf2, Sfx;        // Friction slopes
-    double Vhd;                 // Velocity head at downstream node
-    double Vhu;                 // Velocity head at upstream node
+    double Vhd;                 // Velocity, velocity head at downstream node
+    double Vhu;                 // Velocity, velocity head at upstream node
     int flag, iter, itermax;    // Return flag, iteration counter, counter max
     double error;               // error during iterations
     double qm, km;              // Mean Qw and K (conveyance) between nodes
@@ -317,35 +332,30 @@ int hydro::energyConserve(int n, RiverProfile *r)
     itermax = 300;
 
     XSu.xsArea();               // update area
-    r->RiverXS[n].velocity = QwCumul[n] / XSu.flow_area[2];
+    XSu.velocity = QwCumul[n] / XSu.flow_area[2];
     XSu.xsPerim();              // update perim
-    XSu.xsECI(r->F[n]);       // update eci
-
-    XSd.xsArea();               // update area
-    r->RiverXS[n+1].velocity = QwCumul[n+1] / XSd.flow_area[2];
-    XSd.xsPerim();              // update perim
-    XSd.xsECI(r->F[n+1]);         // update eci
+    XSu.xsECI(r->F[n]);         // update eci
 
     //Sf2 = bedSlope[n+1];       // slope gradient between n and n+1
-    Vhd = XSd.eci * r->RiverXS[n+1].velocity * r->RiverXS[n+1].velocity / (2 * 9.81);
-                                 // Velocity head
+    Vhd = XSd.eci * XSd.velocity * XSd.velocity / (2 * 9.81);
+                                 // Velocity head, downtream
     //Sf2 = pow( ( QwCumul[n+1] / XSd.k_mean ), 2);   // Dingman 9B2.4
     Sf2 = ( QwCumul[n+1] ) * ( QwCumul[n+1] ) / ( XSd.k_mean * XSd.k_mean);
-
+                                  // Friction slope, downstream
     h1 = r->RiverXS[n].critdepth;          // Bisection: lower straddle point
-    h2 = max(10 * r->RiverXS[n].critdepth, (XSd.depth + bedSlope[n+1] * r->dx) * 2 );  // upper straddle point
+    h2 = max(10 * r->RiverXS[n].critdepth, (XSd.depth - bedSlope[n+1] * r->dx) * 2 );  // upper straddle point
 
     ff = -1;
     while (ff <= 0)
     {
         XSu.depth = h2;             // Update section data based on new depth
         XSu.xsArea();
-        r->RiverXS[n].velocity = QwCumul[n] / XSu.flow_area[2];
+        XSu.velocity = QwCumul[n] / XSu.flow_area[2];
         XSu.xsPerim();
-        if ( XSu.depth > 0 )
-            XSu.xsECI(r->F[n+1]);
-        Sf = QwCumul[n] / XSu.k_mean;
-        Vhu = XSu.eci * r->RiverXS[n].velocity * r->RiverXS[n].velocity / (2 * 9.81);
+        XSu.xsECI(r->F[n]);
+
+        Sf = QwCumul[n] * QwCumul[n] / ( XSu.k_mean * XSu.k_mean );
+        Vhu = XSu.eci * XSu.velocity * XSu.velocity / (2 * 9.81);
 
         ff = (XSu.depth + Vhu) - (XSd.depth + Vhd) + ( (bedSlope[n+1] + bedSlope[n]) / 2. - Sf) * r->dx;
 
@@ -353,22 +363,22 @@ int hydro::energyConserve(int n, RiverProfile *r)
     }
 
     h2 = XSu.depth;
-    XSu.depth = (h1 + h2) / 1.5;
+    XSu.depth = (h1 + h2) / 2;
 
     error = 1;
     iter = 0;
     while (error > 5e-4)
     {
         XSu.xsArea();    // Update section data based on new depth
-        r->RiverXS[n].velocity = QwCumul[n] / XSu.flow_area[2];
+        XSu.velocity = QwCumul[n] / XSu.flow_area[2];
         XSu.xsPerim();
         if ( XSu.depth > 0 )
-            XSu.xsECI(r->F[n+1]);
+            XSu.xsECI(r->F[n]);
 
         //Sf1 = Sf2;        // Initial approximations
         Sf = Sf2;
 
-        Vhu = XSu.eci * r->RiverXS[n].velocity * r->RiverXS[n].velocity / 2. * 9.81;
+        Vhu = XSu.eci * XSu.velocity * XSu.velocity / ( 2. * 9.81 );
 
         if (iter > 1)
         {
@@ -393,7 +403,7 @@ int hydro::energyConserve(int n, RiverProfile *r)
         }
         else
         {
-            //Limit XSu.depth to critical depth
+            //  Limit XSu.depth to critical depth
             XSu.depth = XSu.critdepth;
             break;
         }
@@ -418,7 +428,7 @@ int hydro::energyConserve(int n, RiverProfile *r)
     return flag;
 }
 
-int hydro::quasiNormal(int n, RiverProfile *r){
+int hydro::quasiNormal(unsigned int n, RiverProfile *r){
 
     double ff, fp;                             // Objective function and derivative
     int iter, maxiter;
@@ -442,7 +452,7 @@ int hydro::quasiNormal(int n, RiverProfile *r){
             XS.xsECI(f);
 
         ff = QwCumul[n] / XS.topW - XS.depth *
-                sqrt( 9.81 * abs( XS.depth ) * bedSlope[n] ) * XS.omega;
+                sqrt( 9.81 * abs( XS.depth ) * bedSlope[n] ) / XS.omega;
 
         fp = -2.5 * sqrt( 9.81 * abs( XS.depth ) * bedSlope[n] )
                 * ( 1.5 * log(11.0 * abs ( XS.depth ) / XS.rough) + 1.0 );
@@ -456,7 +466,6 @@ int hydro::quasiNormal(int n, RiverProfile *r){
         {
             cout << "Iteration Count exceeded in routine quasiNormal at " << n << "\n";
             return 8;
-            exit(1);
         }
     }
 
@@ -470,14 +479,13 @@ int hydro::quasiNormal(int n, RiverProfile *r){
 
 void hydro::fullyDynamic(RiverProfile *r){
 
-    int i, j, idx, iflag, iter, fadj, NNODES;
+    unsigned int i, j, idx, K, iflag, iter, fadj, NNODES;
     double ARI, ARIP1, KI, KIP1, BI, BIP1, ECI, ECIP1, HRI2;
     double AM, DTX2, SF1, SF2, SUMM, TOL, QM, THETA, Ybc;
     double DAY1, DAY2, DCDY1, DCDY2, DSDQ1, DSDQ2, DSDY1, DSDY2;
     double PERI, PERIP1, HRIP12, DPDY1, DPDY2;
     double TERM1, TERM2, TERM3;
     double FR2T, FD_FR_MIN, FD_FR_MAX, FR2_TRIG1, FR2_TRIG2;            // Trigger levels for transition to critical flow
-    float K;
 
     vector<double> Q, Y, C1, C2, C2A, DF, tmp;
     vector<vector<double>> EQN;
@@ -763,8 +771,8 @@ void hydro::fullyDynamic(RiverProfile *r){
         iter++;
 
         if (iter > 1500){
-            break;
             cout << "Preiss1: Maximum number of iterations exceeded";
+            break;
         }
     }
 }
@@ -824,9 +832,11 @@ vector<double> hydro::matsol(int N, vector<vector<double>> A){
 
 // New Routines:   *********************************************************************
 
-void hydro::regimeModel( int n, RiverProfile *r )
+void hydro::regimeModel( unsigned int n, RiverProfile *r )
 {
     NodeXSObject& XS = r->RiverXS[n];
+    NodeGSDObject& f = r->F[n];
+
     double Tol = 0.00001;
     double Q = QwCumul[n] / r->RiverXS[n].noChannels;
     double test_plus, test_minus = 0;
@@ -834,15 +844,21 @@ void hydro::regimeModel( int n, RiverProfile *r )
     double converg, gradient = 0;
     double gradient_1 = 0;
     double gradient_2 = 0;
+    double old_width = XS.width;
 
-    p = 4 * pow( Q, 0.5 );
+    p = 3 * pow( Q, 0.5 );
     XS.width = p * 1.001;
-    findStable( n, r );        // Update section data [n.b. Qb_cap] based on new theta
+    xsCritDepth( n, r, Q );    // Calculate critical depth
+    findStable( n, r );        // Update section data [n.b. bed stress] based on new theta
+    XS.xsWilcockTransport(f);  // Work out transport potential
     test_plus = XS.Qb_cap;
 
     XS.width = p * 0.999;
+    xsCritDepth( n, r, Q );       // Calculate critical depth
     findStable( n, r );
+    XS.xsWilcockTransport(f);
     test_minus = XS.Qb_cap;
+
     gradient_1 = test_plus - test_minus;
     p1 = p;
 
@@ -851,33 +867,42 @@ void hydro::regimeModel( int n, RiverProfile *r )
         p = p + 0.25 * p;
     else
         p = p - 0.25 * p;
-    XS.width = p * 1.001;
 
+    XS.width = p * 1.001;
+    xsCritDepth( n, r, Q );       // Calculate critical depth
     findStable( n, r );
+    XS.xsWilcockTransport(f);
     test_plus = XS.Qb_cap;
 
     XS.width = p * 0.999;
+    xsCritDepth( n, r, Q );       // Calculate critical depth
     findStable( n, r );
+    XS.xsWilcockTransport(f);
     test_minus = XS.Qb_cap;
 
-    gradient_1 = test_plus - test_minus;
+    gradient_2 = test_plus - test_minus;
     p2 = p;
-
 
     while( gradient_1 / gradient_2 > 0 )
     {
         gradient_1 = gradient_2;
         p1 = p;
-        if (gradient_1 > 0)
+
+        if (gradient_2 > 0)
             p = p + 0.25 * p;
         else
             p = p - 0.25 * p;
+
         XS.width = p * 1.001;
+        xsCritDepth( n, r, Q );       // Calculate critical depth
         findStable( n, r );
+        XS.xsWilcockTransport(f);
         test_plus = XS.Qb_cap;
 
         XS.width = p * 0.999;
+        xsCritDepth( n, r, Q );       // Calculate critical depth
         findStable( n, r );
+        XS.xsWilcockTransport(f);
         test_minus = XS.Qb_cap;
 
         gradient_2 = test_plus - test_minus;
@@ -892,12 +917,17 @@ void hydro::regimeModel( int n, RiverProfile *r )
     while(converg > Tol)
     {
         XS.width = p * 1.001;
+        xsCritDepth( n, r, Q );       // Calculate critical depth
         findStable( n, r );
+        XS.xsWilcockTransport(f);
         test_plus = XS.Qb_cap;
 
         XS.width = p * 0.999;
+        xsCritDepth( n, r, Q );       // Calculate critical depth
         findStable( n, r );
+        XS.xsWilcockTransport(f);
         test_minus = XS.Qb_cap;
+
         gradient = test_plus - test_minus;
 
         if ( gradient > 0 )
@@ -909,21 +939,41 @@ void hydro::regimeModel( int n, RiverProfile *r )
     }
 
     // Update reach geometry, with newly optimsed variables
-    XS.width = p;
 
-    if ( XS.depth < XS.Hmax )
-        XS.bankHeight = XS.Hmax;                      // If equilibrium depth is less than Hmax, XS is a rectangle
+    // Allow no more than 2% width change per timestep
+    // Keep at least 10m channel width
+
+    XS.deltaW = 1 + (p - old_width) / old_width;
+
+/*    if ( n < r->nnodes - 3 )           // Change is weighted by downstream regime results (deltaW) to prevent instabilities
+        XS.width = max( 20., XS.width * (r->RiverXS[n+2].deltaW + r->RiverXS[n+1].deltaW + 2 * XS.deltaW) / 4 );
     else
-        XS.bankHeight = XS.depth;                     // MAKE SURE BANKHEIGHT IS CORRECT, HERE
+        XS.width = max( 20., XS.width * XS.deltaW);
+*/
 
-    findStable( n, r );
+//    if ( XS.depth < XS.Hmax )
+//        XS.bankHeight = XS.Hmax;                      // If equilibrium depth is less than Hmax, XS is a rectangle
+//    else
+//        XS.bankHeight = XS.depth;                     // MAKE SURE BANKHEIGHT IS CORRECT, HERE
+
+    // Final geometry calcs
+    XS.width = old_width;
+    energyConserve(n, r);    // Work out depth based on energy considerations
+
+    XS.xsArea();
+    XS.xsPerim();
+    XS.xsECI(f);
+    XS.xsStressTerms(f, bedSlope[n]);
+    xsCritDepth( n, r, Q );       // Calculate critical depth
+
+
 }
 
-
-void hydro::findStable( int n, RiverProfile *r )
+void hydro::findStable( unsigned int n, RiverProfile *r )
 {
     // Find the stable channel shape for the specified Q and specified bank character
     // Iteratively vary cross-section until tau_bank = bank_crit
+
     NodeXSObject& XS = r->RiverXS[n];
     NodeGSDObject& f = r->F[n];
 
@@ -936,22 +986,17 @@ void hydro::findStable( int n, RiverProfile *r )
     double D90 = pow( 2, f.d90 ) / 1000.;
     double converg, bank_crit;
     int iter = 0;
-
-    // set the upper and lower angle limits
-    double b_upper = phi - deltaX;
+    double b_upper = phi - deltaX;   // set the upper and lower angle limits
     double b_lower = deltaX;
+
     XS.theta = 0.67 * phi;
+    findQ(n, r);    //  Update depth, given new XS.theta. Routine should be called FindY..
+    XS.xsStressTerms(f, bedSlope[n]);   // Update bed and bank stresses
 
     // calculate the bank stability index
     bank_crit = G * RHO * Gs * D90 * tau_star *
               pow( 1 - ( pow( sin ( XS.theta * PI / 180. ), 2) /
               pow( sin( phi * PI / 180. ), 2) ), 0.5 );
-
-    energyConserve(n, r);                      // Establish appropriate depth, for new width, phi, etc.
-    XS.xsArea();
-    XS.xsPerim();
-    XS.xsStressTerms(f, bedSlope[n]);          // Update stresses, transport capacity, based on new theta
-
     converg = ( XS.Tbank - bank_crit ) / bank_crit;
 
     while( ( abs( converg ) > Tol ) && ( iter < 50 ) )
@@ -962,19 +1007,54 @@ void hydro::findStable( int n, RiverProfile *r )
             b_lower = XS.theta;
 
         XS.theta = 0.5 * (b_upper + b_lower);
-
-        energyConserve(n, r);                      // Establish appropriate depth, for new width, phi, etc.
-        XS.xsArea();
-        XS.xsPerim();
-        XS.xsStressTerms(f, bedSlope[n]);          // Update stresses, transport capacity, based on new theta
-
-        converg = ( XS.Tbank - bank_crit ) / bank_crit;
+        findQ(n, r);
+        XS.xsStressTerms(f, bedSlope[n]);
 
         bank_crit = G * RHO * Gs * D90 * tau_star *
                   pow( 1 - ( pow( sin ( XS.theta * PI / 180. ), 2) /
                   pow( sin( phi * PI / 180. ), 2) ), 0.5 );
+        converg = ( XS.Tbank - bank_crit ) / bank_crit;
 
-        converg = (XS.Tbank - bank_crit) / bank_crit;
+        iter++;
+    }
+}
+
+void hydro::findQ( unsigned int n, RiverProfile *r ){
+
+    // Find the appropriate depth to satisfy continuity with the imposed flow, QwCumul[n]
+    NodeXSObject& XS = r->RiverXS[n];
+    NodeGSDObject& f = r->F[n];
+    double deltaX = 0.1 * pow ( QwCumul[n], 0.3);
+    double tol = 0.005;
+    double converg = 1;
+    double testQ;
+    int iter = 0;
+
+    // Guess the initial channel depth, set up variables
+    XS.depth = 0.3 * pow ( QwCumul[n], 0.3);
+
+    // First test
+    XS.xsArea();
+    XS.xsPerim();
+    XS.xsECI(f);
+    XS.xsStressTerms(f, bedSlope[n]);        // Note empirical velocity estimate, not based on energy considerations
+
+    testQ = XS.flow_area[2] * XS.velocity;
+    converg = (testQ - QwCumul[n]) / QwCumul[n];
+
+    while( ( abs(converg) > tol) && ( iter < 250 ) ){
+        if ( converg > 0 )
+            XS.depth -= converg * XS.depth;
+        else
+            XS.depth += abs(converg) * XS.depth;
+
+        XS.xsArea();
+        XS.xsPerim();
+        XS.xsECI(f);
+        XS.xsStressTerms(f, bedSlope[n]);
+
+        testQ = XS.flow_area[2] * XS.velocity;
+        converg = (testQ - QwCumul[n]) / QwCumul[n];
 
         iter++;
     }
@@ -990,7 +1070,7 @@ void hydro::setRegimeWidth(RiverProfile *r)
     double reachDrop = 0.;                     // Drop in elevation over reach river length
     double oldBankHeight = 0.;
     double aspect = 0.;
-    double Tol = 50.;                          // Maximum allowed channel aspect (w/d)
+//    double Tol = 50.;                          // Maximum allowed channel aspect (w/d)
 
     oldBankHeight = r->RiverXS[regimeCounter].bankHeight;
     oldArea = r->RiverXS[regimeCounter].flow_area[2];
@@ -998,16 +1078,6 @@ void hydro::setRegimeWidth(RiverProfile *r)
     r->RiverXS[regimeCounter].noChannels = 1;  // Starts on assumption of just one channel
     regimeModel( regimeCounter, r );           // Call to the Regime Functions.
     aspect = r->RiverXS[regimeCounter].width / r->RiverXS[regimeCounter].depth;
-
-    if ( ( aspect > Tol ) && ( r->RiverXS[regimeCounter].noChannels < 5 ) )    // Are channel w/d ratios greater than 50? Fewer than 5 channels?
-    {
-        while( aspect > Tol && ( r->RiverXS[regimeCounter].noChannels < 5 ) )
-        {
-            r->RiverXS[regimeCounter].noChannels++;
-            regimeModel( regimeCounter, r );
-            aspect = ( r->RiverXS[regimeCounter].width / r->RiverXS[regimeCounter].depth );
-        }
-    }
 
     if ( (r->counter > 260 ) )                 // Update floodplain volume
     {
