@@ -776,7 +776,7 @@ void RiverProfile::getLongProfile(XMLElement* params_root)
 
         eta[m] = getDoubleValue(e, "ETA");
 
-        bedrock[m] = getFloatValue(e, "BEDROCK");
+        bedrock[m] = getDoubleValue(e, "BEDROCK");
         if (bedrock[m] > eta[m])
             bedrock[m] = eta[m];       // bedrock must be at, or lower than, initial bed
 
