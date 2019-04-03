@@ -3,7 +3,9 @@
 Build the command line version (requires CMake):
 
 ```
-# switch to branch
+# clone and switch to branch
+git clone https://github.com/jtunnicl/GRATE.git
+cd GRATE
 git checkout xml-input-merge-plot
 
 # create a build directory
