@@ -2,6 +2,7 @@
 
 Build the command line version (requires CMake):
 
+```
 # switch to branch
 git checkout xml-input-merge-plot
 
@@ -20,4 +21,4 @@ make -j
 
 # plot using python script (requires Python with numpy, matplotlib)
 python ../plot_function.py plot_regimeModel.csv
-
+```
