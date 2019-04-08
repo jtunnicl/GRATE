@@ -12,7 +12,7 @@
 Initial setup:
 
 * Pushed "Zip file" version to `master` branch
-* Working in `xml-input-model` branch (should do a pull request at some point)
+* Working in `xml-input-merge` branch (will do a pull request)
 
 
 ## Input files
@@ -27,6 +27,9 @@ Convert input files from custom format to XML (that can be exported from Excel).
 * Converted *hydro_series.dat* and *sed_series.dat*
   - made some assumptions about the XML structure here - **needs to be checked**
 
+If the default input file does not exist, the GUI version will pop up a dialog
+to ask for the location of the input file.
+
 
 ## CMake build
 
@@ -37,7 +40,9 @@ Some benefits of CMake:
 * automates running tests and checking results
 * works well with Qt
 
-To build with CMake:
+In QtCreator just load the `CMakeLists.txt` file instead of the old GrateRip.pro.
+
+To build with CMake on the command line:
 
 ```
 # create build directory (can be called something else) and change to it
@@ -150,6 +155,12 @@ called a large number of times, making this change resulted in a reasonable perf
 Also, the `ktot` array values were being calculated twice and the second calculation was removed
 (i.e. values from the first calculation were reused) as part of this change too.
 
+### Profiling of xml-input-merge branch
+
+Profiling of the branch that includes latest changes from Jon:
+
+![Latest profile](grate-cli-10000steps-merge.png)
+
 ## Looking into optimisation routines
 
 Optimisation routines such as `regimeModel`, `findStable`:
@@ -167,11 +178,5 @@ gain was included in the 3x speedup above.
 
 See the test code and results [here](https://github.com/chrisdjscott/compare-grate-opt).
 
-A bug needs to be fixed in GRATE before this is implemented and tested within GRATE.
+The stability of these algorithms needs to be improved before this can be implemented and tested within GRATE.
 
-## Merging changes (TODO)
-
-Merging in the changes Jon has made to the GUI:
-
-* get those changes into github
-* try to use the merge feature from git/github
