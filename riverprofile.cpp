@@ -73,7 +73,7 @@ void NodeGSDObject::norm_frac()
     ngsz = psi.size() - 2;
     nlith = abrasion.size();
 
-    double ktot[ngsz];
+    std::vector<double> ktot(ngsz);
 
     sand_pct = 0;
 
@@ -108,7 +108,7 @@ void NodeGSDObject::dg_and_std()
     ngsz = psi.size() - 2;
     nlith = abrasion.size();
     
-    double ktot[ngsz];
+    std::vector<double> ktot(ngsz);
 
     dsg = 0.0;
     d84 = 0.0;
