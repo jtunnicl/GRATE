@@ -7,6 +7,7 @@
 #include <string>
 #include <iostream>
 #include <cmath>
+#include <ciso646>
 
 
 // Numbers a and b are the same if (from numpy.isclose):
