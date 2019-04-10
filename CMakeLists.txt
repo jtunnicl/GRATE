@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.1.0)
 project(Grate LANGUAGES CXX)
 
+# trying to force 64bit under MSVC
+set(CMAKE_VS_PLATFORM_NAME "x64")
+#set(CMAKE_GENERATOR_PLATFORM "x64")
+
 # options to build CLI and GUI versions
 option(BUILD_GUI "Build Qt5 GUI version" ON)
 option(BUILD_CLI "Build command line version" OFF)

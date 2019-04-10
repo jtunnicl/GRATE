@@ -180,7 +180,7 @@ void NodeXSObject::xsArea()
 {   /* Update X-Section area at a node
      */
 
-    float theta_rad = theta * PI / 180;               // theta is always in degrees
+    double theta_rad = theta * PI / 180;               // theta is always in degrees
     double ovFp = 0.;                                 // Overtopping elevation, above topmost floodplain height
     double ovBank = 0.;                               // Overtopping elevation, above bank height
 
@@ -227,7 +227,7 @@ void NodeXSObject::xsArea()
 void NodeXSObject::xsPerim()
 {                 // Perimenter at a single node: This could be merged with Area, above.
 
-    float theta_rad = theta * PI / 180;
+    double theta_rad = theta * PI / 180;
     double ovFp = 0.;            // Overtopping elevation, above topmost floodplain height
     double ovBank = 0.;          // Overtopping elevation, above bank height
     double b2b = width + (2 * ( bankHeight - Hmax) / tan( theta_rad ));    // Bank-to-bank width (top of in-channel flow section)
@@ -267,7 +267,7 @@ void NodeXSObject::xsPerim()
 void NodeXSObject::xsCentr()
 {
     // Compute centroid of flow
-    float theta_rad = theta * PI / 180;
+    double theta_rad = theta * PI / 180;
     double ovBank = 0.;                                                     // Overtopping elevation, above bank height
     double b2b = width + (2 * ( bankHeight - Hmax) / tan( theta_rad ));     // Bank-to-bank width (top of trapezoid)
     double topFp = bankHeight + 1.5;
@@ -444,7 +444,7 @@ TS_Object::TS_Object()
     date_time.setDate(2000, 1, 1);
     date_time.setTime(12, 0, 0);
     Q = 0.;
-    Coord = 0.;
+    Coord = 0;
     GRP = 1;
 
 }

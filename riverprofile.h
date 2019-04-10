@@ -155,7 +155,7 @@ public:
     double HmaxTweak;
     double randAbr;
 
-    vector<float> N;                           // Transition matrix for coarsening or fining mixtures
+    vector<double> N;                           // Transition matrix for coarsening or fining mixtures
 
     void initData(XMLElement* params_root);
     
