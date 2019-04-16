@@ -15,7 +15,7 @@ install:
 before_build:
     - mkdir build
     - cd build
-    - cmake "-G%GENERATOR%" "-DBUILD_CLI=ON" ..
+    - cmake "-G%GENERATOR%" -C Release "-DBUILD_CLI=ON" ..
 
 build_script:
     - cmake --build .
