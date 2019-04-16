@@ -20,5 +20,5 @@ before_build:
 build_script:
     - cmake --build . --config Release
 
-test_script:
-    - ctest -C Release --output-on-failure
+#test_script:
+#    - ctest -C Release --output-on-failure
