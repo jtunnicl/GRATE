@@ -70,7 +70,9 @@ if (BUILD_GUI)
     set(CMAKE_AUTOUIC ON)
 
     # Find the Qt libraries
-    find_package(Qt5 COMPONENTS Core Widgets PrintSupport)
+    find_package(Qt5Core REQUIRED)
+    find_package(Qt5Widgets REQUIRED)
+    find_package(Qt5PrintSupport REQUIRED)
     set(QT5_LIBRARIES Qt5::Core Qt5::Widgets Qt5::PrintSupport)
 
     # Tell CMake to create the GrateRip executable

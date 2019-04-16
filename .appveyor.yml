@@ -14,6 +14,7 @@ configuration:
 install:
     - set PATH=%QTDIR%\bin;%PATH%
     - set Qt5_DIR=%QTDIR%\lib\cmake\Qt5
+    - set CMAKE_PREFIX_PATH=%Qt5_DIR%
 
 before_build:
     - mkdir build
