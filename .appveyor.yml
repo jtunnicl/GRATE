@@ -7,7 +7,6 @@ environment:
         - GENERATOR: "Visual Studio 15 2017 Win64"
           QTDIR: C:\Qt\5.12\msvc2017_64
 
-platform: x64
 configuration: Release
 
 install:
@@ -16,7 +15,8 @@ install:
 before_build:
     - mkdir build
     - cd build
-    - cmake "-G%GENERATOR%" "-DCMAKE_PREFIX_PATH=%QTDIR%" ..
+#    - cmake "-G%GENERATOR%" "-DCMAKE_PREFIX_PATH=%QTDIR%" ..
+    - cmake "-G%GENERATOR%" ..
 
 build_script:
     - cmake --build .
