@@ -5,20 +5,18 @@ image: Visual Studio 2017
 environment:
     matrix:
         - GENERATOR: "Visual Studio 15 2017 Win64"
-        - QTDIR: C:\Qt\5.12.1\msvc2017_64
-        - PLATFORM: x64
+        - QT5: C:\Qt\5.12\msvc2017_64
 
 configuration:
     - Release
 
 install:
-    - set PATH=%QTDIR%\bin;%PATH%
-    - set Qt5_DIR=%QTDIR%\lib\cmake\Qt5
+    - set PATH=%QT5%\bin;%PATH%
 
 before_build:
     - mkdir build
     - cd build
-    - cmake "-G%GENERATOR%" "-DCMAKE_PREFIX_PATH=%QTDIR%" ..
+    - cmake "-G%GENERATOR%" "-DCMAKE_PREFIX_PATH=%QT5%" ..
 
 build_script:
     - cmake --build .
