@@ -1,0 +1,24 @@
+# based on https://github.com/paceholder/nodeeditor/blob/master/.appveyor.yml
+
+image: Visual Studio 2017
+
+environment:
+    matrix:
+        - GENERATOR: "Visual Studio 15 2017 Win64"
+        - QTDIR: C:\Qt\5.12.1\msvc2017_64
+        - PLATFORM: x64
+
+configuration:
+    - Release
+
+install:
+    - set PATH=%QTDIR%\bin;%PATH%
+    - set Qt5_DIR=%QTDIR%\lib\cmake\Qt5
+
+before_build:
+    - mkdir build
+    - cd build
+    - cmake "-G%GENERATOR%" ..
+
+build_script:
+    - cmake --build .
