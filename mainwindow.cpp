@@ -21,6 +21,7 @@
 #include <QString>
 #include <QDir>
 #include <QMessageBox>
+#include <ciso646>
 
 #define PI 3.14159265
 
