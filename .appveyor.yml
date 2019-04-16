@@ -1,5 +1,3 @@
-# based on https://github.com/paceholder/nodeeditor/blob/master/.appveyor.yml
-
 image: Visual Studio 2017
 
 environment:
@@ -17,7 +15,7 @@ install:
 before_build:
     - mkdir build
     - cd build
-    - cmake "-G%GENERATOR%" ..
+    - cmake "-G%GENERATOR%" "-DBUILD_CLI=ON" ..
 
 build_script:
     - cmake --build .
