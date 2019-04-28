@@ -39,6 +39,7 @@ Some benefits of CMake:
 * automatically finding dependencies
 * automates running tests and checking results
 * works well with Qt
+* can build the code with something other than QtCreator (e.g. MSVC)
 
 In QtCreator just load the `CMakeLists.txt` file instead of the old GrateRip.pro.
 
