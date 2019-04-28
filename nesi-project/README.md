@@ -49,9 +49,9 @@ To build with CMake on the command line:
 mkdir build && cd build
 
 # configure
-#  -DBUILD_GUI=ON is the default
-#  -DBUILD_CLI=OFF is default (headless version)
-cmake .. -DBUILD_CLI=ON
+#  -DBUILD_GUI=ON is the default (build the GUI/Qt version)
+#  -DBUILD_CLI=ON is the default (build the headless version)
+cmake ..
 
 # compile (using 4 cores)
 make -j4
@@ -74,11 +74,11 @@ where no GUI libraries are needed.
 
 ## Headless / CLI version
 
-A headless version was added to the CMake build. To enable it (it is OFF by
-default), use the additional configuration option:
+A headless version was added to the CMake build. It is enabled by default but
+can be disabled with the configuration option:
 
 ```
-cmake -DBUILD_CLI=ON ..
+cmake -DBUILD_CLI=OFF ..
 ```
 
 There was still a dependency on Qt due to the use of `QDateTime`. This was removed
@@ -114,6 +114,10 @@ in run time).
 See [my fork](https://github.com/chrisdjscott/GRATE/branches) for example. The green tick
 means that branch has passed tests.
 
+### Travis-CI
+
+Travis-CI is used for building on Linux.
+
 Details about the build can be found on the [Travis CI](https://travis-ci.com/chrisdjscott/GRATE/builds/94130621)
 website.
 
@@ -121,6 +125,15 @@ There is some one-time configuration that needs to be done to use Travis with
 the main repository. Follow steps 1-3
 [here](https://docs.travis-ci.com/user/tutorial/#to-get-started-with-travis-ci).
 
+### Appveyor
+
+Appveyor is used for building on Windows. 
+
+Example output from an Appveyor build can be found
+[here](https://ci.appveyor.com/project/chrisdjscott/grate/builds/23904550/job/yjqpighwvmua794u).
+
+An [Appveyor](https://www.appveyor.com/) account is required and needs to be linked to your
+Github account and the GRATE repository added. 
 
 ## Profiling headless version
 

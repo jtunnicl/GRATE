@@ -32,22 +32,29 @@ Using CMake:
 
 ```
 mkdir build && cd build  # create a directory for the build and change to it
-cmake .. -DBUILD_CLI=ON  # configure the build (we enable the CLI version since it is disabled by default)
+cmake ..                 # configure the build (both the GUI and CLI builds will be compiled by default)
 make                     # build the code
 ctest                    # test the code
 ```
 
 This will build two executables; `GrateRip` is the GUI version, `GrateRipCLI` is the command line version. The same input file works with both.
 
-The CLI/headless version has no dependency on Qt. To build without Qt, disable the GUI version and enable the CLI version at the configure step:
+The CLI/headless version has no dependency on Qt or any other libraries. 
+To disable the GUI version (and build without any dependency on Qt) specify the configuration options:
 
 ```
 ...
-cmake .. -DBUILD_CLI=ON -DBUILD_GUI=OFF
+cmake .. -DBUILD_GUI=OFF
 ...
 ```
 
 This will build only the `GrateRipCLI` command line version.
+
+If you just want to build the GUI version and not the CLI version, the configuration line is:
+
+```
+cmake .. -DBUILD_CLI=OFF
+```
 
 Different compilers can be specified at the configure step by setting the `CXX` environment variable. For example, if you have the Intel C++ compiler (`icpc`) installed and wish to use it:
 
@@ -57,6 +64,9 @@ CXX=icpc cmake .. [OTHER_OPTIONS]
 ...
 ```
 
+See the `.travis.yml` file for an example of building on Linux.
+
 ### CMake (Windows)
 
-It should be possible to build the CMake version on Windows too.
+It should be possible to build the CMake version on Windows too. This has been tested with QtCreator and MSVC.
+See the file `.appveyor.yml` for an example of building with MSVC.

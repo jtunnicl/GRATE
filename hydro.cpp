@@ -839,8 +839,8 @@ void hydro::regimeModel( unsigned int n, RiverProfile *r )
 
     p = 3 * pow( Q, 0.5 );
 
-
-	// DEBUGGING - TODO: remove
+#ifdef DEBUG_REGIME_MODEL
+    // DEBUGGING - not for production
     std::ofstream plotf;
     plotf.open("plot_regimeModel.csv");
     double plotmax = p * 4;
@@ -856,7 +856,7 @@ void hydro::regimeModel( unsigned int n, RiverProfile *r )
     }
     plotf.close();
     // END DEBUGGING
-
+#endif
 
     XS.width = p * 1.001;
     xsCritDepth( n, r, Q );    // Calculate critical depth

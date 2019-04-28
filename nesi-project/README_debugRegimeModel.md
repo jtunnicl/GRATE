@@ -13,14 +13,15 @@ mkdir build
 cd build
 
 # compile
-cmake .. -DBUILD_CLI=ON
+cmake .. -DDEBUG_REGIME_MODEL=ON
 make -j
 
 # run for 4 steps (so goes in regimeModel once)
 ./GrateRipCLI 4
 
 # there should now be the file plot_regimeModel.csv containing XS.width, XS.Qb_cap values
+# this can be loaded in Excel for example, or plotted with the Python script below
 
 # plot using python script (requires Python with numpy, matplotlib)
-python ../plot_function.py plot_regimeModel.csv
+python ../nesi-project/plot_function.py plot_regimeModel.csv
 ```
