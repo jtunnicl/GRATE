@@ -838,6 +838,26 @@ void hydro::regimeModel( unsigned int n, RiverProfile *r )
     double old_width = XS.width;
 
     p = 3 * pow( Q, 0.5 );
+
+#ifdef DEBUG_REGIME_MODEL
+    // DEBUGGING - not for production
+    std::ofstream plotf;
+    plotf.open("plot_regimeModel.csv");
+    double plotmax = p * 4;
+    int plotnum = 1000;
+    double plotstep = plotmax / static_cast<double>(plotnum);
+    for (int ploti = 1; ploti <= plotnum; ploti++) {
+        XS.width = ploti * plotstep;
+        xsCritDepth( n, r, Q );    // Calculate critical depth
+        findStable( n, r );        // Update section data [n.b. bed stress] based on new theta
+        XS.xsWilcockTransport(f);  // Work out transport potential
+        test_plus = XS.Qb_cap;
+        plotf << XS.width << ", " << XS.Qb_cap << std::endl;
+    }
+    plotf.close();
+    // END DEBUGGING
+#endif
+
     XS.width = p * 1.001;
     xsCritDepth( n, r, Q );    // Calculate critical depth
     findStable( n, r );        // Update section data [n.b. bed stress] based on new theta

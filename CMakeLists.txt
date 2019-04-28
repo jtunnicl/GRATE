@@ -7,7 +7,7 @@ set(CMAKE_VS_PLATFORM_NAME "x64")
 
 # options to build CLI and GUI versions
 option(BUILD_GUI "Build Qt5 GUI version" ON)
-option(BUILD_CLI "Build command line version" OFF)
+option(BUILD_CLI "Build command line version" ON)
 
 # enable testing (disable with -DBUILD_TESTING=OFF)
 include(CTest)
@@ -60,6 +60,12 @@ set(CLI_SOURCES
 # build library from common sources
 add_library(grate_common ${CPP_SOURCES})
 target_include_directories(grate_common PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
+# option for debugging output in hydro::regimeModel
+option(DEBUG_REGIME_MODEL "Write CSV file with function values for plotting from hydro::regimeModel" OFF)
+if (DEBUG_REGIME_MODEL)
+    target_compile_definitions(grate_common PRIVATE DEBUG_REGIME_MODEL)
+endif()
 
 # GUI build
 if (BUILD_GUI)
