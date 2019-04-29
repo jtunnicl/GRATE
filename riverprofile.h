@@ -2,10 +2,13 @@
 #define RIVERPROFILE_H
 
 #include <vector>
-#include <QVector>
-#include <QDateTime>
 #include <cmath>
+#include <fstream>
+#include "gratetime.h"
+#include "tinyxml2/tinyxml2.h"
+
 using namespace std;
+using namespace tinyxml2;
 
 double gammln2(double xx);
 
@@ -21,11 +24,11 @@ public:
     vector <double> abrasion;                        // abrasion value for each lithology type (3)
     vector < double > psi;                            // psi (base 2) grain size categories
     vector < vector < double > > pct;                         // Grain-size  (ngsz x nlith)
-    float dsg;                                 // Geometric mean grain size
-    float d84;
-    float d90;
-    float stdv;                                // Standard deviation in GSD
-    float sand_pct;                            // Percentage of sand (< 2 mm) in GSD
+    double dsg;                                 // Geometric mean grain size
+    double d84;
+    double d90;
+    double stdv;                                // Standard deviation in GSD
+    double sand_pct;                            // Percentage of sand (< 2 mm) in GSD
 
     void norm_frac();
 
@@ -39,8 +42,8 @@ public:
 
     NodeXSObject();                            // Grain size in psi; 2^psi results in mm value
 
-    int node;
-    int noChannels;                            // In the case of channel bifurcation; keep track of # of (identical) channels
+    unsigned int node;
+    unsigned int noChannels;                            // In the case of channel bifurcation; keep track of # of (identical) channels
     double depth;                              // Flow depth (m)
     double wsl;                                // Water surface level (m above sea level)
     double width;                              // Nominal channel width (m) at bottom of trapezoid for each node (e.g. P_bed)
@@ -70,6 +73,7 @@ public:
     double Qb_cap;                             // Transport capacity (m3/s)
     double comp_D;                             // The largest grain that the flow can move
     double K;                                  // Estimated division between key stones and bed material load
+    double deltaW;                             // Magnitude of change in width, given regime criteria
 
     void xsArea();                             // Calculate x-sec area for a given depth
 
@@ -81,6 +85,8 @@ public:
 
     void xsStressTerms(NodeGSDObject F, double bedSlope);   // Bed and banks shear stress partition
 
+    void xsWilcockTransport(NodeGSDObject F);  // Compute bedload transport, based on previous elements
+
 };
 
 class TS_Object
@@ -90,7 +96,7 @@ public:
 
     TS_Object();
 
-    QDateTime date_time;       // Date and time of inputs (see QDateTime doc)
+    GrateTime date_time;       // Date and time of inputs
     double Q;                  // m3/s (Qw) for water, m3/s (Qs) for sediment
     int Coord;                  // Stream-wise coordinate of input (m)
     int GRP;                       // For sediment : sed group
@@ -101,27 +107,27 @@ class RiverProfile
 
 public:
 
-    RiverProfile();                            // Constructor
+    RiverProfile(XMLElement* params_root);                            // Constructor
     // Profile Elements
 
-    int nnodes;                                // No. of points in the computational grid
-    int npts;                                  // No. of points in the long-profile supplied (later interpolated to nnodes, if necessary)
-    QDateTime cTime;                           // Current model time
-    QDateTime startTime;
-    QDateTime endTime;
-    int counter;
-    int yearCounter;
-    int dt;                                    // Delta t in seconds
-    double dx;                                  // Delta x - distance between cross-sections
-    vector<double> xx;                        // Chainage (m) at each node (ordered, increasing)
-    vector<double> eta;                       // Elevation (m) at each node (high z to low)
+    int nnodes;                       // No. of points in the computational grid
+    unsigned int npts;                         // No. of points in the long-profile supplied (later interpolated to nnodes, if necessary)
+    GrateTime cTime;                           // Current model time
+    GrateTime startTime;
+    GrateTime endTime;
+    unsigned int counter;
+    unsigned int yearCounter;
+    int dt;                           // Delta t in seconds
+    double dx;                                 // Delta x - distance between cross-sections
+    vector<double> xx;                         // Chainage (m) at each node (ordered, increasing)
+    vector<double> eta;                        // Elevation (m) at each node (high z to low)
 
     // Sedimentary Elements
 
-    int ngsz;                                  // 18
-    int nlith;                                 // 3
-    int ngrp;                                  // 31
-    int nlayer;                                // 20; No. of sublayers
+    unsigned int ngsz;                         // 18
+    unsigned int nlith;                        // 3
+    unsigned int ngrp;                         // 31
+    unsigned int nlayer;                       // 20; No. of sublayers
     double poro;                               // 0.6
     double default_la;                         // Active layer default thickness at each node (0.5)
     double layer;                              // Storage layer default thickness (5 m)
@@ -130,17 +136,17 @@ public:
     vector<NodeGSDObject> grp;                 // 'Library' of grain size distributions
     vector<NodeGSDObject> F;                   // Array of surface GSD elements [nnodes]
     vector<double> la;                         // Thickness of the active layer (~2 D90)
-    vector<int> algrp;                         // Active layer group #
-    vector<int> ntop;                          // Top storage layer number (indicates remaining layers beneath current one, '0' means bedrock);
-    vector<int> stgrp;                         // Storage layer group #
-    vector<float> toplayer;                    // Thickness of top storage layer
-    vector<float> bedrock;                     // Elevation of bedrock at each node (m)
-    vector<float> rand_nums;                   // 10 random nums for Monte-Carlo run. Uses rand1().
+    vector<unsigned int> algrp;                         // Active layer group #
+    vector<unsigned int> ntop;                          // Top storage layer number (indicates remaining layers beneath current one, '0' means bedrock);
+    vector<unsigned int> stgrp;                         // Storage layer group #
+    vector<double> toplayer;                    // Thickness of top storage layer
+    vector<double> bedrock;                     // Elevation of bedrock at each node (m)
+    vector<double> rand_nums;                   // 10 random nums for Monte-Carlo run. Uses rand1().
 
     vector<NodeXSObject> RiverXS;              // Array of river cross-sectional details
 
     // Randomizers
-    vector<float> tweakArray;
+    vector<double> tweakArray;
     double qsTweak;                           // Augment the rate of tributary Qs, Qw inputs
     double qwTweak;
     double substrDial;
@@ -149,23 +155,19 @@ public:
     double HmaxTweak;
     double randAbr;
 
-    vector<float> N;                           // Transition matrix for coarsening or fining mixtures
+    vector<double> N;                           // Transition matrix for coarsening or fining mixtures
 
-    void initData();
+    void initData(XMLElement* params_root);
     
-    vector<float> hydroGraph();
+    vector<double> hydroGraph();
 
     void readData();
 
-    const char *getNextParam(ifstream &openFile, const char *nextParam);
+    void getLongProfile(XMLElement* params_root);
 
-    void getLongProfile(std::ifstream &openFile);
+    void getGSDLibrary(XMLElement* params_root);
 
-    void getGrainSizeLibrary(std::ifstream &openFile);
-
-    void getLibraryLith(std::ifstream &openFile);
-
-    void getStratigraphy(std::ifstream &openFile);
+    void getStratigraphy(XMLElement* params_root);
 
 };
 

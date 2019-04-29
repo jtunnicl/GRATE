@@ -11,30 +11,100 @@
 
 
 #include "mainwindow.h"
+#include "model.h"
 #include "ui_RwaveWin.h"
+#include "tinyxml2/tinyxml2.h"
 #include <iostream>
 #include <fstream>
+#include <sstream>
+#include <QFileDialog>
+#include <QString>
+#include <QDir>
+#include <QMessageBox>
+#include <ciso646>
 
 #define PI 3.14159265
+
+using namespace tinyxml2;
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
-    rn(new RiverProfile),                        // Long profile, channel geometry
-    wl(new hydro(rn)),                               // Channel hydraulic parameters
-    sd(new sed(rn))
-
+    initialised(false)
 {
+    // setup user interface
     ui->setupUi(this);
-    rn->cTime = wl->Qw[0][0].date_time;
-    rn->startTime = wl->Qw[0][0].date_time;
-    rn->endTime = wl->Qw[0][wl->Qw[0].size() - 1].date_time;
-    setupChart();                                // Setup GUI graph
-    setWindowTitle("Raparapaririki River");
-    ui->textFileName->setText("Input_Rip1_equil_1938.dat");
-    ui->VectorPlot->replot();
-                                               // Use <Refresh Plot> button to start run
-    connect(ui->refreshButton, SIGNAL(clicked()), this, SLOT(kernel()), Qt::QueuedConnection);
+
+    // default input file name
+    std::string param_file = "test_out.xml";
+
+    // check if file exists
+    if (not std::fstream(param_file)) {
+        std::cerr << "File does not exist... Need to specify..." << std::endl;
+        QString fileName = QFileDialog::getOpenFileName(this, "Load Parameter File",
+                                                        QDir::currentPath(),
+                                                        "XML files (*.xml);;All files (*)");
+        if (not fileName.isEmpty())
+            param_file = fileName.toStdString();
+    }
+
+    // load xml input file
+    std::cout << "Reading xml file: '" << param_file << "'" << std::endl;
+    XMLDocument xml_params;
+    if (xml_params.LoadFile(param_file.c_str()) != XML_SUCCESS) {
+        std::cerr << "Error reading xml parameters:" << std::endl;
+        std::cerr << xml_params.ErrorStr() << std::endl;
+        // just show error message if file wasn't loaded
+        std::stringstream error_stream;
+        error_stream << "Error loading parameter file - try restarting and specifying the correct file";
+        error_stream << std::endl << std::endl << xml_params.ErrorStr();
+        showErrorMessage("Error loading parameter file", error_stream);
+    }
+    else {
+        // file was loaded so initialise everything
+
+        // get the root element of the XML document
+        XMLElement *params_root = xml_params.FirstChildElement();
+        if (params_root == NULL) {
+            std::cerr << "Error getting root element from XML file" << std::endl;
+            std::cerr << xml_params.ErrorStr() << std::endl;
+            // show dialog with error message
+            std::stringstream error_stream;
+            error_stream << "Error reading root element from XML file - check file format";
+            error_stream << std::endl << std::endl << xml_params.ErrorStr();
+            showErrorMessage("Error reading root element from XML file", error_stream);
+        }
+        else {
+            // initialise components
+            try {
+                model = new Model(params_root);
+
+                // do other bits here
+                setupChart();                                // Setup GUI graph
+                setWindowTitle("Raparapaririki River");
+                //ui->textFileName->setText("Input_Rip1_equil_1938.dat");
+                ui->textFileName->setText(param_file.c_str());
+                ui->VectorPlot->replot();
+
+                // Use <Refresh Plot> button to start run
+                connect(ui->refreshButton, SIGNAL(clicked()), this, SLOT(kernel()), Qt::QueuedConnection);
+
+                initialised = true;
+            }
+            catch (std::string msg) {
+                std::cerr << "Error while initialising components: " << msg << std::endl;
+                std::stringstream error_stream;
+                error_stream << "Error while initialising components" << std::endl << std::endl << msg;
+                showErrorMessage("Error initialising components", error_stream);
+            }
+        }
+    }
+}
+
+void MainWindow::showErrorMessage(const char *title, std::stringstream &msg_stream) {
+    std::string msg = msg_stream.str();
+    QMessageBox messageBox;
+    messageBox.critical(this, title, msg.c_str());
 }
 
 void MainWindow::setupChart(){
@@ -42,6 +112,9 @@ void MainWindow::setupChart(){
     int i, j, k, n = 0;
     float theta_rad, a, b;
     unsigned int bc = 0;
+    RiverProfile* rn = model->rn;
+    hydro *wl = model->wl;
+    sed *sd = model->sd;
     QVector<double> x( rn->nnodes );
     QVector<double> eta( rn->nnodes );
     QVector<double> WSL( rn->nnodes );
@@ -273,7 +346,7 @@ void MainWindow::setupChart(){
     for ( i = 1; i < 7 ; i++ )
            ui->GSD_Dash->graph(i)->setPen(QPen(QColor((i * 30), 254 - (i * 30), 113)));
 
-    ui->grateDateTime->setDateTime(rn->cTime);
+    ui->grateDateTime->setDateTime(QDateTime::fromTime_t(rn->cTime.getTime_t()));
     ui->reportStep->setValue(rn->counter);
     ui->reportYear->setValue(rn->yearCounter);
 
@@ -288,22 +361,11 @@ void MainWindow::setupChart(){
     ui->VectorPlot->replot();
     ui->BedloadPlot->replot();
     ui->BankWidthPlot->replot();
-
-    writeResults(0);
-}
-
-void MainWindow::stepTime(){
-
-    rn->cTime = rn->cTime.addSecs(rn->dt);
-    rn->counter++;
-    rn->yearCounter++;
-    if ( rn->yearCounter > 899 )
-        rn->yearCounter = 0;
 }
 
 void MainWindow::kernel(){
 
-    ui->grateDateTime->setDateTime(rn->cTime);
+    ui->grateDateTime->setDateTime(QDateTime::fromTime_t(model->rn->cTime.getTime_t()));
 
     connect(&dataTimer, SIGNAL(timeout()), this, SLOT(modelUpdate()));
     dataTimer.start(0); // Interval 0 means to refresh as fast as possible    
@@ -311,9 +373,12 @@ void MainWindow::kernel(){
 
 void MainWindow::modelUpdate(){
 
-    int i, j, k, n, inc = 0;
+    unsigned int i, j, k, n, inc = 0;
     float theta_rad, a, b, c;
     float topFp, ovBank, ovFp;
+    RiverProfile* rn = model->rn;
+    hydro *wl = model->wl;
+    sed *sd = model->sd;
     QVector<double> WSL( rn->nnodes );
     QVector<double> x( rn->nnodes );
     QVector<double> eta( rn->nnodes );
@@ -342,23 +407,12 @@ void MainWindow::modelUpdate(){
 
     int prog;   // Model run progress
 
-    //if (rn->counter == 0)                          // Use Backwater to set the first w.s. profile
-    wl->backWater(rn);
-    //  else
-    //    wl->fullyDynamic(rn);
-
-    sd->computeTransport(rn);
-    stepTime();
-    rn->qwTweak = rn->tweakArray[rn->yearCounter];
-
-    if ( (rn->counter % 2 == 0) && ( rn->qwTweak < 1 ) )
-            wl->setRegimeWidth(rn);         // kick off regime restraints, once hydraulics are working
+    // model iteration
+    model->iteration();
 
     // dt control
-
     rn->dt = ui->deltaT->value();
     ui->dt_disp->setValue(rn->dt);                    // Control dt with slider
-    
 
     // Calculate water profile data points, bank widths
     for ( i = 0; i < rn -> nnodes; i++ )
@@ -539,7 +593,7 @@ void MainWindow::modelUpdate(){
     ui->BedloadPlot->replot();
     ui->QwSeries->replot();
     ui->GSD_Dash->replot();
-    ui->grateDateTime->setDateTime(rn->cTime);
+    ui->grateDateTime->setDateTime(QDateTime::fromTime_t(rn->cTime.getTime_t()));
 
     // Progress bar
     prog = (rn->startTime.secsTo(rn->cTime) * 100) / (rn->startTime.secsTo(rn->endTime));
@@ -560,117 +614,17 @@ void MainWindow::modelUpdate(){
     ui->spinD90->setValue(pow(2, rn->F[n].d90));
     ui->spinHmax->setValue(rn->RiverXS[n].Hmax);
 
-    if (rn->counter % 10000 == 0)
-        writeResults(rn->counter);
-
-}
-
-void MainWindow::writeResults(int count){
-
-    int i = 0;
-
-
-    if (count == 0)
-    {
-        ofstream outDatFile;
-        outDatFile.open("Run_Results.txt");
-
-    outDatFile << "Output file for program Grate_NESI" << '\n' <<
-	"there are twenty-four columns in the output.  they are:" << '\n' <<
-	"column no. 1:  X coordinates in meters" << '\n' <<
-	"column no. 2:  Bed elevation in meters"  << '\n' <<
-	"column no. 3:  Flow depth in meters"  << '\n' <<
-	"column no. 4:  Channel width (m)"  << '\n' <<
-	"column no. 5:  Channel theta (deg)"  << '\n' <<
-    "column no. 6:  Number of channels"  << '\n' <<
-	"column no. 7:  Geometric mean grain size (mm) below the surface layer"  << '\n' <<
-	"column no. 8:  Geometric mean grain size (mm) of the surface layer"  << '\n' <<
-	"column no. 9:  Standard deviation at the same position."  << '\n' <<
-	"column no. 10:  Sediment transport rate (m2/s)"  << '\n' <<
-	"column no. 11:  Sand percentage (Fs)"  << '\n' <<
-	"column no. 12-24: Surface grain size matrix (12 classes)"  << '\n' <<
-	"qwTweak = " << rn->qwTweak << '\n' <<
-	"qsTweak = " << rn->qsTweak << '\n' <<
-	"substrDial = " << rn->substrDial << '\n' <<
-	"feedQw = " << rn->feedQw << '\n' <<
-	"feedQs = " << rn->feedQs << '\n' <<
-	"HmaxTweak = " << rn->HmaxTweak << '\n' <<
-	"randAbr = " << rn->randAbr << '\n' <<
-	"" << '\n';
-	
-    outDatFile << '\n';
-    outDatFile << "Count:  " << rn->counter << '\n';
-
-    for ( i = 0; i < rn->nnodes; i++ )
-    {
-		outDatFile << rn->xx[i] << '\t' <<
-		rn->eta[i] << '\t' <<
-		rn->RiverXS[i].depth << '\t' <<
-		rn->RiverXS[i].width << '\t' <<
-		rn->RiverXS[i].theta << '\t' <<
-        rn->RiverXS[i].noChannels << '\t' <<
-		rn->storedf[i][rn->ntop[i]].dsg << '\t' <<
-		rn->F[i].dsg << '\t' <<
-		rn->F[i].stdv << '\t' <<
-		sd->Qs[i] << '\t' <<
-		rn->F[i].sand_pct << '\t' <<
-		rn->F[i].pct[0][0] + rn->F[i].pct[1][0] + rn->F[i].pct[2][0] << '\t' <<
-		rn->F[i].pct[0][1] + rn->F[i].pct[1][1] + rn->F[i].pct[2][1] << '\t' <<
-		rn->F[i].pct[0][2] + rn->F[i].pct[1][2] + rn->F[i].pct[2][2] << '\t' <<
-		rn->F[i].pct[0][3] + rn->F[i].pct[1][3] + rn->F[i].pct[2][3] << '\t' <<
-		rn->F[i].pct[0][4] + rn->F[i].pct[1][4] + rn->F[i].pct[2][4] << '\t' <<
-		rn->F[i].pct[0][5] + rn->F[i].pct[1][5] + rn->F[i].pct[2][5] << '\t' <<
-		rn->F[i].pct[0][6] + rn->F[i].pct[1][6] + rn->F[i].pct[2][6] << '\t' <<
-		rn->F[i].pct[0][7] + rn->F[i].pct[1][7] + rn->F[i].pct[2][7] << '\t' <<
-		rn->F[i].pct[0][8] + rn->F[i].pct[1][8] + rn->F[i].pct[2][8] << '\t' <<
-		rn->F[i].pct[0][9] + rn->F[i].pct[1][9] + rn->F[i].pct[2][9] << '\t' <<
-		rn->F[i].pct[0][10] + rn->F[i].pct[1][10] + rn->F[i].pct[2][10] << '\t' <<
-		rn->F[i].pct[0][11] + rn->F[i].pct[1][11] + rn->F[i].pct[2][11] << '\t' <<
-		rn->F[i].pct[0][12] + rn->F[i].pct[1][12] + rn->F[i].pct[2][12] << '\n';
+    // temporarily limit to 80 steps for testing
+    if (rn->counter == 800) {
+        dataTimer.stop();
     }
-    outDatFile << '\n';
-    }
-    else   // append records
-    {
-        ofstream outDatFile;
-        outDatFile.open("Run_Results.txt", ios::out | ios::app);
-
-        outDatFile << "Count:  " << rn->counter << '\n';
-
-		for ( i = 0; i < rn->nnodes; i++ )
-		{
-		    outDatFile << rn->xx[i] << '\t' <<
-			rn->eta[i] << '\t' <<
-			rn->RiverXS[i].depth << '\t' <<
-			rn->RiverXS[i].width << '\t' <<
-			rn->RiverXS[i].theta << '\t' <<
-            rn->RiverXS[i].noChannels << '\t' <<
-			rn->storedf[i][rn->ntop[i]].dsg << '\t' <<
-			rn->F[i].dsg << '\t' <<
-			rn->F[i].stdv << '\t' <<
-			sd->Qs[i] << '\t' <<
-			rn->F[i].sand_pct << '\t' <<
-			rn->F[i].pct[0][0] + rn->F[i].pct[1][0] + rn->F[i].pct[2][0] << '\t' <<
-			rn->F[i].pct[0][1] + rn->F[i].pct[1][1] + rn->F[i].pct[2][1] << '\t' <<
-			rn->F[i].pct[0][2] + rn->F[i].pct[1][2] + rn->F[i].pct[2][2] << '\t' <<
-			rn->F[i].pct[0][3] + rn->F[i].pct[1][3] + rn->F[i].pct[2][3] << '\t' <<
-			rn->F[i].pct[0][4] + rn->F[i].pct[1][4] + rn->F[i].pct[2][4] << '\t' <<
-			rn->F[i].pct[0][5] + rn->F[i].pct[1][5] + rn->F[i].pct[2][5] << '\t' <<
-			rn->F[i].pct[0][6] + rn->F[i].pct[1][6] + rn->F[i].pct[2][6] << '\t' <<
-			rn->F[i].pct[0][7] + rn->F[i].pct[1][7] + rn->F[i].pct[2][7] << '\t' <<
-			rn->F[i].pct[0][8] + rn->F[i].pct[1][8] + rn->F[i].pct[2][8] << '\t' <<
-			rn->F[i].pct[0][9] + rn->F[i].pct[1][9] + rn->F[i].pct[2][9] << '\t' <<
-			rn->F[i].pct[0][10] + rn->F[i].pct[1][10] + rn->F[i].pct[2][10] << '\t' <<
-			rn->F[i].pct[0][11] + rn->F[i].pct[1][11] + rn->F[i].pct[2][11] << '\t' <<
-			rn->F[i].pct[0][12] + rn->F[i].pct[1][12] + rn->F[i].pct[2][12] << '\n';
-		}
-		outDatFile << '\n';
-	  }
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
-    delete rn;
+    if (initialised) {
+        delete model;
+    }
 }
 

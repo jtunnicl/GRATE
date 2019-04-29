@@ -8,6 +8,7 @@
 #include "riverprofile.h"
 #include "hydro.h"
 #include "sed.h"
+#include "model.h"
 
 #include <QtCore>
 #include <QWidget>
@@ -25,8 +26,6 @@ public:
     ~MainWindow();
 
     void setupChart();
-    void stepTime();
-    void writeResults(int count);
 
 public slots:
     void kernel();
@@ -36,14 +35,14 @@ signals:
     void drawChart();
 
 private:
+    void showErrorMessage(const char *title, std::stringstream &msg_stream);
     Ui::MainWindow *ui;
-    RiverProfile *rn;
-    hydro *wl;
-    sed *sd;
+    Model *model;
     QString demoName;
     QTimer dataTimer;
     QCPItemTracer *itemDemoPhaseTracer;
     int currentDemoIndex;
+    bool initialised;
 };
 
 

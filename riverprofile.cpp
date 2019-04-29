@@ -16,7 +16,11 @@
 #include <cstdlib>
 #include <cstring>
 #include "riverprofile.h"
+#include "tinyxml2/tinyxml2.h"
+#include "tinyxml2_wrapper.h"
+
 using namespace std;
+using namespace tinyxml2;
 
 #define PI 3.14159265
 #define G 9.80665
@@ -63,21 +67,22 @@ NodeGSDObject::NodeGSDObject()
 void NodeGSDObject::norm_frac()
 // Normalize grainsize fractions to 100%
 {
-    float ngsz, nlith, cumtot;
-    vector<float> ktot;
-    ktot.resize(psi.size());
+    unsigned int ngsz, nlith;
+    double cumtot;
 
     ngsz = psi.size() - 2;
     nlith = abrasion.size();
+
+    std::vector<double> ktot(ngsz);
 
     sand_pct = 0;
 
     // Normalize
     cumtot = 0.0;
-    for ( int j = 0; j < ngsz; j++ )           // Sum mass fractions
+    for ( unsigned int j = 0; j < ngsz; j++ )           // Sum mass fractions
     {
         ktot[j] = 0.0;
-        for ( int k = 0; k < nlith; k++ )
+        for ( unsigned int k = 0; k < nlith; k++ )
             if (pct[k][j] > 0)              // Solves problems with rounding
                 ktot[j] += pct[k][j];
             else
@@ -85,8 +90,8 @@ void NodeGSDObject::norm_frac()
         cumtot += ktot[j];
     }
 
-    for ( int j = 0; j < ngsz; j++ )
-        for ( int k = 0; k < nlith; k++ )
+    for ( unsigned int j = 0; j < ngsz; j++ )
+        for ( unsigned int k = 0; k < nlith; k++ )
         {
             if (pct[k][j] > 0)
                 pct[k][j] /= cumtot;
@@ -97,24 +102,24 @@ void NodeGSDObject::norm_frac()
 void NodeGSDObject::dg_and_std()
 // Routines to calculate grainsize statistics, including D50,D84,D90 and standard deviation
 {
-    float tdev;
-    float ngsz, nlith;
-    vector<float> ktot;
-    ktot.resize(psi.size());
+    double tdev;
+    unsigned int ngsz, nlith;
 
     ngsz = psi.size() - 2;
     nlith = abrasion.size();
+    
+    std::vector<double> ktot(ngsz);
 
     dsg = 0.0;
     d84 = 0.0;
     d90 = 0.0;
 
-    for ( int j = 0; j < ngsz; j++ )
+    for ( unsigned int j = 0; j < ngsz; j++ )
     {
         //if (psi[j] >= -1)   // ***!!!*** Dg50 is based on gsizes >= 2 mm (psi = -1 or less)
         //{
         ktot[j] = 0;
-        for ( int k = 0; k < nlith; k++ )
+        for ( unsigned int k = 0; k < nlith; k++ )
             ktot[j] += pct[k][j];               // lithology values for each size fraction are summed.
         dsg += 0.50 * (psi[j] + psi[j+1]) * ktot[j];
         d84 += 0.84 * (psi[j] + psi[j+1]) * ktot[j];
@@ -123,12 +128,8 @@ void NodeGSDObject::dg_and_std()
     }
 
     stdv = 0.0;
-    for ( int j = 0; j < ngsz; j++ )
+    for ( unsigned int j = 0; j < ngsz; j++ )
     {
-        ktot[j] = 0;
-        for ( int k = 0; k < nlith; k++ )
-            ktot[j] = ktot[j] + pct[k][j];
-
         tdev = 0.5 * (psi[j] + psi[j+1]) - dsg;
         stdv += 0.5 * tdev * tdev * ktot[j];
     }
@@ -172,13 +173,14 @@ NodeXSObject::NodeXSObject()                  //Initialize list
      Qb_cap = 0.2;
      comp_D = 0.005;
      K = 0;
+     deltaW = 0;
 }
 
 void NodeXSObject::xsArea()
 {   /* Update X-Section area at a node
      */
 
-    float theta_rad = theta * PI / 180;               // theta is always in degrees
+    double theta_rad = theta * PI / 180;               // theta is always in degrees
     double ovFp = 0.;                                 // Overtopping elevation, above topmost floodplain height
     double ovBank = 0.;                               // Overtopping elevation, above bank height
 
@@ -225,7 +227,7 @@ void NodeXSObject::xsArea()
 void NodeXSObject::xsPerim()
 {                 // Perimenter at a single node: This could be merged with Area, above.
 
-    float theta_rad = theta * PI / 180;
+    double theta_rad = theta * PI / 180;
     double ovFp = 0.;            // Overtopping elevation, above topmost floodplain height
     double ovBank = 0.;          // Overtopping elevation, above bank height
     double b2b = width + (2 * ( bankHeight - Hmax) / tan( theta_rad ));    // Bank-to-bank width (top of in-channel flow section)
@@ -265,7 +267,7 @@ void NodeXSObject::xsPerim()
 void NodeXSObject::xsCentr()
 {
     // Compute centroid of flow
-    float theta_rad = theta * PI / 180;
+    double theta_rad = theta * PI / 180;
     double ovBank = 0.;                                                     // Overtopping elevation, above bank height
     double b2b = width + (2 * ( bankHeight - Hmax) / tan( theta_rad ));     // Bank-to-bank width (top of trapezoid)
     double topFp = bankHeight + 1.5;
@@ -303,21 +305,32 @@ void NodeXSObject::xsCentr()
 void NodeXSObject::xsECI(NodeGSDObject F)
 {
 
+    // The energy coefficient is the ratio of the true kinetic-energy flow rate
+    // to the flow rate computed using the average velocity.
+    double D_50;
+
     F.norm_frac();
     F.dg_and_std();                                    // Update grain size statistics
 
-    rough = 2 * pow( 2, F.dsg ) / 1000. * pow( F.stdv, 1.28 );              // roughness height, ks, 2*D90
+    D_50 = pow( 2, F.dsg ) / 1000.;
+    rough = 2 * D_50 * pow( F.stdv, 1.28 );              // roughness height, ks, 2*D90
     if (rough <= 0)         // indicates problems with previous F calcs
         rough = 0.01;
-    omega = 2.5 * log( 11.0 * ( depth / rough ) );                          // Parker (1991), Dingman 6.25, p.224
-    double K_ch = flow_area[0] * omega * sqrt( 9.81 * depth );              // Dingman, (2009) 8B2.3C, p.300
+    // N_m = 0.0474 * pow(D_50, 0.1667);                                // Manning's n, as per Dingman (2009) 6.43b, p.250
+    // Keulegan Model
+    omega = 1 / ( 2.5 * log( 11.0 * ( depth / rough ) ) );                  // Revised 15/03/19: Parker (1991), Dingman 6.25, p.224
+    // Ferguson Model
+    //omega = pow( pow( 6.5, 2 ) + pow ( 2.5, 2 ) * pow( depth / rough, 1.667 ), 0.5) /
+    //            6.5 * 2.5 * (depth / rough);
+
+    double K_ch = flow_area[0] * sqrt( 9.81 * depth ) / omega;              // Dingman, (2009) 8B2.3C, p.300
     double K_fp = 0;
     k_mean = 0;
     double ovBank = depth - bankHeight;
 
     if (ovBank > 0)
     {
-        K_fp = flow_area[1] * rough * sqrt( 9.81 * ovBank * 0.5 );   // Depth halfway across the floodplain
+        K_fp = flow_area[1] * sqrt( 9.81 * ovBank * 0.5 ) / omega;   // Depth halfway across the floodplain. Resistance should perhaps be lower for floodplains?
         k_mean = K_ch + K_fp;
         eci = ( pow(K_ch,3) / pow(flow_area[0],2) + pow(K_fp,3) / pow(flow_area[1],2) ) /
                 ( pow(k_mean,3) / pow(flow_area[2],2) );                   // Dingman, (2009) 8B2.4, Chaudhry (2nd ed) 4-41
@@ -334,16 +347,19 @@ void NodeXSObject::xsStressTerms(NodeGSDObject F, double bedSlope)
     // Compute stresses, transport capacity
     double X;                      // tau_bed / tau_ref for Wilcock equation
     double SFbank = 0;
-    double tau_star_ref, tau_ref, totstress, W_star;
     double D50 = pow( 2, F.dsg ) / 1000.;
-    float theta_rad = theta * PI / 180.;
+    double theta_rad = theta * PI / 180.;
+    double totstress;
+
+    ustar = sqrt( 9.81 * depth * bedSlope );
+    velocity = 1 / omega * ustar;
 
     // use the equations from Knight and others to partition stress
-
     SFbank = pow( 10.0, ( -1.4026 * log10( width /
-            ( flow_perim[2] - width ) + 1.5 ) + 0.247 ) );    // partioning equation, M&Q93 Eqn.8, E&M04 Eqn.2
+            ( flow_perim[2] - width ) + 1.5 ) + 0.3516 ) );    // partioning equation, M&Q93 Eqn.8, E&M04 Eqn.2
     totstress = G * RHO * depth * bedSlope;
-    Tbed =  totstress * (1 - SFbank) *
+
+    Tbed =  totstress * (1 - SFbank / 100) *
             ( b2b / (2. * width) + 0.5 );           // bed_str = stress acting on the bed, M&Q93 Eqn.10, E&M04 Eqn.4
     Tbank =  totstress * SFbank *
             ( b2b + width ) * sin( theta_rad ) / (4 * depth );
@@ -354,33 +370,87 @@ void NodeXSObject::xsStressTerms(NodeGSDObject F, double bedSlope)
     // estimate the division between key stones and bed material load
     //   (this corresponds to the approximate limit of full mobility)
     K = Tbed / (0.04 * G * RHO * Gs);
+}
 
+void NodeXSObject::xsWilcockTransport(NodeGSDObject F){
     // use Wilcock and Crowe to estimate the sediment transport rate
-    tau_star_ref = 0.021 + 0.015 * exp (-20 * F.sand_pct);
-    tau_ref = tau_star_ref * G * RHO * Gs * D50;
-    X = Tbed / tau_ref;
 
-    if (X < 1.35)
-        W_star = 0.002 * pow( X, 7.5 );
+    unsigned int j, k, ngsz, nlith;
+    double taussrg;                 // Wilcock - reference (median) shear
+    double b;                       // b exponent for each size fraction
+    double arg;                     // decision for G
+    double phisgo;
+    double dj;                      // grain size;
+    double ds50;
+    double specWt;                  // submerged specific weight of gravel
+    double a0;
+    double Wwc;                     // Wi* from Wilcock Crowe
+    double FGSum;
+    vector<double> ktot, ktotn;
+    NodeGSDObject fpp;                         // Bedload temp item
+
+    ngsz = F.psi.size() - 2;
+    nlith = F.abrasion.size();
+    ktot.resize(ngsz);
+    ktotn.resize(ngsz);
+
+    specWt = 0.65; //(2650 - 1000) / 1000 - 1.;
+
+    for ( j = 0; j < ngsz; j++ )                        // iterate grain size
+        for ( k = 0; k < nlith; k++ )                   // iterate lithology
+            fpp.pct[k][j] = F.pct[k][j];                // temp bl is extracted from the surface layer
+
+    fpp.norm_frac();                                       // Normalize f fractions
+    fpp.dg_and_std();
+
+    taussrg = 0.021 + 0.015 * exp( -20 * fpp.sand_pct );
+    phisgo = ( ( ustar * ustar ) / specWt / 9.81 / (pow( 2, fpp.dsg ) / 1000)) / taussrg;
+    FGSum = 1e-10;
+    Wwc = 0.;
+
+    for ( j = 0; j < ngsz; j++ )
+    {
+        ktot[j] = 0;
+        a0 = ( 0.5 * ( fpp.psi[j] + fpp.psi[j+1] ) );
+        ds50 = pow( 2.0, fpp.dsg ) / 1000;
+        dj = pow( 2.0, a0 ) / 1000;
+        b = 0.67 / (1 + exp( 1.5 - ( dj / ds50 ) ) );    // Wilcock eqn. (4)
+        arg = phisgo * pow( ( dj / ds50 ), -b );
+
+        if (arg < 1.35)
+            Wwc = 0.002 * pow( arg, 7.5 );                 // eqn.7a
+        else
+            Wwc = 14 * pow( ( 1 - 0.894 / sqrt(arg) ), 4.5 );  //eqn. 7b
+
+        for ( k = 0; k < nlith; k++ )
+        {
+            fpp.pct[k][j] *= Wwc;
+            ktot[j] += fpp.pct[k][j];
+        }
+
+        FGSum += ktot[j];
+    }
+
+    if (FGSum > 0)
+        Qb_cap = FGSum * pow( ustar, 3 ) / specWt / 9.81 * width;
     else
-        W_star = 14 * pow( ( 1 - ( 0.894 / pow( X, 0.5 ) ) ), ( 4.5 ) );
+        Qb_cap = 0.0;
 
-    Qb_cap = width * ( W_star / ( Gs * G ) ) * pow( ( Tbed / RHO ), ( 3.0 / 2.0 ) );
 }
 
 TS_Object::TS_Object()
 {
 
-    date_time.setDate(QDate(2000,1,1));
-    date_time.setTime(QTime(12, 0, 0, 0));
+    date_time.setDate(2000, 1, 1);
+    date_time.setTime(12, 0, 0);
     Q = 0.;
-    Coord = 0.;
+    Coord = 0;
     GRP = 1;
 
 }
 
-RiverProfile::RiverProfile()
-    {
+RiverProfile::RiverProfile(XMLElement* params_root)
+{
 
     NodeXSObject tmp;       // to initialize RiverXS
     nnodes = 0;
@@ -400,12 +470,13 @@ RiverProfile::RiverProfile()
 
     RiverXS.push_back(tmp);
 
-    cTime.setDate(QDate(2002,12,5));
-    cTime.setTime(QTime(12,0,0,0));
-    startTime.setDate(QDate(2002,12,5));
-    startTime.setTime(QTime(12,0,0,0));
-    endTime.setDate(QDate(2002,12,5));
-    endTime.setTime(QTime(12,0,0,0));
+    // TODO: should start and end time be parameters or read from ui??
+    cTime.setDate(2002, 12, 5);
+    cTime.setTime(12, 0, 0);
+    startTime.setDate(2002, 12, 5);
+    startTime.setTime(12, 0, 0);
+    endTime.setDate(2002, 12, 5);
+    endTime.setTime(12, 0, 0);
 
     counter = 0;
     yearCounter = 0;        // Counter that resets every 5 days
@@ -456,17 +527,17 @@ RiverProfile::RiverProfile()
     if ( ( N[0] + N[1] + N[2] + N[3] + N[4] ) > 1)
        cout << "Interpolation Array is over 1.0";
 
-    initData();
+    initData(params_root);
 
-    }
+}
 
-vector<float> RiverProfile::hydroGraph()
+vector<double> RiverProfile::hydroGraph()
 {
     /* This routine creates a hydrograph, based on the gamma distribution,
        meant to simulate the range of flow experienced over the course of
        1 year.
     */
-  int i = 0;
+  unsigned int i = 0;
 
   double max_flow = 1.6;  // Up to 1.6 * 50 = 80 m3/s
   double min_flow = 0.8;
@@ -475,17 +546,17 @@ vector<float> RiverProfile::hydroGraph()
   double beta = 5;
   double delta = 0.0052;
   double factor = 0;
-  vector<float> x, xx, fac;
+  vector<double> x, xx, fac;
 
-  for (int i=0; i<elems; ++i)
+  for (i = 0; i < elems; ++i)
   {
     x.push_back(0);
     xx.push_back(0);
     fac.push_back(0);
   }
 
-  x[i] = -1.5;
-  for (int i=1; i<elems; ++i)
+  x[0] = -1.5;
+  for (i = 1; i < elems; ++i)
   {
     x[i] = x[i-1] + delta;
     xx[i] = pow(10,x[i]);
@@ -501,28 +572,18 @@ vector<float> RiverProfile::hydroGraph()
   return fac;
 }
 
-void RiverProfile::initData()
-    {
-
-    std::ifstream inDatFile;
+void RiverProfile::initData(XMLElement* params_root)
+{
+    // get params element
+    XMLElement *params = params_root->FirstChildElement("PARAMS");
+    if (params == NULL) {
+        throw std::string("Error getting PARAMS element from XML file");
+    }
 
     NodeGSDObject tmp;
     vector < NodeGSDObject > tmp2;
-    const char * f;
-    int i = 0;
-    char g[8];
 
-    inDatFile.open("Input_Rip1_equil_1938.dat");
-
-    if( !inDatFile )                           //test the file open.
-    {
-        cout<<"Error opening intput file.."<<endl;
-        system("pause");
-    }
-
-    f = getNextParam(inDatFile, "NNODES");
-    for (i = 0; i < 8; i++) g[i] = *(f++);
-    nnodes = atoi(g);
+    nnodes = getIntValue(params, "NNODES");
 
     // Allocate vectors
     xx.resize(nnodes);
@@ -532,54 +593,39 @@ void RiverProfile::initData()
     bedrock.resize(nnodes);
     RiverXS.resize(nnodes);
 
-    f = getNextParam(inDatFile, "LAYER");
-    for (i = 0; i < 8; i++) g[i] = *(f++);
-    layer = atof(g);
+    layer = getDoubleValue(params, "LAYER");
+
     toplayer.assign(nnodes, layer);               // Thickness of the top storage layer; starts at 5 and erodes down
 
-    f = getNextParam(inDatFile, "LA");
-    for (i = 0; i < 8; i++) g[i] = *(f++);
-    default_la = atof(g);
+    default_la = getDoubleValue(params, "LA");
     la.assign(nnodes, default_la);                // Default active layer thickness
 
-    f = getNextParam(inDatFile, "NLAYER");
-    for (i = 0; i < 8; i++) g[i] = *(f++);
-    nlayer = atoi(g);
+    nlayer = getIntValue(params, "NLAYER");
     ntop.assign(nnodes, nlayer-15);                // Indicates # of layers remaining, below current (couple of layers left for aggradation)
 
-    f = getNextParam(inDatFile, "PORO");
-    for (i = 0; i < 8; i++) g[i] = *(f++);
-    poro = atof(g);                               // Default deposit porosity
+    poro = getDoubleValue(params, "PORO");
 
-    for (i = 0; i < nlayer; i++)                  // Init storedf stratigraphy matrix
+    for (unsigned int i = 0; i < nlayer; i++)                  // Init storedf stratigraphy matrix
         tmp2.push_back(tmp);
 
-    for (i = 0; i < nnodes; i++)
+    for (unsigned int i = 0; i < nnodes; i++)
     {
         storedf.push_back(tmp2);
         F.push_back(tmp);
     }
 
-    f = getNextParam(inDatFile, "NGSZ");
-    for (i = 0; i < 8; i++) g[i] = *(f++);
-    ngsz = atoi(g);
+    ngsz = getIntValue(params, "NGSZ");
 
-    f = getNextParam(inDatFile, "NLITH");
-    for (i = 0; i < 8; i++) g[i] = *(f++);
-    nlith = atoi(g);
+    nlith = getIntValue(params, "NLITH");
 
-    f = getNextParam(inDatFile, "NGRP");
-    for (i = 0; i < 8; i++) g[i] = *(f++);
-    ngrp = atoi(g);
+    ngrp = getIntValue(params, "NGRP");
 
-    for (i = 0; i < ngrp; i++)
+    for (unsigned int i = 0; i < ngrp; i++)
         grp.push_back(tmp);
 
-    getGrainSizeLibrary(inDatFile);
+    getGSDLibrary(params_root);
 
-    getLibraryLith(inDatFile);
-
-    for (i = 0; i < nnodes; i++)
+    for (unsigned int i = 0; i < nnodes; i++)
     {
         RiverXS[i].depth = 1.5;
         RiverXS[i].width = 30.;
@@ -598,123 +644,76 @@ void RiverProfile::initData()
             bedrock[i] = eta[i] - ( nlayer * layer );
     }
 
-    f = getNextParam(inDatFile, "NPTS");
-    for (i = 0; i < 8; i++) g[i] = *(f++);
-    npts = atoi(g);
+    // TODO: NPTS not in xml file but was in the old dat file (is it the same as NNODES??)
+    npts = nnodes;
 
-    getLongProfile(inDatFile);
+    getLongProfile(params_root);
 
-    getStratigraphy(inDatFile);
+    getStratigraphy(params_root);
 
     dx = xx[1]-xx[0];                       // Assume uniform grid
     dt = 10;
 
 }
 
-const char *RiverProfile::getNextParam(std::ifstream &openFile, const char *nextParam)
+void RiverProfile::getGSDLibrary(XMLElement* params_root)
 {
-
-    const char *token[40] = {};              // initialize to 0; 40 tokens max
-    char buf[512];                           // Max 512 chars per line
-    int Found = 0;
-    int n = 0;
-
-    while (Found == 0)
+    // loop over lithologies
+    for (unsigned int lithCount = 0; lithCount < nlith; lithCount++)
     {
-        openFile.getline(buf, 512);
-        token[0] = strtok( buf, " " );       // first token
-        if (token[0] == NULL || strcmp(token[0], "!") == 0)       // zero if line is blank or "!"
-            continue;
-        else
-            for (n = 1; n < 10; n++)
-            {
-                token[n] = strtok(0, " ");   // subsequent tokens
-                if (!token[n]) break;        // no more tokens
-            }
-        if (strcmp(token[0], nextParam) == 0 )
-            Found = 1;
-    }
+        // name of this element
+        std::stringstream ss;
+        ss << "LITH" << lithCount + 1;
+        std::string lithName = ss.str();
 
-    return (token[2]);
-}
-
-void RiverProfile::getGrainSizeLibrary(ifstream &openFile)
-{
-    const char* token[40] = {};              // initialize to 0; 40 tokens max
-    char buf[512];                           // Max 512 chars per line
-    int Found = 0;
-    int n, grpCount = 0;
-
-    while (Found == 0)                       // Skip through comments
-    {
-        openFile.getline(buf, 512);
-        token[0] = strtok( buf, " " );                    // first token
-        if (token[0] == NULL || strcmp(token[0], "!") == 0)       // zero if line is blank or "!"
-            continue;
-        else
-        Found = 1;
-    }
-
-    for (int gsCount = 0; gsCount < ngsz; gsCount++)
-    {
-        for (n = 0; n < 50; n++)
-        {
-            token[n] = strtok(0, " ");
-            if (!token[n]) break;            // no more tokens
+        // get the element
+        XMLElement *lithElem = params_root->FirstChildElement(lithName.c_str());
+        if (lithElem == NULL) {
+            std::ostringstream oss;
+            oss << "Error getting " << lithName << " element";
+            throw oss.str();
         }
 
-        for (grpCount = 0; grpCount < (ngrp); grpCount++)
-            {
-                grp[grpCount].pct[0][gsCount] = atof(token[grpCount]);
-                grp[grpCount].pct[1][gsCount] = atof(token[grpCount]);
-                grp[grpCount].pct[2][gsCount] = atof(token[grpCount]);
-            }
-
-        openFile.getline(buf, 512);         // proceed to next line
-        token[0] = strtok( buf, " " );
-    }
-}
-
-void RiverProfile::getLibraryLith(ifstream &openFile)
-{
-    NodeGSDObject qtemp;
-    const char* token[40] = {};              // initialize to 0; 40 tokens max
-    char buf[512];                           // Max 512 chars per line
-    int Found = 0;
-    int n, gsCount, grpCount, lithCount = 0;
-
-    gsCount = 0;
-    while (Found == 0)                       // Skip through comments
-    {
-        openFile.getline(buf, 512);
-        token[0] = strtok( buf, " " );                    // first token
-        if (token[0] == NULL || strcmp(token[0], "!") == 0)       // zero if line is blank or "!"
-            continue;
-        else
-        {
-            for (lithCount = 0; lithCount < nlith; lithCount++)
-            {
-                for (n = 1; n < 50; n++)           // tokenize string
-                {
-                    token[n] = strtok(0, " "); // subsequent tokens
-                    if (!token[n]) break;            // no more tokens
+        // loop over groups
+        int grpCount = 0;
+        for (XMLElement* e = lithElem->FirstChildElement("GRP"); e != NULL; e = e->NextSiblingElement("GRP")) {
+            // loop over psi
+            for (int gsCount = 0; gsCount < ngsz; gsCount++) {
+                // name of this psi element
+                // CHECK: do they alway start -3 to 9
+                std::stringstream ss_psi;
+                ss_psi << "PSI_" << gsCount - 3;
+                std::string psiName = ss_psi.str();
+                
+                // get the element
+                XMLElement* psiElem = e->FirstChildElement(psiName.c_str());
+                if (psiElem == NULL) {
+                    std::ostringstream oss;
+                    oss << "Error getting element " << psiName << " for " << lithName;
+                    throw oss.str();
                 }
 
-                for (grpCount = 0; grpCount < ngrp; grpCount++)
-                    grp[grpCount].pct[lithCount][gsCount] *= (strtod(token[grpCount+1], NULL) / 100);    //
+                // get the value
+                double tmpval;
+                if (psiElem->QueryDoubleText(&tmpval)) {
+                    std::cerr << "Error getting value for " << lithName << " - " << psiName << std::endl;
+                }
+                grp[grpCount].pct[lithCount][gsCount] = tmpval;
 
-                openFile.getline(buf, 512);
-                token[0] = strtok( buf, " " );         // start loop again
+                // TODO: get other things, i.e. ABR, RHOS
             }
-        }
 
-        gsCount++;
-        if (gsCount >= ngsz)
-            Found = 1;
+            grpCount++;
+        }
+        if (grpCount != ngrp) {
+            std::ostringstream oss;
+            oss << "Wrong number of groups for " << lithName;
+            throw oss.str();
+        }
     }
 
     // Take cumulative data and turn it into normalized fractions
-    for (grpCount = 0; grpCount < (ngrp); grpCount++)
+    for (int grpCount = 0; grpCount < ngrp; grpCount++)
         for (int gsCount = ngsz; gsCount > 0; gsCount--)
         {
             grp[grpCount].pct[0][gsCount] -= grp[grpCount].pct[0][gsCount - 1];
@@ -723,12 +722,13 @@ void RiverProfile::getLibraryLith(ifstream &openFile)
         }
         
     // Carry out substrate shift; for randomization work
-
-    for (grpCount = 0; grpCount < ngrp; grpCount++)
+    for (int grpCount = 0; grpCount < ngrp; grpCount++)
     {
+        NodeGSDObject qtemp;
+
         for (int gsCount = 0; gsCount < ngsz; gsCount++)
         {
-            for (lithCount = 0; lithCount < nlith; lithCount++)                           // last term is a sand content addition
+            for (int lithCount = 0; lithCount < nlith; lithCount++)                           // last term is a sand content addition
             {
                 if ( gsCount == 0 )
                     qtemp.pct[lithCount][gsCount] = N[2] * grp[grpCount].pct[gsCount][lithCount] + N[3] * grp[grpCount].pct[lithCount][gsCount+1]
@@ -752,107 +752,101 @@ void RiverProfile::getLibraryLith(ifstream &openFile)
 
         qtemp.norm_frac();
         for (int gsCount = 0; gsCount < ngsz; gsCount++)
-            for (lithCount = 0; lithCount < nlith; lithCount++)
+            for (int lithCount = 0; lithCount < nlith; lithCount++)
                 grp[grpCount].pct[lithCount][gsCount] = qtemp.pct[lithCount][gsCount];
         grp[grpCount].dg_and_std();
     }
-    
 }
 
-void RiverProfile::getLongProfile(ifstream &openFile)
+void RiverProfile::getLongProfile(XMLElement* params_root)
 {
+    // get the "profile" element
+    XMLElement *profileElem = params_root->FirstChildElement("profile");
+    if (profileElem == NULL) {
+        throw std::string("Error getting profile element from XML file");
+    }
 
-    const char* token[40] = {};              // initialize to 0; 40 tokens max
-    char buf[512];                           // Max 512 chars per line
-    int m, n = 0;
-    int Found = 0;
+    // loop over entries
+    int m = 0;
+    for (XMLElement* e = profileElem->FirstChildElement("XX"); e != NULL; e = e->NextSiblingElement("XX")) {
+        // xx
+        if (e->QueryDoubleAttribute("X", &xx[m])) {
+            throw std::string("Error getting X attribute from XX profile element");
+        }
 
-    while (Found == 0)
-    {
-        openFile.getline(buf, 512);
-        token[0] = strtok( buf, " " );                    // first token
-        if (token[0] == NULL || strcmp(token[0], "!") == 0)       // zero if line is blank or "!"
-            continue;
+        eta[m] = getDoubleValue(e, "ETA");
+
+        bedrock[m] = getDoubleValue(e, "BEDROCK");
+        if (bedrock[m] > eta[m])
+            bedrock[m] = eta[m];       // bedrock must be at, or lower than, initial bed
+
+        RiverXS[m].width = getDoubleValue(e, "WIDTH");
+
+        RiverXS[m].chSinu = getDoubleValue(e, "SINU");
+
+        RiverXS[m].fpWidth = getDoubleValue(e, "FPWIDTH") * RiverXS[m].width;
+
+/*        if ( HmaxTweak < 0.5 )
+            RiverXS[m].Hmax = atof(token[4]) + ( HmaxTweak * 2 - 0.5 );    // Add height in the range [-0.5 to +0.5]
         else
-        {
-            for (m = 0; m < npts; m++)                  // Loop through grid points
-            {
-                for (n = 1; n < 10; n++)
-                {
-                    token[n] = strtok(0, " ");
-                        if (!token[n]) break;            // no more tokens
-                }
+            RiverXS[m].Hmax = (HmaxTweak - 0.5) * 3.5 + 0.75; */             // Uniform range from 0.75 to 2.5
+        RiverXS[m].Hmax = getDoubleValue(e, "HMAX");
+        RiverXS[m].bankHeight = RiverXS[m].Hmax + 1;  // initial guess
 
-                xx[m] = atof(token[0]);
-                eta[m] = atof(token[1]);
-                bedrock[m] = atof(token[2]);
-                if (bedrock[m] > eta[m])
-                        (bedrock[m] = eta[m]);       // bedrock must be at, or lower than, initial bed
-                RiverXS[m].width = atof(token[3]);
-                RiverXS[m].fpWidth = atof(token[4]) * RiverXS[m].width;
-/*                if ( HmaxTweak < 0.5 )
-                    RiverXS[m].Hmax = atof(token[4]) + ( HmaxTweak * 2 - 0.5 );    // Add height in the range [-0.5 to +0.5]
-                else
-                    RiverXS[m].Hmax = (HmaxTweak - 0.5) * 3.5 + 0.75; */             // Uniform range from 0.75 to 2.5
-                RiverXS[m].Hmax = atof(token[5]);
-                RiverXS[m].bankHeight = RiverXS[m].Hmax + 1;  // initial guess
-                RiverXS[m].theta = atof(token[6]);
-                algrp[m] = atof(token[7]) - 1;
-                stgrp[m] = atof(token[8]) - 1;  // Ignoring STGRP for now
+        RiverXS[m].theta = getDoubleValue(e, "THETA");
 
-                openFile.getline(buf, 512);         // proceed to next line
-                token[0] = strtok( buf, " " );
+        algrp[m] = getIntValue(e, "ALGRP") - 1;
+        stgrp[m] = getIntValue(e, "STGRP") - 1;
+
+        m++;
+    }
+}
+
+void RiverProfile::getStratigraphy(XMLElement* params_root)
+{
+    // get the "stratigraphy" element
+    XMLElement *stratElem = params_root->FirstChildElement("stratigraphy");
+    if (stratElem == NULL) {
+        throw std::string("Error getting stratigraphy element from XML file");
+    }
+
+    // read the data
+    int layerCount = 0;
+    for (XMLElement* layer = stratElem->FirstChildElement("layer"); layer != NULL; layer = layer->NextSiblingElement("layer")) {
+        int ptCount = 0;
+        for (XMLElement *pt = layer->FirstChildElement("pt"); pt != NULL; pt = pt->NextSiblingElement("pt")) {
+            int idx;
+            if (pt->QueryIntText(&idx) != XML_SUCCESS) {
+                std::stringstream error_stream;
+                error_stream << "Error getting double value for stratigraphy element: " << layerCount << ", " << ptCount;
+                std::string msg = error_stream.str();
+                throw msg;
             }
-            Found = 1;
-        }
-    }
-}
 
-void RiverProfile::getStratigraphy(ifstream &openFile)
-{
-    const char* token[150] = {};              // initialize to 0; 40 tokens max
-    char buf[512];                           // Max 512 chars per line
-    int m, n, i, j, k, idx;
-    int Found = 0;
+            for (int j = 0; j < ngsz; j++) {
+                for (int k = 0; k < nlith; k++) {
+                    storedf[ptCount][layerCount].pct[k][j] = grp[idx-1].pct[k][j];  // 'idx-1' because of C++ indexing
+                }
+            }
 
-    idx = 0;
-
-    while (Found == 0)
-    {
-        openFile.getline(buf, 512);
-        token[0] = strtok( buf, " " );                    // first token
-        if (token[0] == NULL || strcmp(token[0], "!") == 0)       // zero if line is blank or "!"
-            continue;
-        else
-            Found = 1;
-    }
-
-    for (m = 0; m < nlayer; m++)
-    {
-
-        for (n = 1; n < 150; n++)
-        {
-            token[n] = strtok(0, " ");
-                if (!token[n]) break;            // no more tokens
+            ptCount++;
         }
 
-        for (i = 0; i < npts; i++)
-        {
-            idx = atof(token[i]);
-            for (j = 0; j < ngsz; j++)
-                for (k = 0; k < nlith; k++)
-                    storedf[i][m].pct[k][j] = grp[idx-1].pct[k][j];  // 'idx-1' because of C++ indexing
-            token[i] = NULL;
+        if (ptCount != npts) {
+            std::cerr << "Warning: number of points in stratigraphy layer " << layerCount << " not equal to npts\n";
         }
 
-        openFile.getline(buf, 512);         // proceed to next line
-        token[0] = strtok( buf, " " );
+        layerCount++;
+    }
+    
+    if (layerCount != nlayer) {
+        std::cerr << "Warning: number of layers in stratigraphy array not equal to nlayer\n";
     }
 
-    for (i = 0; i < nnodes; i++)            // Populate initial active layer bed GSD
+    for (int i = 0; i < nnodes; i++)            // Populate initial active layer bed GSD
     {
-        for (j = 0; j < ngsz; j++)
-            for (k = 0; k < nlith; k++)
+        for (int j = 0; j < ngsz; j++)
+            for (int k = 0; k < nlith; k++)
                 F[i].pct[k][j] = grp[algrp[i]].pct[k][j];
         F[i].norm_frac();
         F[i].dg_and_std();
@@ -860,6 +854,4 @@ void RiverProfile::getStratigraphy(ifstream &openFile)
         F[i].abrasion[1] = randAbr;
         F[i].abrasion[2] = randAbr;
     }
-
 }
-
