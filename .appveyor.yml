@@ -2,14 +2,17 @@ image: Visual Studio 2017
 
 environment:
     matrix:
-        - GENERATOR: "Visual Studio 15 2017 Win64"
+        - arch: x64
+          GENERATOR: "Visual Studio 15 2017 Win64"
           QTDIR: C:\Qt\5.12\msvc2017_64
-        - GENERATOR: "Visual Studio 15 2017"
+        - arch: x86
+          GENERATOR: "Visual Studio 15 2017"
           QTDIR: C:\Qt\5.12\msvc2017
 
 configuration: Release
 
 install:
+    - choco install -y InnoSetup
     - set PATH=%QTDIR%\bin;%PATH%
 
 before_build:
@@ -22,3 +25,12 @@ build_script:
 
 #test_script:
 #    - ctest -C Release --output-on-failure
+
+after_build:
+    - mkdir deploy
+    - cmd: cp build/Release/GrateRip.exe deploy/GrateRip.exe
+    - windeployqt build/Release/GrateRip.exe
+    - 7z a GrateRip_win_%arch%.zip .\deploy\*
+
+artifacts:
+    - path: GrateRip_win_%arch%.zip
