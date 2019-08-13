@@ -34,4 +34,4 @@ after_build:
     - 7z a GrateRip_win_%arch%.zip .\deploy\*
 
 artifacts:
-    - path: GrateRip_win_%arch%.zip
+    - path: build/GrateRip_win_%arch%.zip
