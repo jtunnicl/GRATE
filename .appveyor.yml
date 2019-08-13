@@ -29,8 +29,7 @@ build_script:
 after_build:
     - mkdir deploy
     - cmd: pwd
-    - cmd: ls
-    - copy build\Release\GrateRip.exe deploy\GrateRip.exe
+    - cmd: cp Release/GrateRip.exe deploy/GrateRip.exe
     - windeployqt build/Release/GrateRip.exe
     - 7z a GrateRip_win_%arch%.zip .\deploy\*
 
