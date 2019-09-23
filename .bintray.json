@@ -27,7 +27,7 @@
         "name": "0.0.1",
         "desc": "This is a version",
         "released": "2015-01-04",
-        "vcs_tag": "0.5",
+        "vcs_tag": "0.0.1",
         "attributes": [],
         "gpgSign": false
     },
@@ -50,7 +50,7 @@
 
     "files":
         [
-        {"includePattern": "Grate.dmg", "excludePattern": "", "uploadPattern": "/$1"}
+        {"includePattern": "build/Grate.dmg", uploadPattern": "/Grate.dmg"}
         ],
     "publish": true
 }
