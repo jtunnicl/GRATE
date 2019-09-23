@@ -41,3 +41,13 @@ before_deploy:
     - if [ "$TRAVIS_OS_NAME" = "osx" ]; then mkdir -p GrateRip.app/Contents/PlugIns/platforms; fi
     - if [ "$TRAVIS_OS_NAME" = "osx" ]; then mkdir -p cp "$(brew --prefix)/opt/qt/plugins/platforms/libqcocoa.dylib" GrateRip.app/Contents/PlugIns/platforms/; fi
     - if [ "$TRAVIS_OS_NAME" = "osx" ]; then mkdir -p macdeployqt GrateRip.app -dmg; fi
+
+deploy:
+	provider: bintray
+	user: chrisdjscott
+	key: $BINTRAY_API_KEY
+	file: .bintray.json
+	edge: true # opt in to dpl v2
+    on:
+        branch: deploy_osx
+        condition: $TRAVIS_OS_NAME = osx
