@@ -17,7 +17,7 @@ before_install:
     - if [ "$TRAVIS_OS_NAME" = "linux"  ]; then sudo add-apt-repository ppa:george-edison55/cmake-3.x -y; fi
     - if [ "$TRAVIS_OS_NAME" = "linux"  ]; then sudo add-apt-repository ppa:beineri/opt-qt-5.11.0-xenial -y; fi
     - if [ "$TRAVIS_OS_NAME" = "linux"  ]; then sudo apt-get update -q; fi
-    - if [ "$TRAVIS_OS_NAME" = "linux"  ]; then sudo apt-get install cmake gcc-9 g++-9 qt511-meta-minimal -y; fi
+    - if [ "$TRAVIS_OS_NAME" = "linux"  ]; then sudo apt-get install cmake gcc-9 g++-9 qt511-meta-minimal libgl1-mesa-dev -y; fi
     - if [ "$TRAVIS_OS_NAME" = "linux"  ]; then source /opt/qt511/bin/qt511-env.sh; fi
     - if [ "$TRAVIS_OS_NAME" = "linux"   ]; then qmake --version; fi
     - if [ "$TRAVIS_OS_NAME" = "linux"   ]; then cmake --version; fi
