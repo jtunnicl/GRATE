@@ -456,6 +456,7 @@ RiverProfile::RiverProfile(XMLElement* params_root)
     nnodes = 0;
     npts = 0;
     dt = 0;
+    writeInterval = 100;
     dx = 0.0;
     ngsz = 0;
     nlith = 0;
@@ -653,6 +654,7 @@ void RiverProfile::initData(XMLElement* params_root)
 
     dx = xx[1]-xx[0];                       // Assume uniform grid
     dt = 10;
+    writeInterval = 100;
 
 }
 

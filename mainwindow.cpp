@@ -38,6 +38,17 @@ MainWindow::MainWindow(QWidget *parent) :
     // default input file name
     std::string param_file = "test_out.xml";
 
+    setWindowTitle("GRATE Model");
+    ui->textFileName->setText(param_file.c_str());
+    ui->VectorPlot->replot();
+
+    connect(ui->action_load_XML, SIGNAL(triggered()), this, SLOT(loadXML()));
+}
+
+void MainWindow::loadXML()
+{
+    std::string param_file;
+
     // check if file exists
     if (not std::fstream(param_file)) {
         std::cerr << "File does not exist... Need to specify..." << std::endl;
@@ -81,8 +92,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
                 // do other bits here
                 setupChart();                                // Setup GUI graph
-                setWindowTitle("Raparapaririki River");
-                //ui->textFileName->setText("Input_Rip1_equil_1938.dat");
+                setWindowTitle("GRATE Model");
                 ui->textFileName->setText(param_file.c_str());
                 ui->VectorPlot->replot();
 
@@ -99,6 +109,8 @@ MainWindow::MainWindow(QWidget *parent) :
             }
         }
     }
+
+    setupChart();                                // Setup GUI graph
 }
 
 void MainWindow::showErrorMessage(const char *title, std::stringstream &msg_stream) {
@@ -117,6 +129,7 @@ void MainWindow::setupChart(){
     sed *sd = model->sd;
     QVector<double> x( rn->nnodes );
     QVector<double> eta( rn->nnodes );
+    QVector<double> bedrock( rn->nnodes );
     QVector<double> WSL( rn->nnodes );
     QVector<double> Froude( rn->nnodes );
     QVector<double> Bedload( rn->nnodes );
@@ -149,6 +162,7 @@ void MainWindow::setupChart(){
     {
         x[i] = rn->RiverXS[i].node;
         eta[i] = rn->eta[i];
+        bedrock[i] = rn->bedrock[i];
         WSL[i] = rn -> eta[i] + rn->RiverXS[i].depth * 8;    // x8 exaggeration for display
         Froude[i] = rn->ntop[i];                             // RiverXS[i].ustar;
         Bedload[i] = sd->Qs[i];
@@ -228,7 +242,7 @@ void MainWindow::setupChart(){
     ui->VectorPlot->xAxis->setLabel("Distance Downstream");
     ui->VectorPlot->yAxis->setLabel("Elevation");
     ui->VectorPlot->xAxis->setRange(0, rn->nnodes + 1);
-    ui->VectorPlot->yAxis->setRange(180, 450);
+    ui->VectorPlot->yAxis->setRange(round(rn->eta[rn->nnodes-1]-10), round(rn->eta[1]+20));
 
     ui->VectorPlot->addGraph();  // Orig channel bed elevation plot (static)
     ui->VectorPlot->graph(0)->setData( x, eta );
@@ -348,7 +362,7 @@ void MainWindow::setupChart(){
 
     ui->grateDateTime->setDateTime(QDateTime::fromTime_t(rn->cTime.getTime_t()));
     ui->reportStep->setValue(rn->counter);
-    ui->reportYear->setValue(rn->yearCounter);
+    //ui->reportYear->setValue(rn->yearCounter);
 
     ui->spinBankHt->setValue(rn->RiverXS[n].bankHeight);
     ui->spinTheta->setValue(rn->RiverXS[n].theta);
@@ -368,7 +382,9 @@ void MainWindow::kernel(){
     ui->grateDateTime->setDateTime(QDateTime::fromTime_t(model->rn->cTime.getTime_t()));
 
     connect(&dataTimer, SIGNAL(timeout()), this, SLOT(modelUpdate()));
-    dataTimer.start(0); // Interval 0 means to refresh as fast as possible    
+    connect(ui->stopRun, SIGNAL(clicked()), this, SLOT(modelHalt()));
+
+    dataTimer.start(0); // Interval 0 means to refresh as fast as possible
 }
 
 void MainWindow::modelUpdate(){
@@ -382,6 +398,7 @@ void MainWindow::modelUpdate(){
     QVector<double> WSL( rn->nnodes );
     QVector<double> x( rn->nnodes );
     QVector<double> eta( rn->nnodes );
+    QVector<double> bedrock( rn->nnodes );
     QVector<double> Froude( rn->nnodes );
     QVector<double> Bedload( rn->nnodes );
     QVector<double> Qw_Plot( rn->nnodes );
@@ -400,7 +417,6 @@ void MainWindow::modelUpdate(){
     QVector<double> tmp( 8 );
     QVector<QVector<double> > GSD_Data, GSD_Cumul;
 
-
     tmp.fill( 1, rn -> nnodes );
     GSD_Data.fill( tmp, 7);
     GSD_Cumul.fill(tmp, 13);
@@ -413,12 +429,14 @@ void MainWindow::modelUpdate(){
     // dt control
     rn->dt = ui->deltaT->value();
     ui->dt_disp->setValue(rn->dt);                    // Control dt with slider
+    //rn->writeInterval = ui->writeInt_disp->value();
 
     // Calculate water profile data points, bank widths
     for ( i = 0; i < rn -> nnodes; i++ )
     {
         x[i] = rn->RiverXS[i].node;
         eta[i] = rn->eta[i];
+        bedrock[i] = rn->bedrock[i];
         WSL[i] = rn->eta[i] + rn->RiverXS[i].depth * 8;
         Froude[i] = rn->ntop[i];               // RiverXS[i].ustar;
         Bedload[i] = sd->Qs[i];
@@ -530,7 +548,7 @@ void MainWindow::modelUpdate(){
     ui->VectorPlot->xAxis->setLabel("Distance Downstream");
     ui->VectorPlot->yAxis->setLabel("Elevation");
     ui->VectorPlot->xAxis->setRange(0,rn->nnodes + 1);
-    ui->VectorPlot->yAxis->setRange(180,450);
+    ui->VectorPlot->yAxis->setRange(round(rn->eta[rn->nnodes-1]-10), round(rn->eta[1]+20));
     //ui->VectorPlot->setRangeDrag(Qt::Horizontal|Qt::Vertical);
     //ui->VectorPlot->setRangeZoom(Qt::Horizontal|Qt::Vertical);
 
@@ -596,13 +614,16 @@ void MainWindow::modelUpdate(){
     ui->grateDateTime->setDateTime(QDateTime::fromTime_t(rn->cTime.getTime_t()));
 
     // Progress bar
-    prog = (rn->startTime.secsTo(rn->cTime) * 100) / (rn->startTime.secsTo(rn->endTime));
+    i = rn->startTime.secsTo(rn->cTime);
+    j = rn->startTime.secsTo(rn->endTime);
+    prog = ( i / j ) * 100;
     if (prog < 100)
         ui->runProgress->setValue(prog);
 
     ui->reportQw->setValue(wl->QwCumul[rn->nnodes-1]);
+    ui->reportQs->setValue(sd->Qs[rn->nnodes-1] * 1000);
     ui->reportStep->setValue(rn->counter);
-    ui->reportYear->setValue(rn->yearCounter);
+    //ui->reportYear->setValue(rn->yearCounter);
 
     ui->spinBankHt->setValue(rn->RiverXS[n].bankHeight);
     ui->spinTheta->setValue(rn->RiverXS[n].theta);
@@ -614,10 +635,16 @@ void MainWindow::modelUpdate(){
     ui->spinD90->setValue(pow(2, rn->F[n].d90));
     ui->spinHmax->setValue(rn->RiverXS[n].Hmax);
 
-    // temporarily limit to 80 steps for testing
-    if (rn->counter == 800) {
-        dataTimer.stop();
-    }
+    // Update Regime switch
+
+    rn->regimeFlag = ui->RegimeButton->isChecked();   // '1' means regime routine is on, else '0'
+
+}
+
+void MainWindow::modelHalt(){
+
+    dataTimer.stop();
+
 }
 
 MainWindow::~MainWindow()
@@ -627,4 +654,3 @@ MainWindow::~MainWindow()
         delete model;
     }
 }
-

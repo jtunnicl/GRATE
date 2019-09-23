@@ -43,7 +43,8 @@ public:
     NodeXSObject();                            // Grain size in psi; 2^psi results in mm value
 
     unsigned int node;
-    unsigned int noChannels;                            // In the case of channel bifurcation; keep track of # of (identical) channels
+    unsigned int noChannels;                   // In the case of channel bifurcation; keep track of # of (identical) channels
+
     double depth;                              // Flow depth (m)
     double wsl;                                // Water surface level (m above sea level)
     double width;                              // Nominal channel width (m) at bottom of trapezoid for each node (e.g. P_bed)
@@ -110,14 +111,16 @@ public:
     RiverProfile(XMLElement* params_root);                            // Constructor
     // Profile Elements
 
-    int nnodes;                       // No. of points in the computational grid
+    int nnodes;                                // No. of points in the computational grid
     unsigned int npts;                         // No. of points in the long-profile supplied (later interpolated to nnodes, if necessary)
+    unsigned int regimeFlag;                   // Turn Regime function on or off (1:on, 0:off)
     GrateTime cTime;                           // Current model time
     GrateTime startTime;
     GrateTime endTime;
     unsigned int counter;
     unsigned int yearCounter;
-    int dt;                           // Delta t in seconds
+    int dt;                                    // Delta t in seconds
+    int writeInterval;
     double dx;                                 // Delta x - distance between cross-sections
     vector<double> xx;                         // Chainage (m) at each node (ordered, increasing)
     vector<double> eta;                        // Elevation (m) at each node (high z to low)

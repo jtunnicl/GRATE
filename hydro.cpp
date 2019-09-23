@@ -23,6 +23,7 @@ using namespace std;
 #define RHO 1000  // water density
 #define Gs 1.65   // submerged specific gravity
 
+
 hydro::hydro(RiverProfile *r, XMLElement *params_root)
 {
     preissTheta = 0.7;
@@ -35,6 +36,7 @@ hydro::hydro(RiverProfile *r, XMLElement *params_root)
 void hydro::initHydro(unsigned int nodes, XMLElement *params_root)
 {
     double currentCoord = 0.;
+    double SerialDate;
     GrateTime NewDate;
     vector< TS_Object > tmp;
     TS_Object NewEntry;
@@ -47,14 +49,9 @@ void hydro::initHydro(unsigned int nodes, XMLElement *params_root)
 
     // loop over all "STEP" elements in the XML file
     for (XMLElement* e = hydro_series->FirstChildElement("STEP"); e != NULL; e = e->NextSiblingElement("STEP")) {
-        int year = getIntValue(e, "year");
-        int month = getIntValue(e, "month");
-        int day = getIntValue(e, "day");
-        int hour = getIntValue(e, "hour");
-        int minute = getIntValue(e, "minute");
-        int second = getIntValue(e, "second");
-        NewDate.setDate(year, month, day);
-        NewDate.setTime(hour, minute, second);
+
+        SerialDate = getDoubleValue(e, "datetime");
+        NewDate.setExcelTime(SerialDate);
 
         NewEntry.date_time = NewDate;
         NewEntry.Q = getDoubleValue(e, "Qw");
@@ -89,6 +86,7 @@ void hydro::backWater(RiverProfile *r)
     unsigned int lastNode = r->nnodes-1;
 
     setQuasiSteadyNodalFlows(r);
+    //fullyDynamic(r);
 
     // Divide QwCumul by Number of Channels !!
 //    for ( n = 0; n < r->nnodes; n++)
