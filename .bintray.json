@@ -50,7 +50,7 @@
 
     "files":
         [
-        {"includePattern": "build/*.dmg", "excludePattern": "", "uploadPattern": "/$1"}
+        {"includePattern": "Grate.dmg", "excludePattern": "", "uploadPattern": "/$1"}
         ],
     "publish": true
 }
