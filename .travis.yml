@@ -47,10 +47,9 @@ before_deploy:
 
 deploy:
     provider: releases
-    api_key:
-        secure: V4U8kv/O3OsYs8oVUIEVWH/AG/pxCv5tf1J59eonb+PqrEOt2IA9lnufysC2JoOW73sQswWy0y2w/IwH9NMkg+dzI9ZEV8B084M1+gzYafON+tuG9r7vxWgeSmx77HR59myD91S8Ip3+siFnjXPuqN+BPyGm+EVq4Y0HgS3bAt7O4QV3fwPTym0Enm40T7WNxRltcmYjw63vX098xgD2c+gb62W/4upQ3MFaXIU+B2CKyQr5vD/zgbAdOpZdiFdFDXdq7nY/qWegoRUYEVmlx1g2s+nhAzkc50oHcF8X6MMDSzjTWuUlSnfGXXPlS7yNW55+rWJnaB3wLv5qVqX29GbyV8+Z58o6iHtbxcdENhEX1SRuUDsYMeJ6NzqNO65TKJ3EkjSgB31ofjthjwQ6JaP0pz32oKcW5WgDZPKizw+4j/tpzue+xQg8nz1AzNxz3cJ9NYdWqjBOqtrHOLV+nZZZio15sqN2AkdABvp65HVQv2UotdUDmC+thpXTRwNVr4PP6YjqrilYTxRAXIjWR5MXHkyVeDuW6113KxxgExBs69z2ixdZzLqdDev837LyWqD62vTcWtwYqSGy7HVs548DcRyelJM1I23wKIsqjQiz71VxCw2XXecr80AC4nPWLwNLaCz6pQyRSH9utDagM9LX+c5YDniyCHj1b/bzbps=
     file: Grate.dmg
-    skip_cleanup: true
     on:
         tags: true
         condition: $TRAVIS_OS_NAME = osx
+    cleanup: false
+    edge: true
