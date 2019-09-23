@@ -15,6 +15,7 @@ class GrateTime
         std::time_t getTime_t();  // returns the time in time_t format
         void setDate(int year, int month, int day);  // set the date
         void setTime(int hour, int minute, int second);  // set the time
+        void setExcelTime(double nSerialDate);  // Convert from Excel serial date
         void print();  // print the current date time
 
     private:

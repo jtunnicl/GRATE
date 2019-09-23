@@ -14,8 +14,9 @@ sed::sed(RiverProfile *r, XMLElement *params_root)
 void sed::initSedSeries(unsigned int nodes, XMLElement *params_root)
 {
     double currentCoord = 0.;
-    vector< TS_Object > tmp;
+    double SerialDate;
     GrateTime NewDate;
+    vector< TS_Object > tmp;
     TS_Object NewEntry;
 
     // get sed_series element from XML file
@@ -26,14 +27,9 @@ void sed::initSedSeries(unsigned int nodes, XMLElement *params_root)
 
     // loop over all "STEP" elements in the XML file
     for (XMLElement* e = sed_series->FirstChildElement("STEP"); e != NULL; e = e->NextSiblingElement("STEP")) {
-        int year = getIntValue(e, "year");
-        int month = getIntValue(e, "month");
-        int day = getIntValue(e, "day");
-        int hour = getIntValue(e, "hour");
-        int minute = getIntValue(e, "minute");
-        int second = getIntValue(e, "second");
-        NewDate.setDate(year, month, day);
-        NewDate.setTime(hour, minute, second);
+
+        SerialDate = getDoubleValue(e, "datetime");
+        NewDate.setExcelTime(SerialDate);
 
         NewEntry.date_time = NewDate;
         NewEntry.Q = getDoubleValue(e, "Qs");
@@ -63,6 +59,8 @@ void sed::setNodalSedInputs(RiverProfile *r)
 {
     unsigned int j = 0;
     unsigned int i = 0;
+
+    i = Qs_series[0][0].date_time.secsTo( r->cTime );
 
     if ( Qs_series[0][0].date_time.secsTo( r->cTime ) < 1 )        // Start of run?
         for ( i = 0; i < Qs_series.size(); i++ )                 // Qs.size is the # of tribs/sources
@@ -260,7 +258,7 @@ void sed::exner(RiverProfile *r)
 
     deta[0] = ( ( Qs_bc[0].Q - Qs[1] ) / ( r->xx[1] - r->xx[0] ) );
 
-    for ( i = 1; i < r->nnodes-1; i++ )                            // Upstream boundary - if floating, i = 0
+    for ( i = 0; i < r->nnodes-1; i++ )                            // Upstream boundary - if floating, i = 0
         r->eta[i] += deta[i];
 
     r->eta[r->nnodes-1] += deta[r->nnodes-2];                    // Downstream boundary - uncomment if floating

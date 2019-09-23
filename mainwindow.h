@@ -29,7 +29,9 @@ public:
 
 public slots:
     void kernel();
+    void loadXML();
     void modelUpdate();
+    void modelHalt();
 
 signals:
     void drawChart();

@@ -1,4 +1,3 @@
-
 #include "model.h"
 #include "riverprofile.h"
 #include "hydro.h"
@@ -20,7 +19,7 @@ Model::Model(XMLElement* params_root) :
     rn->cTime = wl->Qw[0][0].date_time;
     rn->startTime = wl->Qw[0][0].date_time;
     rn->endTime = wl->Qw[0][wl->Qw[0].size() - 1].date_time;
-    writeInterval = 100;  // CDJS: set to something small to get output for checking results
+    rn->writeInterval = 100;  // CDJS: set to something small to get output for checking results
     writeResults(0);
 }
 
@@ -36,7 +35,7 @@ void Model::iteration() {
     stepTime();
     rn->qwTweak = rn->tweakArray[rn->yearCounter];
 
-    if ( (rn->counter % 4 == 0) && ( rn->qwTweak < 1 ) )
+    if ( ( rn->regimeFlag == 1 ) && (rn->counter % 4 == 0) && ( rn->qwTweak < 1 ) )
             wl->setRegimeWidth(rn);         // kick off regime restraints, once hydraulics are working
 
     if (rn->counter % writeInterval == 0) {

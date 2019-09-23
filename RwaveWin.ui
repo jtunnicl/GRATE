@@ -24,28 +24,6 @@
      </rect>
     </property>
    </widget>
-   <widget class="QSlider" name="addWSL">
-    <property name="geometry">
-     <rect>
-      <x>130</x>
-      <y>90</y>
-      <width>23</width>
-      <height>221</height>
-     </rect>
-    </property>
-    <property name="minimum">
-     <number>-20</number>
-    </property>
-    <property name="maximum">
-     <number>20</number>
-    </property>
-    <property name="value">
-     <number>1</number>
-    </property>
-    <property name="orientation">
-     <enum>Qt::Vertical</enum>
-    </property>
-   </widget>
    <widget class="QDateTimeEdit" name="grateDateTime">
     <property name="geometry">
      <rect>
@@ -581,7 +559,7 @@ Flow Depth (x100)</string>
     <property name="geometry">
      <rect>
       <x>30</x>
-      <y>110</y>
+      <y>160</y>
       <width>81</width>
       <height>22</height>
      </rect>
@@ -597,7 +575,7 @@ Flow Depth (x100)</string>
     <property name="geometry">
      <rect>
       <x>30</x>
-      <y>90</y>
+      <y>140</y>
       <width>91</width>
       <height>16</height>
      </rect>
@@ -610,7 +588,7 @@ Flow Depth (x100)</string>
     <property name="geometry">
      <rect>
       <x>30</x>
-      <y>160</y>
+      <y>260</y>
       <width>81</width>
       <height>22</height>
      </rect>
@@ -629,7 +607,7 @@ Flow Depth (x100)</string>
     <property name="geometry">
      <rect>
       <x>30</x>
-      <y>140</y>
+      <y>240</y>
       <width>91</width>
       <height>16</height>
      </rect>
@@ -668,7 +646,7 @@ Flow Depth (x100)</string>
      </rect>
     </property>
     <property name="title">
-     <string>Delta t</string>
+     <string>Delta t (time step in seconds)</string>
     </property>
     <widget class="QSlider" name="deltaT">
      <property name="geometry">
@@ -714,21 +692,91 @@ Flow Depth (x100)</string>
       <bool>true</bool>
      </property>
     </widget>
-    <widget class="QTimeEdit" name="timeEdit">
+    <widget class="QDoubleSpinBox" name="writeInt_disp">
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>80</y>
-       <width>118</width>
+       <y>110</y>
+       <width>62</width>
        <height>22</height>
       </rect>
      </property>
-     <property name="displayFormat">
-      <string>h:mm:ss</string>
+     <property name="readOnly">
+      <bool>false</bool>
+     </property>
+     <property name="decimals">
+      <number>0</number>
+     </property>
+     <property name="maximum">
+      <double>10000.000000000000000</double>
+     </property>
+     <property name="value">
+      <double>100.000000000000000</double>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_16">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>90</y>
+       <width>91</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Write Interval</string>
      </property>
     </widget>
    </widget>
-   <widget class="QDoubleSpinBox" name="reportYear">
+   <widget class="QTextEdit" name="textFileName">
+    <property name="geometry">
+     <rect>
+      <x>340</x>
+      <y>20</y>
+      <width>381</width>
+      <height>21</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="RegimeButton">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>410</y>
+      <width>91</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string extracomment="Turn on/off automatic adjust of river width"/>
+    </property>
+    <property name="text">
+     <string>Regime Width</string>
+    </property>
+    <property name="checkable">
+     <bool>true</bool>
+    </property>
+    <property name="checked">
+     <bool>false</bool>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="stopRun">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>80</y>
+      <width>90</width>
+      <height>22</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Stop Run</string>
+    </property>
+   </widget>
+   <widget class="QDoubleSpinBox" name="reportQs">
     <property name="geometry">
      <rect>
       <x>30</x>
@@ -737,14 +785,11 @@ Flow Depth (x100)</string>
       <height>22</height>
      </rect>
     </property>
-    <property name="decimals">
-     <number>0</number>
-    </property>
     <property name="maximum">
-     <double>10000000.000000000000000</double>
+     <double>9999.989999999999782</double>
     </property>
     <property name="singleStep">
-     <double>1.000000000000000</double>
+     <double>0.010000000000000</double>
     </property>
    </widget>
    <widget class="QLabel" name="label_3">
@@ -757,27 +802,33 @@ Flow Depth (x100)</string>
      </rect>
     </property>
     <property name="text">
-     <string>'Year' / 900</string>
+     <string>Bedload m3/s</string>
     </property>
    </widget>
-   <widget class="QTextEdit" name="textFileName">
+   <widget class="QLabel" name="label_14">
     <property name="geometry">
      <rect>
-      <x>340</x>
-      <y>20</y>
-      <width>381</width>
-      <height>21</height>
+      <x>20</x>
+      <y>440</y>
+      <width>91</width>
+      <height>16</height>
      </rect>
     </property>
+    <property name="text">
+     <string>Auto-adjust bank</string>
+    </property>
    </widget>
-   <widget class="QDial" name="AnyasDial">
+   <widget class="QLabel" name="label_15">
     <property name="geometry">
      <rect>
-      <x>40</x>
-      <y>280</y>
-      <width>50</width>
-      <height>64</height>
+      <x>20</x>
+      <y>460</y>
+      <width>111</width>
+      <height>16</height>
      </rect>
+    </property>
+    <property name="text">
+     <string>width (experimental)</string>
     </property>
    </widget>
   </widget>
@@ -790,6 +841,13 @@ Flow Depth (x100)</string>
      <height>21</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="action_load_XML"/>
+   </widget>
+   <addaction name="menuFile"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -800,6 +858,11 @@ Flow Depth (x100)</string>
    </attribute>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
+  <action name="action_load_XML">
+   <property name="text">
+    <string>Load XML...</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
