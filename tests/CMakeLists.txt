@@ -51,13 +51,13 @@ if (BUILD_CLI)
     endif()
 
     # add the test
-    set(TEST_RUN_DIR ${CMAKE_CURRENT_BINARY_DIR}/GrateRipCLIFullTest)
+    set(TEST_RUN_DIR ${CMAKE_CURRENT_BINARY_DIR}/GrateCLIFullTest)
     add_test(
-        NAME GrateRipCLIFullTest
+        NAME GrateCLIFullTest
         COMMAND ${CMAKE_COMMAND}
             -DTEST_RUN_DIR=${TEST_RUN_DIR}
             -DTEST_SRC_DIR=${CMAKE_CURRENT_SOURCE_DIR}
-            -DTEST_BINARY=$<TARGET_FILE:GrateRipCLI>
+            -DTEST_BINARY=$<TARGET_FILE:GrateCLI>
             -DCOMPARE_BINARY=$<TARGET_FILE:compare>
             -DDOING_PROFILING=${DOING_PROFILING}
             -DGPROF_PROGRAM=${GPROF_PROGRAM}

@@ -69,6 +69,12 @@ endif()
 
 # GUI build
 if (BUILD_GUI)
+    if (APPLE)
+        set(OS_BUNDLE MACOSX_BUNDLE)
+    elseif (WIN32)
+        set(OS_BUNDLE WIN32)
+    endif()
+
     # Instruct CMake to run moc automatically when needed
     set(CMAKE_AUTOMOC ON)
 
@@ -81,18 +87,18 @@ if (BUILD_GUI)
     find_package(Qt5PrintSupport REQUIRED)
     set(QT5_LIBRARIES Qt5::Core Qt5::Widgets Qt5::PrintSupport)
 
-    # Tell CMake to create the GrateRip executable
-    add_executable(GrateRip ${UI_SOURCES} ${GUI_SOURCES})
+    # Tell CMake to create the Grate executable
+    add_executable(Grate ${OS_BUNDLE} ${UI_SOURCES} ${GUI_SOURCES})
 
     # Link against Qt 5 libraries
-    target_link_libraries(GrateRip grate_common ${QT5_LIBRARIES})
+    target_link_libraries(Grate grate_common ${QT5_LIBRARIES})
 endif()
 
 # CLI build
 if (BUILD_CLI)
     # create CLI executable and link
-    add_executable(GrateRipCLI ${CLI_SOURCES})
-    target_link_libraries(GrateRipCLI grate_common)
+    add_executable(GrateCLI ${CLI_SOURCES})
+    target_link_libraries(GrateCLI grate_common)
 endif()
 
 # copy input files to build dir for testing
