@@ -12,7 +12,6 @@ environment:
 configuration: Release
 
 install:
-    - choco install -y InnoSetup
     - set PATH=%QTDIR%\bin;%PATH%
 
 before_build:
@@ -29,9 +28,20 @@ build_script:
 after_build:
     - mkdir deploy
     - cmd: pwd
-    - cmd: cp Release/GrateRip.exe deploy/GrateRip.exe
-    - windeployqt deploy/GrateRip.exe
-    - 7z a GrateRip_win_%arch%.zip .\deploy\*
+    - cmd: cp Release/Grate.exe deploy/Grate.exe
+    - windeployqt deploy/Grate.exe
+    - 7z a Grate_win_%arch%.zip .\deploy\*
 
 artifacts:
-    - path: build/GrateRip_win_%arch%.zip
+    - path: build/Grate_win_%arch%.zip
+
+deploy:
+    description: "GRATE release"
+    provider: GitHub
+    auth_token:
+        secure: 6tycvfuSfg+VL9ZMqF0Os1kUjGQ24o5AyOzQZc8eFGkdaKtBVRQWkL4f3IE5gH1r
+    artifact: build/Grate_win_%arch%.zip
+    draft: false
+    prerelease: false
+    on:
+        APPVEYOR_REPO_TAG: true

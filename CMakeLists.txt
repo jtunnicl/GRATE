@@ -12,9 +12,9 @@ option(BUILD_CLI "Build command line version" ON)
 # enable testing (disable with -DBUILD_TESTING=OFF)
 include(CTest)
 
-# default to RELEASE build if not specified
+# default to RELWITHDEBINFO build if not specified
 if (NOT CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "")
-    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "" FORCE)
+    set(CMAKE_BUILD_TYPE "RELWITHDEBINFO" CACHE STRING "" FORCE)
 endif()
 
 # option to gather profiling data
@@ -69,6 +69,12 @@ endif()
 
 # GUI build
 if (BUILD_GUI)
+    if (APPLE)
+        set(OS_BUNDLE MACOSX_BUNDLE)
+    elseif (WIN32)
+        set(OS_BUNDLE WIN32)
+    endif()
+
     # Instruct CMake to run moc automatically when needed
     set(CMAKE_AUTOMOC ON)
 
@@ -81,18 +87,18 @@ if (BUILD_GUI)
     find_package(Qt5PrintSupport REQUIRED)
     set(QT5_LIBRARIES Qt5::Core Qt5::Widgets Qt5::PrintSupport)
 
-    # Tell CMake to create the GrateRip executable
-    add_executable(GrateRip ${UI_SOURCES} ${GUI_SOURCES})
+    # Tell CMake to create the Grate executable
+    add_executable(Grate ${OS_BUNDLE} ${UI_SOURCES} ${GUI_SOURCES})
 
     # Link against Qt 5 libraries
-    target_link_libraries(GrateRip grate_common ${QT5_LIBRARIES})
+    target_link_libraries(Grate grate_common ${QT5_LIBRARIES})
 endif()
 
 # CLI build
 if (BUILD_CLI)
     # create CLI executable and link
-    add_executable(GrateRipCLI ${CLI_SOURCES})
-    target_link_libraries(GrateRipCLI grate_common)
+    add_executable(GrateCLI ${CLI_SOURCES})
+    target_link_libraries(GrateCLI grate_common)
 endif()
 
 # copy input files to build dir for testing

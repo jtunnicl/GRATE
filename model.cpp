@@ -38,7 +38,7 @@ void Model::iteration() {
     if ( ( rn->regimeFlag == 1 ) && (rn->counter % 4 == 0) && ( rn->qwTweak < 1 ) )
             wl->setRegimeWidth(rn);         // kick off regime restraints, once hydraulics are working
 
-    if (rn->counter % writeInterval == 0) {
+    if (rn->counter % rn->writeInterval == 0) {
         writeResults(rn->counter);
     }
 }

@@ -28,7 +28,9 @@ Load `CMakeLists.txt` as a project in QtCreator.
 
 ### Command line (Linux, Mac)
 
-Using CMake:
+Install the dependencies. For example on a Mac one could install [homebrew](https://brew.sh) and then install CMake and qt with `brew install cmake qt`.
+
+Build with CMake:
 
 ```
 mkdir build && cd build  # create a directory for the build and change to it
@@ -68,5 +70,19 @@ See the `.travis.yml` file for an example of building on Linux.
 
 ### CMake (Windows)
 
-It should be possible to build the CMake version on Windows too. This has been tested with QtCreator and MSVC.
-See the file `.appveyor.yml` for an example of building with MSVC.
+It should be possible to build the CMake version on Windows too. This has been tested with QtCreator and MSVC both using CMake.
+
+To build with MSVC one should first install and run CMake.
+
+1. Select the source directory and an empty build directory
+2. Select the 64 bit build
+3. Run configure
+4. If it fails due to not finding Qt, add a new variable called `CMAKE_PREFIX_PATH` equal to the Qt install (e.g. `C:\Qt\5.12\msvc2017_64`) and the rerun configure
+5. Next generate, this should generate the MSVC project files that can be loaded into MSVC
+
+Load the project file in MSVC.
+
+You may need to add the Qt binary directories to `PATH` so they can be found at runtime. For example, append the following directories:
+
+* `C:\Qt\5.12\msvc2017_64\bin`
+* `C:\Qt\5.12\msvc2017_64\plugins\platforms`
