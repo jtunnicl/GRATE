@@ -40,9 +40,9 @@ script:
 
 before_deploy:
     - pwd
-    - if [ "$TRAVIS_OS_NAME" = "osx" ]; then mkdir -p GrateRip.app/Contents/PlugIns/platforms; fi
-    - if [ "$TRAVIS_OS_NAME" = "osx" ]; then cp "$(brew --prefix)/opt/qt/plugins/platforms/libqcocoa.dylib" GrateRip.app/Contents/PlugIns/platforms/; fi
-    - if [ "$TRAVIS_OS_NAME" = "osx" ]; then macdeployqt GrateRip.app -dmg; fi
+    - if [ "$TRAVIS_OS_NAME" = "osx" ]; then mkdir -p Grate.app/Contents/PlugIns/platforms; fi
+    - if [ "$TRAVIS_OS_NAME" = "osx" ]; then cp "$(brew --prefix)/opt/qt/plugins/platforms/libqcocoa.dylib" Grate.app/Contents/PlugIns/platforms/; fi
+    - if [ "$TRAVIS_OS_NAME" = "osx" ]; then macdeployqt Grate.app -dmg; fi
 
 deploy:
     provider: bintray
