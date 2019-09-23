@@ -36,7 +36,7 @@ artifacts:
     - path: build/Grate_win_%arch%.zip
 
 deploy:
-    description: "Automatic release from appveyor"
+    description: "GRATE release"
     provider: GitHub
     auth_token:
         secure: 6tycvfuSfg+VL9ZMqF0Os1kUjGQ24o5AyOzQZc8eFGkdaKtBVRQWkL4f3IE5gH1r
