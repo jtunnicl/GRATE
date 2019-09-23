@@ -33,7 +33,7 @@ int main(int argc, char** argv) {
     Model *model;
 
     // default input file name
-    std::string param_file = "test_out.xml";
+    std::string param_file = "Conway_Template.xml";
 
     // load xml input file
     std::cout << "Reading xml file: '" << param_file << "'" << std::endl;
