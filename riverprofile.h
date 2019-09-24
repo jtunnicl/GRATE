@@ -4,6 +4,7 @@
 #include <vector>
 #include <cmath>
 #include <fstream>
+#include <QString>
 #include "gratetime.h"
 #include "tinyxml2/tinyxml2.h"
 
@@ -162,15 +163,17 @@ public:
 
     void initData(XMLElement* params_root);
     
-    vector<double> hydroGraph();
+    QString outputFile;                                 //  TXT file to write results
 
-    void readData();
+    vector<double> hydroGraph();
 
     void getLongProfile(XMLElement* params_root);
 
     void getGSDLibrary(XMLElement* params_root);
 
     void getStratigraphy(XMLElement* params_root);
+
+    void writeResults(int count);
 
 };
 

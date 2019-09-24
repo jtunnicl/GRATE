@@ -14,6 +14,7 @@
 #include "model.h"
 #include "ui_RwaveWin.h"
 #include "tinyxml2/tinyxml2.h"
+#include <stdlib.h>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -37,6 +38,11 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // default input file name
     std::string param_file = "test_out.xml";
+
+    // default output file
+    QString a = QCoreApplication::applicationDirPath(); //QDir::currentPath();
+    QString b = "/ModelResults.txt";
+    ui->outputFileName->setText(a+b);
 
     setWindowTitle("GRATE Model");
     ui->textFileName->setText(param_file.c_str());
@@ -153,6 +159,8 @@ void MainWindow::setupChart(){
 
     rn->counter = 0;
     rn->yearCounter = 0;
+
+    rn->outputFile = ui->outputFileName->toPlainText();
 
     tmp.fill( 1, rn -> nnodes );
     GSD_Data.fill( tmp, 7);

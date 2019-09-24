@@ -84,6 +84,8 @@ public:
     QDoubleSpinBox *dt_disp;
     QDoubleSpinBox *writeInt_disp;
     QLabel *label_16;
+    QTextEdit *outputFileName;
+    QLabel *label_17;
     QTextEdit *textFileName;
     QPushButton *RegimeButton;
     QPushButton *stopRun;
@@ -306,6 +308,13 @@ public:
         label_16 = new QLabel(groupBox);
         label_16->setObjectName(QString::fromUtf8("label_16"));
         label_16->setGeometry(QRect(10, 90, 91, 16));
+        outputFileName = new QTextEdit(groupBox);
+        outputFileName->setObjectName(QString::fromUtf8("outputFileName"));
+        outputFileName->setGeometry(QRect(110, 90, 231, 41));
+        outputFileName->setOverwriteMode(true);
+        label_17 = new QLabel(groupBox);
+        label_17->setObjectName(QString::fromUtf8("label_17"));
+        label_17->setGeometry(QRect(110, 70, 91, 16));
         textFileName = new QTextEdit(centralWidget);
         textFileName->setObjectName(QString::fromUtf8("textFileName"));
         textFileName->setGeometry(QRect(340, 20, 381, 21));
@@ -382,6 +391,8 @@ public:
         label_2->setText(QCoreApplication::translate("MainWindow", "Time Step", nullptr));
         groupBox->setTitle(QCoreApplication::translate("MainWindow", "Delta t (time step in seconds)", nullptr));
         label_16->setText(QCoreApplication::translate("MainWindow", "Write Interval", nullptr));
+        outputFileName->setPlaceholderText(QCoreApplication::translate("MainWindow", "RunResults.txt", nullptr));
+        label_17->setText(QCoreApplication::translate("MainWindow", "Results File", nullptr));
 #if QT_CONFIG(tooltip)
         RegimeButton->setToolTip(QString());
 #endif // QT_CONFIG(tooltip)

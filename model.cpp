@@ -59,7 +59,7 @@ void Model::writeResults(int count){
     if (count == 0)
     {
         ofstream outDatFile;
-        outDatFile.open("Run_Results.txt");
+        outDatFile.open(rn->outputFile);
 
         outDatFile << "Output file for program Grate_NESI" << '\n' <<
         "there are twenty-four columns in the output.  they are:" << '\n' <<

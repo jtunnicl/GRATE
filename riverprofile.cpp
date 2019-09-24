@@ -530,6 +530,8 @@ RiverProfile::RiverProfile(XMLElement* params_root)
 
     initData(params_root);
 
+    outputFile = "RunResults.txt";         //  TXT file to write results
+
 }
 
 vector<double> RiverProfile::hydroGraph()
