@@ -39,7 +39,7 @@ deploy:
     description: "GRATE release"
     provider: GitHub
     auth_token:
-        secure: 6tycvfuSfg+VL9ZMqF0Os1kUjGQ24o5AyOzQZc8eFGkdaKtBVRQWkL4f3IE5gH1r
+        secure: gZN4A7jWC6fB5vqYRh2cnIB06FeJs04/3R+NQyx5MIE0XxTA8V/rCYUmPQm+zn4S
     artifact: build/Grate_win_%arch%.zip
     draft: false
     prerelease: false
