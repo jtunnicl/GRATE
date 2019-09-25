@@ -10,7 +10,7 @@ using namespace tinyxml2;
 
 class Model {
     public:
-        Model(XMLElement* params_root);
+        Model(XMLElement* params_root, string out1);
         ~Model();
         void iteration();
 

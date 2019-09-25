@@ -100,8 +100,8 @@ public:
 
     GrateTime date_time;       // Date and time of inputs
     double Q;                  // m3/s (Qw) for water, m3/s (Qs) for sediment
-    int Coord;                  // Stream-wise coordinate of input (m)
-    int GRP;                       // For sediment : sed group
+    unsigned int Coord;        // Stream-wise coordinate of input (m)
+    unsigned int GRP;          // For sediment : sed group
 };
 
 class RiverProfile
@@ -120,8 +120,8 @@ public:
     GrateTime endTime;
     unsigned int counter;
     unsigned int yearCounter;
-    int dt;                                    // Delta t in seconds
-    int writeInterval;
+    unsigned int dt;                           // Delta t in seconds
+    unsigned int writeInterval;
     double dx;                                 // Delta x - distance between cross-sections
     vector<double> xx;                         // Chainage (m) at each node (ordered, increasing)
     vector<double> eta;                        // Elevation (m) at each node (high z to low)
@@ -163,7 +163,7 @@ public:
 
     void initData(XMLElement* params_root);
     
-    QString outputFile;                                 //  TXT file to write results
+    string outputFile;                                 //  TXT file to write results
 
     vector<double> hydroGraph();
 

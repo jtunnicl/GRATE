@@ -8,7 +8,7 @@
 
 using namespace tinyxml2;
 
-Model::Model(XMLElement* params_root) :
+Model::Model(XMLElement* params_root, string out1) :
     rn(nullptr), wl(nullptr), sd(nullptr)
 {
     rn = new RiverProfile(params_root);  // Long profile, channel geometry
@@ -20,6 +20,7 @@ Model::Model(XMLElement* params_root) :
     rn->startTime = wl->Qw[0][0].date_time;
     rn->endTime = wl->Qw[0][wl->Qw[0].size() - 1].date_time;
     rn->writeInterval = 100;  // CDJS: set to something small to get output for checking results
+    rn->outputFile = out1;
     writeResults(0);
 }
 
@@ -119,7 +120,7 @@ void Model::writeResults(int count){
     else   // append records
     {
         ofstream outDatFile;
-        outDatFile.open("Run_Results.txt", ios::out | ios::app);
+        outDatFile.open(rn->outputFile, ios::out | ios::app);
 
         outDatFile << "Count:  " << rn->counter << '\n';
 

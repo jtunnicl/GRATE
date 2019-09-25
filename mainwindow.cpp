@@ -54,6 +54,7 @@ MainWindow::MainWindow(QWidget *parent) :
 void MainWindow::loadXML()
 {
     std::string param_file;
+    QString output_file;
 
     // check if file exists
     if (not std::fstream(param_file)) {
@@ -94,7 +95,8 @@ void MainWindow::loadXML()
         else {
             // initialise components
             try {
-                model = new Model(params_root);
+                output_file = ui->outputFileName->toPlainText();
+                model = new Model(params_root, output_file.toStdString());
 
                 // do other bits here
                 setupChart();                                // Setup GUI graph
@@ -103,7 +105,7 @@ void MainWindow::loadXML()
                 ui->VectorPlot->replot();
 
                 // Use <Refresh Plot> button to start run
-                connect(ui->refreshButton, SIGNAL(clicked()), this, SLOT(kernel()), Qt::QueuedConnection);
+                connect(ui->startButton, SIGNAL(clicked()), this, SLOT(kernel()), Qt::QueuedConnection);
 
                 initialised = true;
             }
@@ -130,6 +132,7 @@ void MainWindow::setupChart(){
     int i, j, k, n = 0;
     float theta_rad, a, b;
     unsigned int bc = 0;
+    QString output_file;
     RiverProfile* rn = model->rn;
     hydro *wl = model->wl;
     sed *sd = model->sd;
@@ -159,8 +162,7 @@ void MainWindow::setupChart(){
 
     rn->counter = 0;
     rn->yearCounter = 0;
-
-    rn->outputFile = ui->outputFileName->toPlainText();
+    rn->writeInterval = ui->writeInt_disp->value();
 
     tmp.fill( 1, rn -> nnodes );
     GSD_Data.fill( tmp, 7);
@@ -437,7 +439,7 @@ void MainWindow::modelUpdate(){
     // dt control
     rn->dt = ui->deltaT->value();
     ui->dt_disp->setValue(rn->dt);                    // Control dt with slider
-    //rn->writeInterval = ui->writeInt_disp->value();
+    rn->writeInterval = ui->writeInt_disp->value();
 
     // Calculate water profile data points, bank widths
     for ( i = 0; i < rn -> nnodes; i++ )

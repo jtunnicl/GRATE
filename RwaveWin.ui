@@ -2,6 +2,9 @@
 <ui version="4.0">
  <class>MainWindow</class>
  <widget class="QMainWindow" name="MainWindow">
+  <property name="enabled">
+   <bool>false</bool>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -40,7 +43,10 @@
      <string>yyyy/MM/dd hh:mm AP</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="refreshButton">
+   <widget class="QPushButton" name="startButton">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
     <property name="geometry">
      <rect>
       <x>20</x>
@@ -769,7 +775,7 @@ Flow Depth (x100)</string>
    </widget>
    <widget class="QPushButton" name="RegimeButton">
     <property name="enabled">
-     <bool>true</bool>
+     <bool>false</bool>
     </property>
     <property name="geometry">
      <rect>
