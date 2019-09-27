@@ -4,7 +4,6 @@
 #include <vector>
 #include <cmath>
 #include <fstream>
-#include <QString>
 #include "gratetime.h"
 #include "tinyxml2/tinyxml2.h"
 
