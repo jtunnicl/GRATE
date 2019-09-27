@@ -18,6 +18,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <algorithm>
 #include <QFileDialog>
 #include <QString>
 #include <QDir>
@@ -47,6 +48,7 @@ MainWindow::MainWindow(QWidget *parent) :
     setWindowTitle("GRATE Model");
     ui->textFileName->setText(param_file.c_str());
     ui->VectorPlot->replot();
+    ui->startButton->setEnabled(0);     // Turn off start button until file is loaded.
 
     connect(ui->action_load_XML, SIGNAL(triggered()), this, SLOT(loadXML()));
 }
@@ -119,6 +121,8 @@ void MainWindow::loadXML()
     }
 
     setupChart();                                // Setup GUI graph
+    ui->startButton->setEnabled(1);
+    ui->loadingAdvice->setVisible(0);
 }
 
 void MainWindow::showErrorMessage(const char *title, std::stringstream &msg_stream) {
@@ -236,7 +240,7 @@ void MainWindow::setupChart(){
 
     for ( bc = 0; bc < 899; bc++ )
     {
-        Qw_TS[bc] = rn->tweakArray[bc];
+        Qw_TS[bc] = wl->Qw[0][0].Q * rn->tweakArray[bc];
         time[bc] = bc;
     }
 
@@ -273,25 +277,21 @@ void MainWindow::setupChart(){
     ui->BedloadPlot->xAxis->setLabel("Distance Downstream");
     ui->BedloadPlot->yAxis->setLabel("Qs - Bedload Discharge");
     ui->BedloadPlot->xAxis->setRange(0,rn->nnodes+1);
-    ui->BedloadPlot->yAxis->setRange(0, 40);
-
-    ui->BedloadPlot->addGraph();  // Ustar plot
-    ui->BedloadPlot->graph(0)->setData( x, Froude );
-    ui->BedloadPlot->graph(0)->setPen(QPen(Qt::black));
+    ui->BedloadPlot->yAxis->setRange(0, 15);
 
     ui->BedloadPlot->addGraph();  // Bedload plot
-    ui->BedloadPlot->graph(1)->setData( x, Bedload );
-    ui->BedloadPlot->graph(1)->setPen(QPen(Qt::red));
+    ui->BedloadPlot->graph(0)->setData( x, Bedload );
+    ui->BedloadPlot->graph(0)->setPen(QPen(Qt::black));
 
     ui->BedloadPlot->addGraph();  // Qw plot
-    ui->BedloadPlot->graph(2)->setData( x, Qw_Plot );
-    ui->BedloadPlot->graph(2)->setPen(QPen(Qt::blue));
+    ui->BedloadPlot->graph(1)->setData( x, Qw_Plot );
+    ui->BedloadPlot->graph(1)->setPen(QPen(Qt::blue));
 
     // BankWidth
     ui->BankWidthPlot->xAxis->setLabel("Distance Downstream");
     ui->BankWidthPlot->yAxis->setLabel("Bank Width");
     ui->BankWidthPlot->xAxis->setRange(0,rn->nnodes + 1);
-    ui->BankWidthPlot->yAxis->setRange(-100,200);
+    ui->BankWidthPlot->yAxis->setRange(-60,120);
 
     ui->BankWidthPlot->addGraph();  // Left Lower Bank
     ui->BankWidthPlot->graph(0)->setData( x, LeftBankLower );
@@ -303,15 +303,11 @@ void MainWindow::setupChart(){
 
     ui->BankWidthPlot->addGraph();  // Left Upper Bank
     ui->BankWidthPlot->graph(2)->setData( x, LeftBankTop );
-    ui->BankWidthPlot->graph(2)->setPen(QPen(Qt::red));
+    ui->BankWidthPlot->graph(2)->setPen(QPen(Qt::black));
 
     ui->BankWidthPlot->addGraph();  // Right Upper Bank
     ui->BankWidthPlot->graph(3)->setData( x, RightBankTop );
-    ui->BankWidthPlot->graph(3)->setPen(QPen(Qt::blue));
-
-    ui->BankWidthPlot->addGraph();  // Sinuosity
-    ui->BankWidthPlot->graph(4)->setData( x, RightBankTop );
-    ui->BankWidthPlot->graph(4)->setPen(QPen(Qt::green));
+    ui->BankWidthPlot->graph(3)->setPen(QPen(Qt::black));
 
     ui->XSectPlot->xAxis->setLabel("Cross Section Width");
     ui->XSectPlot->yAxis->setLabel("Relative Elevation");
@@ -339,7 +335,8 @@ void MainWindow::setupChart(){
     ui->QwSeries->yAxis->setLabel("Discharge");
     ui->QwSeries->xAxis->setLabel("Time");
     ui->QwSeries->xAxis->setRange(0, 900);
-    ui->QwSeries->yAxis->setRange(0, 3);
+    ui->QwSeries->yAxis->setRange(round(*min_element(Qw_TS.constBegin(),
+            Qw_TS.constEnd()) * 0.75), round(*max_element(Qw_TS.constBegin(), Qw_TS.constEnd()) * 1.5));
 
     ui->QwSeries->addGraph();
     ui->QwSeries->graph(0)->setData( time, Qw_TS );
@@ -416,7 +413,6 @@ void MainWindow::modelUpdate(){
     QVector<double> RightBankLower( rn->nnodes );
     QVector<double> LeftBankTop( rn->nnodes );
     QVector<double> RightBankTop( rn->nnodes );
-    QVector<double> Sinuosity( rn->nnodes );
     QVector<double> XsPlotX( 11 );
     QVector<double> XsPlotY( 11 );
     QVector<double> wsXS_X( 2 );
@@ -455,8 +451,7 @@ void MainWindow::modelUpdate(){
         RightBankLower[i] = -rn->RiverXS[i].width/2;
         theta_rad = rn->RiverXS[i].theta * PI / 180;
         LeftBankTop[i] = ( rn->RiverXS[i].width + (2 * ( rn->RiverXS[i].bankHeight - rn->RiverXS[i].Hmax) / tan( theta_rad ) ) ) / 2;
-        RightBankTop[i] = rn->RiverXS[i].depth * 100;
-        Sinuosity[i] = ( rn->RiverXS[i].chSinu - 1 ) * 100;
+        RightBankTop[i] = -( rn->RiverXS[i].width + (2 * ( rn->RiverXS[i].bankHeight - rn->RiverXS[i].Hmax) / tan( theta_rad ) ) ) / 2;
 
         Qw_Plot[i] = wl->QwCumul[i] / 100;
         for ( j = 0; j < rn->ngsz; j++ )            // Make a cumulative dist
@@ -548,7 +543,7 @@ void MainWindow::modelUpdate(){
     CursorX[0] = rn->yearCounter;
     CursorX[1] = rn->yearCounter;
     CursorY[0] = 0;
-    CursorY[1] = 3;
+    CursorY[1] = 9999;
 
     ui->VectorPlot->graph(1)->clearData();
     ui->VectorPlot->graph(1)->setData(x, eta);
@@ -563,16 +558,16 @@ void MainWindow::modelUpdate(){
     //ui->VectorPlot->setRangeZoom(Qt::Horizontal|Qt::Vertical);
 
     ui->BedloadPlot->graph(0)->clearData();
-    ui->BedloadPlot->graph(0)->setData( x, Froude );
+    ui->BedloadPlot->graph(0)->setData( x, Bedload );
+    ui->BedloadPlot->graph(0)->setBrush(QColor(255, 161, 0, 50));
+    ui->BedloadPlot->graph(0)->setChannelFillGraph(nullptr);
     ui->BedloadPlot->graph(1)->clearData();
-    ui->BedloadPlot->graph(1)->setData( x, Bedload );
-    ui->BedloadPlot->graph(2)->clearData();
-    ui->BedloadPlot->graph(2)->setData( x, Qw_Plot );
+    ui->BedloadPlot->graph(1)->setData( x, Qw_Plot );
 
     ui->BedloadPlot->xAxis->setLabel("Distance Downstream");
-    ui->BedloadPlot->yAxis->setLabel("Qs - Bedload Discharge");
+    ui->BedloadPlot->yAxis->setLabel("Qs, Qw Discharge");
     ui->BedloadPlot->xAxis->setRange(0, rn->nnodes + 1);
-    ui->BedloadPlot->yAxis->setRange(0, 40);
+    ui->BedloadPlot->yAxis->setRange(0, round(*max_element(Bedload.constBegin(), Bedload.constEnd()) * 1.5));
 
     ui->BankWidthPlot->graph(0)->clearData();
     ui->BankWidthPlot->graph(0)->setData( x, LeftBankLower );
@@ -582,13 +577,12 @@ void MainWindow::modelUpdate(){
     ui->BankWidthPlot->graph(2)->setData( x, LeftBankTop );
     ui->BankWidthPlot->graph(3)->clearData();
     ui->BankWidthPlot->graph(3)->setData( x, RightBankTop );
-    ui->BankWidthPlot->graph(4)->clearData();
-    ui->BankWidthPlot->graph(4)->setData( x, Sinuosity );
 
     ui->BankWidthPlot->xAxis->setLabel("Distance Downstream");
     ui->BankWidthPlot->yAxis->setLabel("Bank Width");
     ui->BankWidthPlot->xAxis->setRange(0,rn->nnodes + 1);
-    ui->BankWidthPlot->yAxis->setRange(-100,200);
+    ui->BankWidthPlot->yAxis->setRange( ( *min_element(RightBankLower.constBegin(), RightBankLower.constEnd()) * 1.5),
+              ( round(*max_element(LeftBankLower.constBegin(), LeftBankLower.constEnd()) * 1.5 ) ) );
 
     ui->XSectPlot->xAxis->setRange( -20, 70 );
     ui->XSectPlot->yAxis->setRange( -7, 7 );

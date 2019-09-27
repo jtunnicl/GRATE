@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'RwaveWin.ui'
 **
-** Created by: Qt User Interface Compiler version 5.13.1
+** Created by: Qt User Interface Compiler version 5.13.0
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
@@ -14,13 +14,11 @@
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QDateTimeEdit>
 #include <QtWidgets/QDoubleSpinBox>
-#include <QtWidgets/QFrame>
 #include <QtWidgets/QGroupBox>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QMenu>
 #include <QtWidgets/QMenuBar>
-#include <QtWidgets/QPlainTextEdit>
 #include <QtWidgets/QProgressBar>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QSlider>
@@ -41,15 +39,12 @@ public:
     QWidget *centralWidget;
     QCustomPlot *VectorPlot;
     QDateTimeEdit *grateDateTime;
-    QPushButton *refreshButton;
+    QPushButton *startButton;
     QTabWidget *tabWidget;
     QWidget *Bedload;
     QCustomPlot *BedloadPlot;
     QWidget *BankWidth;
     QCustomPlot *BankWidthPlot;
-    QPlainTextEdit *plainTextEdit;
-    QFrame *line;
-    QFrame *line_2;
     QWidget *XSect;
     QCustomPlot *XSectPlot;
     QLabel *label_4;
@@ -93,6 +88,7 @@ public:
     QLabel *label_3;
     QLabel *label_14;
     QLabel *label_15;
+    QLabel *loadingAdvice;
     QMenuBar *menuBar;
     QMenu *menuFile;
     QToolBar *mainToolBar;
@@ -102,6 +98,7 @@ public:
     {
         if (MainWindow->objectName().isEmpty())
             MainWindow->setObjectName(QString::fromUtf8("MainWindow"));
+        MainWindow->setEnabled(true);
         MainWindow->resize(1102, 667);
         action_load_XML = new QAction(MainWindow);
         action_load_XML->setObjectName(QString::fromUtf8("action_load_XML"));
@@ -114,9 +111,10 @@ public:
         grateDateTime->setObjectName(QString::fromUtf8("grateDateTime"));
         grateDateTime->setGeometry(QRect(170, 20, 161, 22));
         grateDateTime->setReadOnly(false);
-        refreshButton = new QPushButton(centralWidget);
-        refreshButton->setObjectName(QString::fromUtf8("refreshButton"));
-        refreshButton->setGeometry(QRect(20, 50, 90, 22));
+        startButton = new QPushButton(centralWidget);
+        startButton->setObjectName(QString::fromUtf8("startButton"));
+        startButton->setEnabled(false);
+        startButton->setGeometry(QRect(20, 50, 90, 22));
         tabWidget = new QTabWidget(centralWidget);
         tabWidget->setObjectName(QString::fromUtf8("tabWidget"));
         tabWidget->setGeometry(QRect(170, 380, 551, 231));
@@ -131,35 +129,6 @@ public:
         BankWidthPlot = new QCustomPlot(BankWidth);
         BankWidthPlot->setObjectName(QString::fromUtf8("BankWidthPlot"));
         BankWidthPlot->setGeometry(QRect(0, 0, 541, 191));
-        plainTextEdit = new QPlainTextEdit(BankWidthPlot);
-        plainTextEdit->setObjectName(QString::fromUtf8("plainTextEdit"));
-        plainTextEdit->setGeometry(QRect(80, 105, 171, 41));
-        line = new QFrame(BankWidthPlot);
-        line->setObjectName(QString::fromUtf8("line"));
-        line->setGeometry(QRect(180, 105, 61, 21));
-        QPalette palette;
-        QBrush brush(QColor(255, 0, 0, 255));
-        brush.setStyle(Qt::SolidPattern);
-        palette.setBrush(QPalette::Active, QPalette::WindowText, brush);
-        palette.setBrush(QPalette::Inactive, QPalette::WindowText, brush);
-        QBrush brush1(QColor(120, 120, 120, 255));
-        brush1.setStyle(Qt::SolidPattern);
-        palette.setBrush(QPalette::Disabled, QPalette::WindowText, brush1);
-        line->setPalette(palette);
-        line->setFrameShadow(QFrame::Plain);
-        line->setFrameShape(QFrame::HLine);
-        line_2 = new QFrame(BankWidthPlot);
-        line_2->setObjectName(QString::fromUtf8("line_2"));
-        line_2->setGeometry(QRect(180, 120, 61, 21));
-        QPalette palette1;
-        QBrush brush2(QColor(0, 0, 255, 255));
-        brush2.setStyle(Qt::SolidPattern);
-        palette1.setBrush(QPalette::Active, QPalette::WindowText, brush2);
-        palette1.setBrush(QPalette::Inactive, QPalette::WindowText, brush2);
-        palette1.setBrush(QPalette::Disabled, QPalette::WindowText, brush1);
-        line_2->setPalette(palette1);
-        line_2->setFrameShadow(QFrame::Plain);
-        line_2->setFrameShape(QFrame::HLine);
         tabWidget->addTab(BankWidth, QString());
         XSect = new QWidget();
         XSect->setObjectName(QString::fromUtf8("XSect"));
@@ -310,11 +279,11 @@ public:
         label_16->setGeometry(QRect(10, 90, 91, 16));
         outputFileName = new QTextEdit(groupBox);
         outputFileName->setObjectName(QString::fromUtf8("outputFileName"));
-        outputFileName->setGeometry(QRect(110, 90, 231, 41));
+        outputFileName->setGeometry(QRect(110, 70, 231, 61));
         outputFileName->setOverwriteMode(true);
         label_17 = new QLabel(groupBox);
         label_17->setObjectName(QString::fromUtf8("label_17"));
-        label_17->setGeometry(QRect(110, 70, 91, 16));
+        label_17->setGeometry(QRect(110, 50, 221, 16));
         textFileName = new QTextEdit(centralWidget);
         textFileName->setObjectName(QString::fromUtf8("textFileName"));
         textFileName->setGeometry(QRect(340, 20, 381, 21));
@@ -341,10 +310,13 @@ public:
         label_15 = new QLabel(centralWidget);
         label_15->setObjectName(QString::fromUtf8("label_15"));
         label_15->setGeometry(QRect(20, 460, 111, 16));
+        loadingAdvice = new QLabel(centralWidget);
+        loadingAdvice->setObjectName(QString::fromUtf8("loadingAdvice"));
+        loadingAdvice->setGeometry(QRect(20, 30, 111, 16));
         MainWindow->setCentralWidget(centralWidget);
         menuBar = new QMenuBar(MainWindow);
         menuBar->setObjectName(QString::fromUtf8("menuBar"));
-        menuBar->setGeometry(QRect(0, 0, 1102, 21));
+        menuBar->setGeometry(QRect(0, 0, 1102, 26));
         menuFile = new QMenu(menuBar);
         menuFile->setObjectName(QString::fromUtf8("menuFile"));
         MainWindow->setMenuBar(menuBar);
@@ -360,7 +332,7 @@ public:
 
         retranslateUi(MainWindow);
 
-        tabWidget->setCurrentIndex(2);
+        tabWidget->setCurrentIndex(1);
 
 
         QMetaObject::connectSlotsByName(MainWindow);
@@ -371,10 +343,8 @@ public:
         MainWindow->setWindowTitle(QCoreApplication::translate("MainWindow", "MainWindow", nullptr));
         action_load_XML->setText(QCoreApplication::translate("MainWindow", "Load XML...", nullptr));
         grateDateTime->setDisplayFormat(QCoreApplication::translate("MainWindow", "yyyy/MM/dd hh:mm AP", nullptr));
-        refreshButton->setText(QCoreApplication::translate("MainWindow", "Start Run", nullptr));
+        startButton->setText(QCoreApplication::translate("MainWindow", "Start Run", nullptr));
         tabWidget->setTabText(tabWidget->indexOf(Bedload), QCoreApplication::translate("MainWindow", "Bedload", nullptr));
-        plainTextEdit->setPlainText(QCoreApplication::translate("MainWindow", "Channel Width\n"
-"Flow Depth (x100)", nullptr));
         tabWidget->setTabText(tabWidget->indexOf(BankWidth), QCoreApplication::translate("MainWindow", "Bank W", nullptr));
         label_4->setText(QCoreApplication::translate("MainWindow", "Bank Ht", nullptr));
         label_5->setText(QCoreApplication::translate("MainWindow", "Bed Width", nullptr));
@@ -392,7 +362,7 @@ public:
         groupBox->setTitle(QCoreApplication::translate("MainWindow", "Delta t (time step in seconds)", nullptr));
         label_16->setText(QCoreApplication::translate("MainWindow", "Write Interval", nullptr));
         outputFileName->setPlaceholderText(QCoreApplication::translate("MainWindow", "RunResults.txt", nullptr));
-        label_17->setText(QCoreApplication::translate("MainWindow", "Results File", nullptr));
+        label_17->setText(QCoreApplication::translate("MainWindow", "Results File (.txt format)", nullptr));
 #if QT_CONFIG(tooltip)
         RegimeButton->setToolTip(QString());
 #endif // QT_CONFIG(tooltip)
@@ -401,6 +371,7 @@ public:
         label_3->setText(QCoreApplication::translate("MainWindow", "Bedload m3/s", nullptr));
         label_14->setText(QCoreApplication::translate("MainWindow", "Auto-adjust bank", nullptr));
         label_15->setText(QCoreApplication::translate("MainWindow", "width (experimental)", nullptr));
+        loadingAdvice->setText(QCoreApplication::translate("MainWindow", "Load file before start", nullptr));
         menuFile->setTitle(QCoreApplication::translate("MainWindow", "File", nullptr));
     } // retranslateUi
 

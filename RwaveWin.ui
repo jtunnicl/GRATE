@@ -3,7 +3,7 @@
  <class>MainWindow</class>
  <widget class="QMainWindow" name="MainWindow">
   <property name="enabled">
-   <bool>false</bool>
+   <bool>true</bool>
   </property>
   <property name="geometry">
    <rect>
@@ -69,7 +69,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>2</number>
+     <number>1</number>
     </property>
     <widget class="QWidget" name="Bedload">
      <attribute name="title">
@@ -99,126 +99,6 @@
         <height>191</height>
        </rect>
       </property>
-      <widget class="QPlainTextEdit" name="plainTextEdit">
-       <property name="geometry">
-        <rect>
-         <x>80</x>
-         <y>105</y>
-         <width>171</width>
-         <height>41</height>
-        </rect>
-       </property>
-       <property name="plainText">
-        <string>Channel Width
-Flow Depth (x100)</string>
-       </property>
-      </widget>
-      <widget class="Line" name="line">
-       <property name="geometry">
-        <rect>
-         <x>180</x>
-         <y>105</y>
-         <width>61</width>
-         <height>21</height>
-        </rect>
-       </property>
-       <property name="palette">
-        <palette>
-         <active>
-          <colorrole role="WindowText">
-           <brush brushstyle="SolidPattern">
-            <color alpha="255">
-             <red>255</red>
-             <green>0</green>
-             <blue>0</blue>
-            </color>
-           </brush>
-          </colorrole>
-         </active>
-         <inactive>
-          <colorrole role="WindowText">
-           <brush brushstyle="SolidPattern">
-            <color alpha="255">
-             <red>255</red>
-             <green>0</green>
-             <blue>0</blue>
-            </color>
-           </brush>
-          </colorrole>
-         </inactive>
-         <disabled>
-          <colorrole role="WindowText">
-           <brush brushstyle="SolidPattern">
-            <color alpha="255">
-             <red>120</red>
-             <green>120</green>
-             <blue>120</blue>
-            </color>
-           </brush>
-          </colorrole>
-         </disabled>
-        </palette>
-       </property>
-       <property name="frameShadow">
-        <enum>QFrame::Plain</enum>
-       </property>
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-      </widget>
-      <widget class="Line" name="line_2">
-       <property name="geometry">
-        <rect>
-         <x>180</x>
-         <y>120</y>
-         <width>61</width>
-         <height>21</height>
-        </rect>
-       </property>
-       <property name="palette">
-        <palette>
-         <active>
-          <colorrole role="WindowText">
-           <brush brushstyle="SolidPattern">
-            <color alpha="255">
-             <red>0</red>
-             <green>0</green>
-             <blue>255</blue>
-            </color>
-           </brush>
-          </colorrole>
-         </active>
-         <inactive>
-          <colorrole role="WindowText">
-           <brush brushstyle="SolidPattern">
-            <color alpha="255">
-             <red>0</red>
-             <green>0</green>
-             <blue>255</blue>
-            </color>
-           </brush>
-          </colorrole>
-         </inactive>
-         <disabled>
-          <colorrole role="WindowText">
-           <brush brushstyle="SolidPattern">
-            <color alpha="255">
-             <red>120</red>
-             <green>120</green>
-             <blue>120</blue>
-            </color>
-           </brush>
-          </colorrole>
-         </disabled>
-        </palette>
-       </property>
-       <property name="frameShadow">
-        <enum>QFrame::Plain</enum>
-       </property>
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-      </widget>
      </widget>
     </widget>
     <widget class="QWidget" name="XSect">
@@ -737,9 +617,9 @@ Flow Depth (x100)</string>
      <property name="geometry">
       <rect>
        <x>110</x>
-       <y>90</y>
+       <y>70</y>
        <width>231</width>
-       <height>41</height>
+       <height>61</height>
       </rect>
      </property>
      <property name="overwriteMode">
@@ -753,13 +633,13 @@ Flow Depth (x100)</string>
      <property name="geometry">
       <rect>
        <x>110</x>
-       <y>70</y>
-       <width>91</width>
+       <y>50</y>
+       <width>221</width>
        <height>16</height>
       </rect>
      </property>
      <property name="text">
-      <string>Results File</string>
+      <string>Results File (.txt format)</string>
      </property>
     </widget>
    </widget>
@@ -775,7 +655,7 @@ Flow Depth (x100)</string>
    </widget>
    <widget class="QPushButton" name="RegimeButton">
     <property name="enabled">
-     <bool>false</bool>
+     <bool>true</bool>
     </property>
     <property name="geometry">
      <rect>
@@ -866,6 +746,19 @@ Flow Depth (x100)</string>
      <string>width (experimental)</string>
     </property>
    </widget>
+   <widget class="QLabel" name="loadingAdvice">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>30</y>
+      <width>111</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Load file before start</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
@@ -873,7 +766,7 @@ Flow Depth (x100)</string>
      <x>0</x>
      <y>0</y>
      <width>1102</width>
-     <height>21</height>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">

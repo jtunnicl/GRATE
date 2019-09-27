@@ -79,7 +79,7 @@ void GrateTime::setExcelTime(double nSerialDate)
    timeinfo.tm_mon = j + 2 - (12 * l) - 1;     // struct tm numbers the months 0 to 11, not 1 to 12
    timeinfo.tm_year = ( 100 * (n - 49) + i + l) - 1900;
 
-   k = (nSerialDate - floor(nSerialDate)) * 24;
+   k = (nSerialDate - floor(nSerialDate)) * 24 + 1;
    timeinfo.tm_hour = floor(k);
    m = (k - timeinfo.tm_hour) * 60;
    timeinfo.tm_min = floor(m);

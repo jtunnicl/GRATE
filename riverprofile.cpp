@@ -544,7 +544,7 @@ vector<double> RiverProfile::hydroGraph()
 
   double max_flow = 1.6;  // Up to 1.6 * 50 = 80 m3/s
   double min_flow = 0.8;
-  double elems = 900;
+  double elems = 30240;   // 3.5 days, at dt=10 secs
   double alpha = 4;
   double beta = 5;
   double delta = 0.0052;

@@ -140,7 +140,7 @@ void hydro::backWater(RiverProfile *r)
         Fr2[n] = r->RiverXS[n].eci * r->RiverXS[n].velocity *
                 r->RiverXS[n].velocity / ( g * r->RiverXS[n].depth );
 
-        if ( ( Fr2[n] < FrN2 ) || ( bedSlope[n] <= 0 ) || ( n == 0 ) ) // Not super-crit; use energy eqn
+        if ( ( Fr2[n] < FrN2 ) || ( bedSlope[n] <= 0 ) || ( n == 0 ) ) // Not super-critical; use energy eqn
             iret = energyConserve(n, r);
 
         else
@@ -191,7 +191,7 @@ void hydro::setQuasiSteadyNodalFlows(RiverProfile *r){
                        ( Qw[i][j].Q - Qw[i][j-1].Q ) /
                        ( Qw[i][j-1].date_time.secsTo(Qw[i][j].date_time) ));
 
-            Qw_Ct[i] *= r->tweakArray[r->yearCounter];             // Flood = 0.8 to 1.8 mean flow
+            //Qw_Ct[i] *= r->tweakArray[r->yearCounter];             // Flood = 0.8 to 1.8 mean flow
         }
         Qw_Ct[0] *= r->feedQw;                                     // Feed randomizer
     }
@@ -318,7 +318,7 @@ int hydro::energyConserve(unsigned int n, RiverProfile *r)
     NodeXSObject& XSd = r->RiverXS[n+1];         // "downstream" cross-section [n+1]--> already computed
 
     flag = 0;                   // Function flag to be returned
-    itermax = 300;
+    itermax = 800;
 
     XSu.xsArea();               // update area
     XSu.velocity = QwCumul[n] / XSu.flow_area[2];
@@ -453,7 +453,7 @@ int hydro::quasiNormal(unsigned int n, RiverProfile *r){
 
         if (iter> maxiter)
         {
-            cout << "Iteration Count exceeded in routine quasiNormal at " << n << "\n";
+            // cout << "Iteration Count exceeded in routine quasiNormal at " << n << "\n";
             return 8;
         }
     }

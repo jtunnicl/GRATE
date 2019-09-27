@@ -256,7 +256,7 @@ void sed::exner(RiverProfile *r)
                       / (1.0 - r->poro) / fullValleyWidth[i];
     }
 
-    deta[0] = ( ( Qs_bc[0].Q - Qs[1] ) / ( r->xx[1] - r->xx[0] ) );
+    deta[0] = deta[1]; // ( ( Qs_bc[0].Q - Qs[1] ) / ( r->xx[1] - r->xx[0] ) );
 
     for ( i = 0; i < r->nnodes-1; i++ )                            // Upstream boundary - if floating, i = 0
         r->eta[i] += deta[i];
