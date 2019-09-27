@@ -56,7 +56,7 @@ int main(int argc, char** argv) {
         else {
             // initialise components
             try {
-                model = new Model(params_root);
+                model = new Model(params_root, "GrateResults.txt");
             }
             catch (std::string msg) {
                 std::cerr << "Error while initialising components: " << msg << std::endl;
