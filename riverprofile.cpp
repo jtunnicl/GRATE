@@ -15,6 +15,8 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <iomanip>
+#include <iostream>
 #include "riverprofile.h"
 #include "tinyxml2/tinyxml2.h"
 #include "tinyxml2_wrapper.h"
@@ -49,6 +51,10 @@ NodeGSDObject::NodeGSDObject()
          abrasion.push_back(0.0000060000);
          abrasion.push_back(0.0000060000);
          abrasion.push_back(0.0000060000);
+
+         density.push_back(0.0000060000);
+         density.push_back(0.0000060000);
+         density.push_back(0.0000060000);
 
          for (int j = 0; j < 15; j++)
          {
@@ -604,7 +610,7 @@ void RiverProfile::initData(XMLElement* params_root)
     la.assign(nnodes, default_la);                // Default active layer thickness
 
     nlayer = getIntValue(params, "NLAYER");
-    ntop.assign(nnodes, nlayer-15);                // Indicates # of layers remaining, below current (couple of layers left for aggradation)
+    ntop.assign(nnodes, nlayer-12);                // Indicates # of layers remaining, below current (couple of layers left for aggradation)
 
     poro = getDoubleValue(params, "PORO");
 
@@ -707,6 +713,10 @@ void RiverProfile::getGSDLibrary(XMLElement* params_root)
                 // TODO: get other things, i.e. ABR, RHOS
             }
 
+            grp[grpCount].pct[lithCount][13] = 100;    // Extra grain size slots - temporary fix.
+            grp[grpCount].pct[lithCount][14] = 100;
+            grp[grpCount].abrasion[lithCount] = getDoubleValue(e, "ABR");
+            grp[grpCount].density[lithCount] = getDoubleValue(e, "RHOS");
             grpCount++;
         }
         if (grpCount != ngrp) {
@@ -718,7 +728,7 @@ void RiverProfile::getGSDLibrary(XMLElement* params_root)
 
     // Take cumulative data and turn it into normalized fractions
     for (int grpCount = 0; grpCount < ngrp; grpCount++)
-        for (int gsCount = ngsz; gsCount > 0; gsCount--)
+        for (int gsCount = ngsz+1; gsCount > 0; gsCount--)
         {
             grp[grpCount].pct[0][gsCount] -= grp[grpCount].pct[0][gsCount - 1];
             grp[grpCount].pct[1][gsCount] -= grp[grpCount].pct[1][gsCount - 1];
@@ -808,44 +818,40 @@ void RiverProfile::getLongProfile(XMLElement* params_root)
 
 void RiverProfile::getStratigraphy(XMLElement* params_root)
 {
+
+    std::ostringstream layername;
+
     // get the "stratigraphy" element
     XMLElement *stratElem = params_root->FirstChildElement("stratigraphy");
     if (stratElem == NULL) {
         throw std::string("Error getting stratigraphy element from XML file");
     }
 
-    // read the data
-    int layerCount = 0;
-    for (XMLElement* layer = stratElem->FirstChildElement("layer"); layer != NULL; layer = layer->NextSiblingElement("layer")) {
-        int ptCount = 0;
-        for (XMLElement *pt = layer->FirstChildElement("pt"); pt != NULL; pt = pt->NextSiblingElement("pt")) {
-            int idx;
-            if (pt->QueryIntText(&idx) != XML_SUCCESS) {
-                std::stringstream error_stream;
-                error_stream << "Error getting double value for stratigraphy element: " << layerCount << ", " << ptCount;
-                std::string msg = error_stream.str();
-                throw msg;
-            }
+    // loop over entries
+    int node = 0;
 
+    for (XMLElement* e = stratElem->FirstChildElement("XXX"); e != NULL; e = e->NextSiblingElement("XXX")) {
+        if (e->QueryDoubleAttribute("X1", &xx[node])) {
+            throw std::string("Error getting X attribute from X1 stratigraphy element");
+        }
+
+        for (int z = 1; z < 31; z++){
+            layername << "layer" << std::setfill('0') << std::setw(2) << ( z );         // Get 'layer01', 'layer02', etc.
+            int st_grp = getIntValue(e, layername.str().c_str());
             for (int j = 0; j < ngsz; j++) {
                 for (int k = 0; k < nlith; k++) {
-                    storedf[ptCount][layerCount].pct[k][j] = grp[idx-1].pct[k][j];  // 'idx-1' because of C++ indexing
+                    storedf[node][z-1].pct[k][j] = grp[st_grp-1].pct[k][j];
+                    if (j == 0){
+                        storedf[node][z-1].abrasion[k] = grp[st_grp-1].abrasion[k];
+                        storedf[node][z-1].density[k] = grp[st_grp-1].density[k];
+                    }
                 }
             }
+            layername.str("");                  // clear contents of ostringstream object
+            }
+        node++;
 
-            ptCount++;
         }
-
-        if (ptCount != npts) {
-            std::cerr << "Warning: number of points in stratigraphy layer " << layerCount << " not equal to npts\n";
-        }
-
-        layerCount++;
-    }
-    
-    if (layerCount != nlayer) {
-        std::cerr << "Warning: number of layers in stratigraphy array not equal to nlayer\n";
-    }
 
     for (int i = 0; i < nnodes; i++)            // Populate initial active layer bed GSD
     {

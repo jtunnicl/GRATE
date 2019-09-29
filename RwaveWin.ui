@@ -700,6 +700,9 @@
       <height>22</height>
      </rect>
     </property>
+    <property name="decimals">
+     <number>5</number>
+    </property>
     <property name="maximum">
      <double>9999.989999999999782</double>
     </property>
@@ -766,7 +769,7 @@
      <x>0</x>
      <y>0</y>
      <width>1102</width>
-     <height>26</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">

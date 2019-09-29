@@ -34,7 +34,7 @@ void sed::initSedSeries(unsigned int nodes, XMLElement *params_root)
         NewEntry.date_time = NewDate;
         NewEntry.Q = getDoubleValue(e, "Qs");
         NewEntry.Coord = getIntValue(e, "loc");
-        NewEntry.GRP = getIntValue(e, "GSD") - 1;
+        NewEntry.GRP = getIntValue(e, "GSD");
 
         if (NewEntry.Coord > currentCoord) {            // Have we moved to a new source coordinate?
             Qs_series.push_back( tmp );
@@ -197,6 +197,7 @@ void sed::computeTransport(RiverProfile *r)
     }
     
     //Qs[r->nnodes - 1] = Qs[r->nnodes - 2];               // Equilibrium bottom node
+    Qs[0] = Qs_bc[0].Q;
 
     // Adjust bedload for sed inflow - revise bedload for main channel and tributary sediment inflows
 
@@ -263,7 +264,7 @@ void sed::exner(RiverProfile *r)
 
     r->eta[r->nnodes-1] += deta[r->nnodes-2];                    // Downstream boundary - uncomment if floating
 
-    for ( i = 1; i < r->nnodes-1; i++ )      // Calculate grain size changes
+    for ( i = 1; i < r->nnodes; i++ )      // Calculate grain size changes
     {
         if ( r->toplayer[i] <= 0.0 )
         {
@@ -327,24 +328,33 @@ void sed::exner(RiverProfile *r)
         Fprime.norm_frac();
         Fprime.pct.push_back(tmp);            // add a 'j+1' category (zeros), to satisfy 'df' equation below.
 
-        for ( j = 0; j < r->ngsz; j++ )
+        if ( i < ( r->nnodes-1 ) )
         {
-            df[i].pct[0][j] = 0.0;
-            df[i].pct[1][j] = 0.0;
-            df[i].pct[2][j] = 0.0;
-            for ( k = 0; k < r->nlith; k++ )
-                df[i].pct[k][j] += -(r->dt / r->RiverXS[i].width ) *
-                              ( ( upw * ( Qs[i] * p[i].pct[k][j] - Qs[i-1] * p[i-1].pct[k][j] ) / ( r->xx[i] - r->xx[i-1] )
-                              + ( 1 - upw ) * ( Qs[i+1] * p[i+1].pct[k][j] - Qs[i] * p[i].pct[k][j] ) / (r->xx[i+1] - r->xx[i] ) )
-                              - p[i].abrasion[k] * Qs[i] * ( p[i].pct[k][j] + Fprime.pct[k][j] )
-                              + p[i].abrasion[k] * Qs[i] * ( 1 / ( 3 * log(2) ) ) * ( (p[i].pct[k][j] + Fprime.pct[k][j] )
-                              / (r->F[i].psi[j+1] - r->F[i].psi[j]) - ( p[i].pct[k][j+1] + Fprime.pct[k][j+1] ) / ( r->F[i].psi[j+2] - r->F[i].psi[j+1] ) ) )
-                              / ( 1.0 - r->poro ) - fi.pct[k][j] * deta[i] + ( fi.pct[k][j] - r->F[i].pct[k][j] ) * dLa_over_dt[i] * r->dt;
+            for ( j = 0; j < r->ngsz; j++ )
+            {
+                df[i].pct[0][j] = 0.0;
+                df[i].pct[1][j] = 0.0;
+                df[i].pct[2][j] = 0.0;
+                for ( k = 0; k < r->nlith; k++ )
+                    df[i].pct[k][j] += -( r->dt / r->RiverXS[i].width ) *
+                                  ( ( upw * ( Qs[i] * p[i].pct[k][j] - Qs[i-1] * p[i-1].pct[k][j] ) / ( r->xx[i] - r->xx[i-1] )
+                                  + ( 1 - upw ) * ( Qs[i+1] * p[i+1].pct[k][j] - Qs[i] * p[i].pct[k][j] ) / (r->xx[i+1] - r->xx[i] ) )
+                                  - p[i].abrasion[k] * Qs[i] * ( p[i].pct[k][j] + Fprime.pct[k][j] )
+                                  + p[i].abrasion[k] * Qs[i] * ( 1 / ( 3 * log(2) ) ) * ( (p[i].pct[k][j] + Fprime.pct[k][j] )
+                                  / ( r->F[i].psi[j+1] - r->F[i].psi[j]) - ( p[i].pct[k][j+1] + Fprime.pct[k][j+1] ) / ( r->F[i].psi[j+2] - r->F[i].psi[j+1] ) ) )
+                                  / ( 1.0 - r->poro ) - fi.pct[k][j] * deta[i] + ( fi.pct[k][j] - r->F[i].pct[k][j] ) * dLa_over_dt[i] * r->dt;
+
+            }
         }
+
+        for ( j = 0; j < r->ngsz; j++ )
+            for ( k = 0; k < r->nlith; k++ )
+                df[r->nnodes-1].pct[k][j] = df[r->nnodes-2].pct[k][j];
+
     }  // end for loop
 
     // New loop - update bed grain size distribution
-    for ( i = 2; i < r->nnodes-1; i++ )
+    for ( i = 2; i < r->nnodes; i++ )
     {
         for ( j = 0; j < r->ngsz; j++ )
             for ( k = 0; k < r->nlith; k++ )
@@ -353,7 +363,7 @@ void sed::exner(RiverProfile *r)
     }
 
     // Update storage layers
-    for ( i = 2; i < r->nnodes-1; i++ )
+    for ( i = 2; i < r->nnodes; i++ )
     {
         if (deta[i] < 0.0)
         {

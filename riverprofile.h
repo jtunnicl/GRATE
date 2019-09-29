@@ -22,9 +22,10 @@ public:
     NodeGSDObject();
 
     vector <double> abrasion;                        // abrasion value for each lithology type (3)
-    vector < double > psi;                            // psi (base 2) grain size categories
-    vector < vector < double > > pct;                         // Grain-size  (ngsz x nlith)
-    double dsg;                                 // Geometric mean grain size
+    vector <double> density;                         // density of each lithology
+    vector < double > psi;                           // psi (base 2) grain size categories
+    vector < vector < double > > pct;                // Grain-size  (ngsz x nlith)
+    double dsg;                                      // Geometric mean grain size
     double d84;
     double d90;
     double stdv;                                // Standard deviation in GSD

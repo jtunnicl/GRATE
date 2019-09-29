@@ -262,16 +262,24 @@ void MainWindow::setupChart(){
     ui->VectorPlot->graph(0)->setData( x, eta );
     ui->VectorPlot->graph(0)->setPen(QPen(Qt::gray));
 
+    ui->VectorPlot->addGraph();  // Bedrock plot (static)
+    QPen grayDotPen;
+    grayDotPen.setColor(QColor(Qt::gray));
+    grayDotPen.setStyle(Qt::DashLine);
+    grayDotPen.setWidthF(1);
+    ui->VectorPlot->graph(1)->setData( x, bedrock );
+    ui->VectorPlot->graph(1)->setPen(grayDotPen);
+
     ui->VectorPlot->addGraph();  // Channel bed elevation plot
-    ui->VectorPlot->graph(1)->setData( x, eta );
-    ui->VectorPlot->graph(1)->setPen(QPen(Qt::black));
-    ui->VectorPlot->graph(1)->setBrush(QColor(255, 161, 0, 50));
+    ui->VectorPlot->graph(2)->setData( x, eta );
+    ui->VectorPlot->graph(2)->setPen(QPen(Qt::black));
+    ui->VectorPlot->graph(2)->setBrush(QColor(255, 161, 0, 50));
 
     ui->VectorPlot->addGraph();  // Water surface plot
-    ui->VectorPlot->graph(2)->setData( x, WSL );
-    ui->VectorPlot->graph(2)->setPen(QPen(Qt::blue));
-    ui->VectorPlot->graph(2)->setBrush(QBrush(QColor(0, 0, 255, 20)));
-    ui->VectorPlot->graph(2)->setChannelFillGraph(ui->VectorPlot->graph(1));
+    ui->VectorPlot->graph(3)->setData( x, WSL );
+    ui->VectorPlot->graph(3)->setPen(QPen(Qt::blue));
+    ui->VectorPlot->graph(3)->setBrush(QBrush(QColor(0, 0, 255, 20)));
+    ui->VectorPlot->graph(3)->setChannelFillGraph(ui->VectorPlot->graph(1));
                                           //(rand() % 254, rand() % 254, rand() % 254)));
 
     ui->BedloadPlot->xAxis->setLabel("Distance Downstream");
@@ -545,10 +553,10 @@ void MainWindow::modelUpdate(){
     CursorY[0] = 0;
     CursorY[1] = 9999;
 
-    ui->VectorPlot->graph(1)->clearData();
-    ui->VectorPlot->graph(1)->setData(x, eta);
     ui->VectorPlot->graph(2)->clearData();
-    ui->VectorPlot->graph(2)->setData(x, WSL);
+    ui->VectorPlot->graph(2)->setData(x, eta);
+    ui->VectorPlot->graph(3)->clearData();
+    ui->VectorPlot->graph(3)->setData(x, WSL);
     //ui->VectorPlot->graph(1)->setPen(QPen(QColor(rand() % 254, rand() % 254, rand() % 254)));
     ui->VectorPlot->xAxis->setLabel("Distance Downstream");
     ui->VectorPlot->yAxis->setLabel("Elevation");
@@ -624,8 +632,8 @@ void MainWindow::modelUpdate(){
     if (prog < 100)
         ui->runProgress->setValue(prog);
 
-    ui->reportQw->setValue(wl->QwCumul[rn->nnodes-1]);
-    ui->reportQs->setValue(sd->Qs[rn->nnodes-1] * 1000);
+    ui->reportQw->setValue(wl->QwCumul[rn->nnodes-1] * rn->qwTweak);
+    ui->reportQs->setValue(sd->Qs[0]);
     ui->reportStep->setValue(rn->counter);
     //ui->reportYear->setValue(rn->yearCounter);
 

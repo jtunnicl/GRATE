@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'RwaveWin.ui'
 **
-** Created by: Qt User Interface Compiler version 5.13.0
+** Created by: Qt User Interface Compiler version 5.13.1
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
@@ -299,6 +299,7 @@ public:
         reportQs = new QDoubleSpinBox(centralWidget);
         reportQs->setObjectName(QString::fromUtf8("reportQs"));
         reportQs->setGeometry(QRect(30, 210, 81, 22));
+        reportQs->setDecimals(5);
         reportQs->setMaximum(9999.989999999999782);
         reportQs->setSingleStep(0.010000000000000);
         label_3 = new QLabel(centralWidget);
@@ -316,7 +317,7 @@ public:
         MainWindow->setCentralWidget(centralWidget);
         menuBar = new QMenuBar(MainWindow);
         menuBar->setObjectName(QString::fromUtf8("menuBar"));
-        menuBar->setGeometry(QRect(0, 0, 1102, 26));
+        menuBar->setGeometry(QRect(0, 0, 1102, 21));
         menuFile = new QMenu(menuBar);
         menuFile->setObjectName(QString::fromUtf8("menuFile"));
         MainWindow->setMenuBar(menuBar);
