@@ -27,7 +27,7 @@ using namespace std;
 hydro::hydro(RiverProfile *r, XMLElement *params_root)
 {
     preissTheta = 0.7;
-    hydUpw = 0.3;
+    hydUpw = 0.4;
     regimeCounter = (r->nnodes-2);
 
     initHydro(r->nnodes, params_root);
@@ -118,7 +118,7 @@ void hydro::backWater(RiverProfile *r)
     quasiNormal(0, r);
     //quasiNormal(lastNode, r);
 
-    r->RiverXS[lastNode].depth = 0.3 * pow( QwCumul[lastNode],0.3 );
+    r->RiverXS[lastNode].depth = 0.2 * pow( QwCumul[lastNode],0.25 );
     r->RiverXS[lastNode].wsl = r->eta[lastNode] + r->RiverXS[lastNode].depth;
 
     for (unsigned int n = r->nnodes-2; n > 0 ; n--)

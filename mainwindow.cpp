@@ -140,6 +140,7 @@ void MainWindow::setupChart(){
     RiverProfile* rn = model->rn;
     hydro *wl = model->wl;
     sed *sd = model->sd;
+    int nQw = wl->Qw[0].size();    // No of elements in Qw array
     QVector<double> x( rn->nnodes );
     QVector<double> eta( rn->nnodes );
     QVector<double> bedrock( rn->nnodes );
@@ -157,8 +158,8 @@ void MainWindow::setupChart(){
     QVector<double> wsXS_Y( 2 );
     QVector<double> Bottom_X( 2 );
     QVector<double> Bottom_Y( 2 );
-    QVector<double> Qw_TS( 900 );
-    QVector<double> time( 900 );
+    QVector<double> Qw_TS( nQw );
+    QVector<double> time( nQw );
     QVector<double> CursorX( 2 );
     QVector<double> CursorY( 2 );
     QVector<double> tmp( 8 );
@@ -238,10 +239,18 @@ void MainWindow::setupChart(){
 
     ui->spinNode->setMaximum(rn->nnodes);
 
-    for ( bc = 0; bc < 899; bc++ )
+    //Temporarily out of action; this will eventually be a tweak/time series switch
+
+    //for ( bc = 0; bc < 899; bc++ )
+    //{
+    //    Qw_TS[bc] = wl->Qw[0][0].Q * rn->tweakArray[bc];
+    //    time[bc] = bc;
+    //}
+
+    for ( bc = 0; bc < nQw - 1; bc++ )
     {
-        Qw_TS[bc] = wl->Qw[0][0].Q * rn->tweakArray[bc];
-        time[bc] = bc;
+        Qw_TS[bc] = wl->Qw[0][bc].Q;
+        time[bc] = wl->Qw[0][0].date_time.secsTo(wl->Qw[0][bc].date_time);
     }
 
     for ( j = 0; j < 7 ; j++ )
@@ -342,7 +351,7 @@ void MainWindow::setupChart(){
     ui->QwSeries->xAxis->setDateTimeFormat("h:m");
     ui->QwSeries->yAxis->setLabel("Discharge");
     ui->QwSeries->xAxis->setLabel("Time");
-    ui->QwSeries->xAxis->setRange(0, 900);
+    ui->QwSeries->xAxis->setRange(time[0], time[nQw-2]);
     ui->QwSeries->yAxis->setRange(round(*min_element(Qw_TS.constBegin(),
             Qw_TS.constEnd()) * 0.75), round(*max_element(Qw_TS.constBegin(), Qw_TS.constEnd()) * 1.5));
 
@@ -592,7 +601,7 @@ void MainWindow::modelUpdate(){
     ui->BankWidthPlot->yAxis->setRange( ( *min_element(RightBankLower.constBegin(), RightBankLower.constEnd()) * 1.5),
               ( round(*max_element(LeftBankLower.constBegin(), LeftBankLower.constEnd()) * 1.5 ) ) );
 
-    ui->XSectPlot->xAxis->setRange( -20, 70 );
+    ui->XSectPlot->xAxis->setRange( -20, 120 );
     ui->XSectPlot->yAxis->setRange( -7, 7 );
     ui->XSectPlot->graph(0)->clearData();
     ui->XSectPlot->graph(0)->setData( XsPlotX, XsPlotY );

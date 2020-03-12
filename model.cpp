@@ -48,9 +48,9 @@ void Model::stepTime(){
     rn->cTime.addSecs(rn->dt);
     rn->counter++;
     rn->yearCounter++;
-    if (rn->yearCounter > 899) {
-        rn->yearCounter = 0;
-    }
+    //if (rn->yearCounter > 899) {
+    //    rn->yearCounter = 0;
+    //}
 }
 
 void Model::writeResults(int count){
