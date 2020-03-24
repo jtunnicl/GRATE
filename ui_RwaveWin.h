@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'RwaveWin.ui'
 **
-** Created by: Qt User Interface Compiler version 5.13.1
+** Created by: Qt User Interface Compiler version 5.14.1
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
@@ -89,6 +89,7 @@ public:
     QLabel *label_14;
     QLabel *label_15;
     QLabel *loadingAdvice;
+    QPushButton *cycleButton;
     QMenuBar *menuBar;
     QMenu *menuFile;
     QToolBar *mainToolBar;
@@ -314,10 +315,14 @@ public:
         loadingAdvice = new QLabel(centralWidget);
         loadingAdvice->setObjectName(QString::fromUtf8("loadingAdvice"));
         loadingAdvice->setGeometry(QRect(20, 30, 111, 16));
+        cycleButton = new QPushButton(centralWidget);
+        cycleButton->setObjectName(QString::fromUtf8("cycleButton"));
+        cycleButton->setGeometry(QRect(30, 300, 71, 51));
+        cycleButton->setCheckable(true);
         MainWindow->setCentralWidget(centralWidget);
         menuBar = new QMenuBar(MainWindow);
         menuBar->setObjectName(QString::fromUtf8("menuBar"));
-        menuBar->setGeometry(QRect(0, 0, 1102, 21));
+        menuBar->setGeometry(QRect(0, 0, 1102, 22));
         menuFile = new QMenu(menuBar);
         menuFile->setObjectName(QString::fromUtf8("menuFile"));
         MainWindow->setMenuBar(menuBar);
@@ -373,6 +378,8 @@ public:
         label_14->setText(QCoreApplication::translate("MainWindow", "Auto-adjust bank", nullptr));
         label_15->setText(QCoreApplication::translate("MainWindow", "width (experimental)", nullptr));
         loadingAdvice->setText(QCoreApplication::translate("MainWindow", "Load file before start", nullptr));
+        cycleButton->setText(QCoreApplication::translate("MainWindow", "Cycle\n"
+"Hydrograph", nullptr));
         menuFile->setTitle(QCoreApplication::translate("MainWindow", "File", nullptr));
     } // retranslateUi
 

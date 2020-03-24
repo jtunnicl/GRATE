@@ -32,12 +32,15 @@ public slots:
     void loadXML();
     void modelUpdate();
     void modelHalt();
+    void updateProgress();
 
 signals:
     void drawChart();
+    void signalProgress(int);
 
 private:
     void showErrorMessage(const char *title, std::stringstream &msg_stream);
+    void showInfoMessage(const char *title, std::stringstream &msg_stream);
     Ui::MainWindow *ui;
     Model *model;
     QString demoName;

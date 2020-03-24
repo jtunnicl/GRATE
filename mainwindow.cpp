@@ -131,6 +131,13 @@ void MainWindow::showErrorMessage(const char *title, std::stringstream &msg_stre
     messageBox.critical(this, title, msg.c_str());
 }
 
+void MainWindow::showInfoMessage(const char *title, std::stringstream &msg_stream) {
+    std::string msg = msg_stream.str();
+    QMessageBox messageBox;
+    messageBox.information(this, title, msg.c_str());
+}
+
+
 void MainWindow::setupChart(){
 
     int i, j, k, n = 0;
@@ -140,6 +147,7 @@ void MainWindow::setupChart(){
     RiverProfile* rn = model->rn;
     hydro *wl = model->wl;
     sed *sd = model->sd;
+    int nQw = wl->Qw[0].size();
     QVector<double> x( rn->nnodes );
     QVector<double> eta( rn->nnodes );
     QVector<double> bedrock( rn->nnodes );
@@ -157,8 +165,8 @@ void MainWindow::setupChart(){
     QVector<double> wsXS_Y( 2 );
     QVector<double> Bottom_X( 2 );
     QVector<double> Bottom_Y( 2 );
-    QVector<double> Qw_TS( 900 );
-    QVector<double> time( 900 );
+    QVector<double> Qw_TS( nQw );
+    QVector<double> time( nQw );
     QVector<double> CursorX( 2 );
     QVector<double> CursorY( 2 );
     QVector<double> tmp( 8 );
@@ -238,18 +246,26 @@ void MainWindow::setupChart(){
 
     ui->spinNode->setMaximum(rn->nnodes);
 
-    for ( bc = 0; bc < 899; bc++ )
+    //Temporarily out of action; this will eventually be a tweak/time series switch
+
+    //for ( bc = 0; bc < 899; bc++ )
+    //{
+    //    Qw_TS[bc] = wl->Qw[0][0].Q * rn->tweakArray[bc];
+    //    time[bc] = bc;
+    //}
+
+    for ( bc = 0; bc < nQw; bc++ )
     {
-        Qw_TS[bc] = wl->Qw[0][0].Q * rn->tweakArray[bc];
-        time[bc] = bc;
+        Qw_TS[bc] = wl->Qw[0][bc].Q;
+        time[bc] = double ( wl->Qw[0][0].date_time.secsTo(wl->Qw[0][bc].date_time) ) / 3600.;  // Time in hours
     }
 
     for ( j = 0; j < 7 ; j++ )
         for ( i = 0; i < rn->nnodes; i++ )
                 GSD_Data[j][i] = GSD_Cumul[j*2][i];
 
-    CursorX[0] = rn->yearCounter;
-    CursorX[1] = rn->yearCounter;
+    CursorX[0] = (wl->Qw[0][0].date_time.secsTo(rn->cTime)) / 3600.;
+    CursorX[1] = CursorX[0];
     CursorY[0] = 0;
     CursorY[1] = 1200;
 
@@ -338,11 +354,10 @@ void MainWindow::setupChart(){
     ui->XSectPlot->graph(2)->setBrush(QColor(255, 161, 0, 50));
     ui->XSectPlot->graph(2)->setChannelFillGraph(ui->XSectPlot->graph(0));
 
-    ui->QwSeries->xAxis->setTickLabelType(QCPAxis::ltDateTime);
-    ui->QwSeries->xAxis->setDateTimeFormat("h:m");
+    //ui->QwSeries->xAxis->setTickLabelType(QCPAxis::ltDateTime);
     ui->QwSeries->yAxis->setLabel("Discharge");
     ui->QwSeries->xAxis->setLabel("Time");
-    ui->QwSeries->xAxis->setRange(0, 900);
+    ui->QwSeries->xAxis->setRange( time[0], time[nQw-1] );  // Time is displayed in hours
     ui->QwSeries->yAxis->setRange(round(*min_element(Qw_TS.constBegin(),
             Qw_TS.constEnd()) * 0.75), round(*max_element(Qw_TS.constBegin(), Qw_TS.constEnd()) * 1.5));
 
@@ -375,7 +390,7 @@ void MainWindow::setupChart(){
     for ( i = 1; i < 7 ; i++ )
            ui->GSD_Dash->graph(i)->setPen(QPen(QColor((i * 30), 254 - (i * 30), 113)));
 
-    ui->grateDateTime->setDateTime(QDateTime::fromTime_t(rn->cTime.getTime_t()));
+    ui->grateDateTime->setDateTime(QDateTime::fromTime_t(rn->cTime.getTime_t() + 50000));
     ui->reportStep->setValue(rn->counter);
     //ui->reportYear->setValue(rn->yearCounter);
 
@@ -394,10 +409,11 @@ void MainWindow::setupChart(){
 
 void MainWindow::kernel(){
 
-    ui->grateDateTime->setDateTime(QDateTime::fromTime_t(model->rn->cTime.getTime_t()));
+    ui->grateDateTime->setDateTime(QDateTime::fromTime_t(model->rn->cTime.getTime_t() + 50000));
 
-    connect(&dataTimer, SIGNAL(timeout()), this, SLOT(modelUpdate()));
-    connect(ui->stopRun, SIGNAL(clicked()), this, SLOT(modelHalt()));
+    connect(&dataTimer, SIGNAL(timeout()), this, SLOT( modelUpdate()) );
+    connect(&dataTimer, SIGNAL(timeout()), this, SLOT( updateProgress()) );
+    connect(ui->stopRun, SIGNAL(clicked()), this, SLOT( modelHalt()) );
 
     dataTimer.start(0); // Interval 0 means to refresh as fast as possible
 }
@@ -444,6 +460,24 @@ void MainWindow::modelUpdate(){
     rn->dt = ui->deltaT->value();
     ui->dt_disp->setValue(rn->dt);                    // Control dt with slider
     rn->writeInterval = ui->writeInt_disp->value();
+
+    float timeleft = ( model->rn->endTime.getTime_t() - model->rn->dt ) - ( model->rn->cTime.getTime_t() );
+    if ( timeleft <= 0 )
+    {
+        if ( ui->cycleButton->isChecked())
+        {
+            rn->cTime = wl->Qw[0][0].date_time;
+        }
+    else
+        {
+            dataTimer.stop();
+            ui->runProgress->setValue(100);
+            std::stringstream success_stream;
+            success_stream << "Model Successfully Completed: Check Results File" << std::endl << std::endl;
+            showInfoMessage("End Point Reached", success_stream);
+            delete model;
+        }
+    }
 
     // Calculate water profile data points, bank widths
     for ( i = 0; i < rn -> nnodes; i++ )
@@ -548,8 +582,8 @@ void MainWindow::modelUpdate(){
 
     // t = ui->selectNode->value();
 
-    CursorX[0] = rn->yearCounter;
-    CursorX[1] = rn->yearCounter;
+    CursorX[0] = ( wl->Qw[0][0].date_time.secsTo(rn->cTime) / 3600.);
+    CursorX[1] = CursorX[0];
     CursorY[0] = 0;
     CursorY[1] = 9999;
 
@@ -575,7 +609,7 @@ void MainWindow::modelUpdate(){
     ui->BedloadPlot->xAxis->setLabel("Distance Downstream");
     ui->BedloadPlot->yAxis->setLabel("Qs, Qw Discharge");
     ui->BedloadPlot->xAxis->setRange(0, rn->nnodes + 1);
-    ui->BedloadPlot->yAxis->setRange(0, round(*max_element(Bedload.constBegin(), Bedload.constEnd()) * 1.5));
+    ui->BedloadPlot->yAxis->setRange(0, Bedload[3] * 3 ); //round(*max_element(Bedload.constBegin(), Bedload.constEnd()) * 1.5));
 
     ui->BankWidthPlot->graph(0)->clearData();
     ui->BankWidthPlot->graph(0)->setData( x, LeftBankLower );
@@ -592,7 +626,7 @@ void MainWindow::modelUpdate(){
     ui->BankWidthPlot->yAxis->setRange( ( *min_element(RightBankLower.constBegin(), RightBankLower.constEnd()) * 1.5),
               ( round(*max_element(LeftBankLower.constBegin(), LeftBankLower.constEnd()) * 1.5 ) ) );
 
-    ui->XSectPlot->xAxis->setRange( -20, 70 );
+    ui->XSectPlot->xAxis->setRange( -20, 120 );
     ui->XSectPlot->yAxis->setRange( -7, 7 );
     ui->XSectPlot->graph(0)->clearData();
     ui->XSectPlot->graph(0)->setData( XsPlotX, XsPlotY );
@@ -625,13 +659,6 @@ void MainWindow::modelUpdate(){
     ui->GSD_Dash->replot();
     ui->grateDateTime->setDateTime(QDateTime::fromTime_t(rn->cTime.getTime_t()));
 
-    // Progress bar
-    i = rn->startTime.secsTo(rn->cTime);
-    j = rn->startTime.secsTo(rn->endTime);
-    prog = ( i / j ) * 100;
-    if (prog < 100)
-        ui->runProgress->setValue(prog);
-
     ui->reportQw->setValue(wl->QwCumul[rn->nnodes-1] * rn->qwTweak);
     ui->reportQs->setValue(sd->Qs[0]);
     ui->reportStep->setValue(rn->counter);
@@ -653,10 +680,20 @@ void MainWindow::modelUpdate(){
 
 }
 
-void MainWindow::modelHalt(){
-
+void MainWindow::modelHalt(){    // Graceful exit, here?
     dataTimer.stop();
+    delete model;
+}
 
+void MainWindow::updateProgress(){
+
+    RiverProfile* rn = model->rn;
+    // Progress bar
+    double i = rn->startTime.secsTo(rn->cTime);
+    double j = rn->startTime.secsTo(rn->endTime);
+    double prog = ( i / j ) * 100.;
+    if (prog < 100.)
+        ui->runProgress->setValue(prog);
 }
 
 MainWindow::~MainWindow()

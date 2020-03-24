@@ -484,6 +484,8 @@ RiverProfile::RiverProfile(XMLElement* params_root)
     startTime.setTime(12, 0, 0);
     endTime.setDate(2002, 12, 5);
     endTime.setTime(12, 0, 0);
+    cycleTime.setDate(0,0,0);
+    cycleTime.setTime(0,0,0);
 
     counter = 0;
     yearCounter = 0;        // Counter that resets every 5 days
@@ -818,23 +820,32 @@ void RiverProfile::getLongProfile(XMLElement* params_root)
 
 void RiverProfile::getStratigraphy(XMLElement* params_root)
 {
-
     std::ostringstream layername;
+    int node = 0;
 
     // get the "stratigraphy" element
     XMLElement *stratElem = params_root->FirstChildElement("stratigraphy");
     if (stratElem == NULL) {
-        throw std::string("Error getting stratigraphy element from XML file");
+        //throw std::string("Error getting stratigraphy element from XML file");
+        for (int z = 1; z < (nlayer + 1); z++){
+            int st_grp = stgrp[node];      // Build stratigraphy from subsurface information
+            for (int j = 0; j < ngsz; j++) {
+                for (int k = 0; k < nlith; k++) {
+                    storedf[node][z-1].pct[k][j] = grp[st_grp-1].pct[k][j];
+                    if (j == 0){
+                        storedf[node][z-1].abrasion[k] = grp[st_grp-1].abrasion[k];
+                        storedf[node][z-1].density[k] = grp[st_grp-1].density[k];
+                    }
+                }
+            }
+        }
     }
-
-    // loop over entries
-    int node = 0;
-
+    else
+    {   // Or, if stratigraphy does exist in the xml file, then read it in
     for (XMLElement* e = stratElem->FirstChildElement("XXX"); e != NULL; e = e->NextSiblingElement("XXX")) {
         if (e->QueryDoubleAttribute("X1", &xx[node])) {
             throw std::string("Error getting X attribute from X1 stratigraphy element");
         }
-
         for (int z = 1; z < 31; z++){
             layername << "layer" << std::setfill('0') << std::setw(2) << ( z );         // Get 'layer01', 'layer02', etc.
             int st_grp = getIntValue(e, layername.str().c_str());
@@ -850,8 +861,8 @@ void RiverProfile::getStratigraphy(XMLElement* params_root)
             layername.str("");                  // clear contents of ostringstream object
             }
         node++;
-
         }
+    }
 
     for (int i = 0; i < nnodes; i++)            // Populate initial active layer bed GSD
     {

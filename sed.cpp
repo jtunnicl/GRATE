@@ -34,7 +34,7 @@ void sed::initSedSeries(unsigned int nodes, XMLElement *params_root)
         NewEntry.date_time = NewDate;
         NewEntry.Q = getDoubleValue(e, "Qs");
         NewEntry.Coord = getIntValue(e, "loc");
-        NewEntry.GRP = getIntValue(e, "GSD");
+        NewEntry.GRP = getIntValue(e, "GSD") - 1;       // Input GSD is 1-based, adjust here to 0-based.
 
         if (NewEntry.Coord > currentCoord) {            // Have we moved to a new source coordinate?
             Qs_series.push_back( tmp );
@@ -204,6 +204,8 @@ void sed::computeTransport(RiverProfile *r)
     for ( bc = 0; bc < Qs_series.size(); bc++ )
     {
         inode = ceil( Qs_series[bc][0].Coord / r->dx);                         // Node where trib is entering
+        if ( inode > 0 )
+            inode = inode - 1;    // Input node is 1-based, adjust here to 0-based.
 
         for ( j = 0; j < r->ngsz; j++ )
         {
@@ -215,7 +217,7 @@ void sed::computeTransport(RiverProfile *r)
 
         qtemp.norm_frac();
 	
-        if (bc > 0)
+        if ( ( bc > 0 ) && ( bc < Qs_series.size() - 1) )         // i.e., not first and last nodes
         {
             Qs[inode] += Qs_bc[bc].Q * 0.75;
             Qs[inode+1] += Qs_bc[bc].Q * 0.25;                    // Distribute trib material downstream

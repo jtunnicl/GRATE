@@ -118,6 +118,7 @@ public:
     GrateTime cTime;                           // Current model time
     GrateTime startTime;
     GrateTime endTime;
+    GrateTime cycleTime;                       // When cycling the hydrograph, keep track of surplus model time, as opposed to the hydrograph time series read in
     unsigned int counter;
     unsigned int yearCounter;
     unsigned int dt;                           // Delta t in seconds
