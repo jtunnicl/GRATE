@@ -204,6 +204,10 @@ void MainWindow::setupChart(){
     ui->dt_disp->setValue(rn->dt);
     ui->deltaT->setValue(rn->dt);
 
+    // upwind control
+    ui->sedUpw_slider->setValue(rn->sedUpw * 100 );
+    ui->hydroUpw_slider->setValue(rn->hydroUpw * 100 );
+
     // Setup cross-section graph
     n = ui->spinNode->value();
     theta_rad = rn->RiverXS[n].theta * PI / 180.;
@@ -447,11 +451,15 @@ void MainWindow::modelUpdate(){
     QVector<double> tmp( 8 );
     QVector<QVector<double> > GSD_Data, GSD_Cumul;
 
-    tmp.fill( 1, rn -> nnodes );
+    tmp.fill( 0, rn -> nnodes );
     GSD_Data.fill( tmp, 7);
     GSD_Cumul.fill(tmp, 13);
 
-    int prog;   // Model run progress
+    // Floating text items, in GSD graph
+    QCPItemText *PSI4Label = new QCPItemText(ui->GSD_Dash);   // Label grain size info
+    QCPItemText *PSI6Label = new QCPItemText(ui->GSD_Dash);   // Label grain size info
+    QCPItemText *PSI8Label = new QCPItemText(ui->GSD_Dash);   // Label grain size info
+    QCPItemText *PSI10Label = new QCPItemText(ui->GSD_Dash);   // Label grain size info
 
     // model iteration
     model->iteration();
@@ -460,6 +468,10 @@ void MainWindow::modelUpdate(){
     rn->dt = ui->deltaT->value();
     ui->dt_disp->setValue(rn->dt);                    // Control dt with slider
     rn->writeInterval = ui->writeInt_disp->value();
+
+    // upwind control
+    rn->sedUpw = ui->sedUpw_slider->value() / 100;
+    rn->hydroUpw = ui->hydroUpw_slider->value() / 100;
 
     float timeleft = ( model->rn->endTime.getTime_t() - model->rn->dt ) - ( model->rn->cTime.getTime_t() );
     if ( timeleft <= 0 )
@@ -479,205 +491,239 @@ void MainWindow::modelUpdate(){
         }
     }
 
-    // Calculate water profile data points, bank widths
-    for ( i = 0; i < rn -> nnodes; i++ )
+    if (!ui->pausePlot->isChecked())
     {
-        x[i] = rn->RiverXS[i].node;
-        eta[i] = rn->eta[i];
-        bedrock[i] = rn->bedrock[i];
-        WSL[i] = rn->eta[i] + rn->RiverXS[i].depth * 8;
-        Froude[i] = rn->ntop[i];               // RiverXS[i].ustar;
-        Bedload[i] = sd->Qs[i];
 
-        LeftBankLower[i] = rn->RiverXS[i].width/2;
-        RightBankLower[i] = -rn->RiverXS[i].width/2;
-        theta_rad = rn->RiverXS[i].theta * PI / 180;
-        LeftBankTop[i] = ( rn->RiverXS[i].width + (2 * ( rn->RiverXS[i].bankHeight - rn->RiverXS[i].Hmax) / tan( theta_rad ) ) ) / 2;
-        RightBankTop[i] = -( rn->RiverXS[i].width + (2 * ( rn->RiverXS[i].bankHeight - rn->RiverXS[i].Hmax) / tan( theta_rad ) ) ) / 2;
-
-        Qw_Plot[i] = wl->QwCumul[i] / 100;
-        for ( j = 0; j < rn->ngsz; j++ )            // Make a cumulative dist
-        {
-            if ( j > 0 )
-                GSD_Cumul[j][i] = GSD_Cumul[j-1][i];
-            for ( k = 0; k < rn->nlith; k++  )
-                GSD_Cumul[j][i] -= rn->F[i].pct[k][j];
-            if (GSD_Cumul[j][i] < 0.0001)
-                GSD_Cumul[j][i] = 0;
-        }
-    }
-
-    // Setup cross-section graph
-    n = ui->spinNode->value();
-    theta_rad = rn->RiverXS[n].theta * PI / 180;
-    a = rn->RiverXS[n].bankHeight - rn->RiverXS[n].Hmax;  // Vert & Horiz triangle segments at lower channel.
-    c = tan(theta_rad);
-    b = a / c;              // aka dW, horizontal distance between bed and bank, under toe of channel edge
-    inc = 0.5;            // small increment to help with ordering linework.
-
-    XsPlotX[2] = -1.5 * rn->RiverXS[n].fpSlope;
-    XsPlotY[2] = 0;
-    XsPlotX[3] = 0;
-    XsPlotY[3] = -1.5;
-    XsPlotX[4] = 0.001;
-    XsPlotY[4] = -1.5 - rn->RiverXS[n].Hmax;
-    XsPlotX[5] = b;
-    XsPlotY[5] = -1.5 - rn->RiverXS[n].bankHeight;
-    XsPlotX[6] = b + rn->RiverXS[n].width;
-    XsPlotY[6] = XsPlotY[5];
-    XsPlotX[7] = XsPlotX[6] + b;
-    XsPlotY[7] = XsPlotY[4];
-    XsPlotX[8] = XsPlotX[7] + 0.001;
-    XsPlotY[8] = -1.5;
-    XsPlotX[9] = XsPlotX[8] + 1.5;
-    XsPlotY[9] = 0;
-    XsPlotX[10] = XsPlotX[9] + 5 * rn->RiverXS[n].valleyWallSlp;
-    XsPlotY[10] = 5;
-
-    XsPlotX[1] = XsPlotX[9] - rn->RiverXS[n].fpWidth;
-    XsPlotY[1] = 0;
-    XsPlotX[0] = XsPlotX[1] - ( 5 * rn->RiverXS[n].valleyWallSlp );
-    XsPlotY[0] = 5;
-
-    wsXS_Y[0] = rn->RiverXS[n].depth;
-
-
-    topFp = rn->RiverXS[n].bankHeight + 1.5;
-    if (rn->RiverXS[n].depth > topFp)
-    {
-        ovFp = rn->RiverXS[n].depth - topFp;
-        ovBank = 1.5;
-        wsXS_X[0] = XsPlotX[1] - ( ovFp * rn->RiverXS[n].valleyWallSlp );
-        wsXS_X[1] = XsPlotX[9] + ( ovFp * rn->RiverXS[n].valleyWallSlp );
-        wsXS_Y[0] = ovFp;               // Floodplain elev. is '0' datum
-        wsXS_Y[1] = wsXS_Y[0];
-    }
-    else if (rn->RiverXS[n].depth > rn->RiverXS[n].bankHeight)
-    {
-        ovBank = rn->RiverXS[n].depth - rn->RiverXS[n].bankHeight;
-        wsXS_X[0] = - ( ovBank * rn->RiverXS[n].fpSlope );
-        wsXS_X[1] = XsPlotX[8] + ovBank;
-        wsXS_Y[0] = -1.5 + ovBank;
-        wsXS_Y[1] = wsXS_Y[0];
-    }
-    else if (rn->RiverXS[n].depth > a)   // 'a' is computed, above, as bottom of vertical banks
-    {
-        wsXS_X[0] = 0;
-        wsXS_X[1] = XsPlotX[8];
-        wsXS_Y[0] = -1.5 - (rn->RiverXS[n].bankHeight - rn->RiverXS[n].depth);
-        wsXS_Y[1] = wsXS_Y[0];
-    }
-    else   // otherwise, within the lower trapezoid
-    {
-        wsXS_X[0] = c;
-        wsXS_X[1] = XsPlotX[8] - c;
-        wsXS_Y[0] = -1.5 - (rn->RiverXS[n].bankHeight - rn->RiverXS[n].depth);
-        wsXS_Y[1] = wsXS_Y[0];
-    }
-
-    // Grain size fining plot
-    for ( j = 0; j < 7 ; j++ )
+        // Calculate water profile data points, bank widths
         for ( i = 0; i < rn -> nnodes; i++ )
-                GSD_Data[j][i] = GSD_Cumul[j*2][i];
+        {
+            x[i] = rn->RiverXS[i].node;
+            eta[i] = rn->eta[i];
+            bedrock[i] = rn->bedrock[i];
+            WSL[i] = rn->eta[i] + rn->RiverXS[i].depth * 8;
+            Froude[i] = rn->ntop[i];               // RiverXS[i].ustar;
+            Bedload[i] = sd->Qs[i];
 
-    // t = ui->selectNode->value();
+            LeftBankLower[i] = rn->RiverXS[i].width/2;
+            RightBankLower[i] = -rn->RiverXS[i].width/2;
+            theta_rad = rn->RiverXS[i].theta * PI / 180;
+            LeftBankTop[i] = ( rn->RiverXS[i].width + (2 * ( rn->RiverXS[i].bankHeight - rn->RiverXS[i].Hmax) / tan( theta_rad ) ) ) / 2;
+            RightBankTop[i] = -( rn->RiverXS[i].width + (2 * ( rn->RiverXS[i].bankHeight - rn->RiverXS[i].Hmax) / tan( theta_rad ) ) ) / 2;
 
-    CursorX[0] = ( wl->Qw[0][0].date_time.secsTo(rn->cTime) / 3600.);
-    CursorX[1] = CursorX[0];
-    CursorY[0] = 0;
-    CursorY[1] = 9999;
+            Qw_Plot[i] = wl->QwCumul[i] / 100;
+            for ( j = 0; j < rn->ngsz; j++ )            // Make a cumulative dist
+            {
+                if ( j > 0 )
+                    GSD_Cumul[j][i] = GSD_Cumul[j-1][i];
+                for ( k = 0; k < rn->nlith; k++  )
+                    GSD_Cumul[j][i] += rn->F[i].pct[k][j];
+                if (GSD_Cumul[j][i] < 0.0001)
+                    GSD_Cumul[j][i] = 0;
+            }
+        }
 
-    ui->VectorPlot->graph(2)->clearData();
-    ui->VectorPlot->graph(2)->setData(x, eta);
-    ui->VectorPlot->graph(3)->clearData();
-    ui->VectorPlot->graph(3)->setData(x, WSL);
-    //ui->VectorPlot->graph(1)->setPen(QPen(QColor(rand() % 254, rand() % 254, rand() % 254)));
-    ui->VectorPlot->xAxis->setLabel("Distance Downstream");
-    ui->VectorPlot->yAxis->setLabel("Elevation");
-    ui->VectorPlot->xAxis->setRange(0,rn->nnodes + 1);
-    ui->VectorPlot->yAxis->setRange(round(rn->eta[rn->nnodes-1]-10), round(rn->eta[1]+20));
-    //ui->VectorPlot->setRangeDrag(Qt::Horizontal|Qt::Vertical);
-    //ui->VectorPlot->setRangeZoom(Qt::Horizontal|Qt::Vertical);
+        // Setup cross-section graph
+        n = ui->spinNode->value();
+        theta_rad = rn->RiverXS[n].theta * PI / 180;
+        a = rn->RiverXS[n].bankHeight - rn->RiverXS[n].Hmax;  // Vert & Horiz triangle segments at lower channel.
+        c = tan(theta_rad);
+        b = a / c;              // aka dW, horizontal distance between bed and bank, under toe of channel edge
+        inc = 0.5;            // small increment to help with ordering linework.
 
-    ui->BedloadPlot->graph(0)->clearData();
-    ui->BedloadPlot->graph(0)->setData( x, Bedload );
-    ui->BedloadPlot->graph(0)->setBrush(QColor(255, 161, 0, 50));
-    ui->BedloadPlot->graph(0)->setChannelFillGraph(nullptr);
-    ui->BedloadPlot->graph(1)->clearData();
-    ui->BedloadPlot->graph(1)->setData( x, Qw_Plot );
+        XsPlotX[2] = -1.5 * rn->RiverXS[n].fpSlope;
+        XsPlotY[2] = 0;
+        XsPlotX[3] = 0;
+        XsPlotY[3] = -1.5;
+        XsPlotX[4] = 0.001;
+        XsPlotY[4] = -1.5 - rn->RiverXS[n].Hmax;
+        XsPlotX[5] = b;
+        XsPlotY[5] = -1.5 - rn->RiverXS[n].bankHeight;
+        XsPlotX[6] = b + rn->RiverXS[n].width;
+        XsPlotY[6] = XsPlotY[5];
+        XsPlotX[7] = XsPlotX[6] + b;
+        XsPlotY[7] = XsPlotY[4];
+        XsPlotX[8] = XsPlotX[7] + 0.001;
+        XsPlotY[8] = -1.5;
+        XsPlotX[9] = XsPlotX[8] + 1.5;
+        XsPlotY[9] = 0;
+        XsPlotX[10] = XsPlotX[9] + 5 * rn->RiverXS[n].valleyWallSlp;
+        XsPlotY[10] = 5;
 
-    ui->BedloadPlot->xAxis->setLabel("Distance Downstream");
-    ui->BedloadPlot->yAxis->setLabel("Qs, Qw Discharge");
-    ui->BedloadPlot->xAxis->setRange(0, rn->nnodes + 1);
-    ui->BedloadPlot->yAxis->setRange(0, Bedload[3] * 3 ); //round(*max_element(Bedload.constBegin(), Bedload.constEnd()) * 1.5));
+        XsPlotX[1] = XsPlotX[9] - rn->RiverXS[n].fpWidth;
+        XsPlotY[1] = 0;
+        XsPlotX[0] = XsPlotX[1] - ( 5 * rn->RiverXS[n].valleyWallSlp );
+        XsPlotY[0] = 5;
 
-    ui->BankWidthPlot->graph(0)->clearData();
-    ui->BankWidthPlot->graph(0)->setData( x, LeftBankLower );
-    ui->BankWidthPlot->graph(1)->clearData();
-    ui->BankWidthPlot->graph(1)->setData( x, RightBankLower );
-    ui->BankWidthPlot->graph(2)->clearData();
-    ui->BankWidthPlot->graph(2)->setData( x, LeftBankTop );
-    ui->BankWidthPlot->graph(3)->clearData();
-    ui->BankWidthPlot->graph(3)->setData( x, RightBankTop );
+        wsXS_Y[0] = rn->RiverXS[n].depth;
 
-    ui->BankWidthPlot->xAxis->setLabel("Distance Downstream");
-    ui->BankWidthPlot->yAxis->setLabel("Bank Width");
-    ui->BankWidthPlot->xAxis->setRange(0,rn->nnodes + 1);
-    ui->BankWidthPlot->yAxis->setRange( ( *min_element(RightBankLower.constBegin(), RightBankLower.constEnd()) * 1.5),
-              ( round(*max_element(LeftBankLower.constBegin(), LeftBankLower.constEnd()) * 1.5 ) ) );
+        topFp = rn->RiverXS[n].bankHeight + 1.5;
+        if (rn->RiverXS[n].depth > topFp)
+        {
+            ovFp = rn->RiverXS[n].depth - topFp;
+            ovBank = 1.5;
+            wsXS_X[0] = XsPlotX[1] - ( ovFp * rn->RiverXS[n].valleyWallSlp );
+            wsXS_X[1] = XsPlotX[9] + ( ovFp * rn->RiverXS[n].valleyWallSlp );
+            wsXS_Y[0] = ovFp;               // Floodplain elev. is '0' datum
+            wsXS_Y[1] = wsXS_Y[0];
+        }
+        else if (rn->RiverXS[n].depth > rn->RiverXS[n].bankHeight)
+        {
+            ovBank = rn->RiverXS[n].depth - rn->RiverXS[n].bankHeight;
+            wsXS_X[0] = - ( ovBank * rn->RiverXS[n].fpSlope );
+            wsXS_X[1] = XsPlotX[8] + ovBank;
+            wsXS_Y[0] = -1.5 + ovBank;
+            wsXS_Y[1] = wsXS_Y[0];
+        }
+        else if (rn->RiverXS[n].depth > a)   // 'a' is computed, above, as bottom of vertical banks
+        {
+            wsXS_X[0] = 0;
+            wsXS_X[1] = XsPlotX[8];
+            wsXS_Y[0] = -1.5 - (rn->RiverXS[n].bankHeight - rn->RiverXS[n].depth);
+            wsXS_Y[1] = wsXS_Y[0];
+        }
+        else   // otherwise, within the lower trapezoid
+        {
+            wsXS_X[0] = c;
+            wsXS_X[1] = XsPlotX[8] - c;
+            wsXS_Y[0] = -1.5 - (rn->RiverXS[n].bankHeight - rn->RiverXS[n].depth);
+            wsXS_Y[1] = wsXS_Y[0];
+        }
 
-    ui->XSectPlot->xAxis->setRange( -20, 120 );
-    ui->XSectPlot->yAxis->setRange( -7, 7 );
-    ui->XSectPlot->graph(0)->clearData();
-    ui->XSectPlot->graph(0)->setData( XsPlotX, XsPlotY );
-    ui->XSectPlot->graph(1)->clearData();
-    ui->XSectPlot->graph(1)->setData( wsXS_X, wsXS_Y );
+        // Grain size fining plot
 
-    ui->QwSeries->graph(1)->clearData();
-    ui->QwSeries->graph(1)->setData(CursorX, CursorY);
+        for ( j = 0; j < 7 ; j++ )
+            for ( i = 0; i < rn -> nnodes; i++ )
+                    GSD_Data[j][i] = GSD_Cumul[j*2][i];
 
-    //ui->GSD_Dash->graph(0)->clearData();
-    ui->GSD_Dash->graph(0)->setData( x, GSD_Data[0] );
-    ui->GSD_Dash->graph(1)->setData( x, GSD_Data[1] );
-    ui->GSD_Dash->graph(2)->setData( x, GSD_Data[2] );
-    ui->GSD_Dash->graph(3)->setData( x, GSD_Data[3] );
-    ui->GSD_Dash->graph(4)->setData( x, GSD_Data[4] );
-    ui->GSD_Dash->graph(5)->setData( x, GSD_Data[5] );
-    ui->GSD_Dash->graph(6)->setData( x, GSD_Data[6] );
-    ui->GSD_Dash->graph(0)->setPen(QPen(QColor(0,0,0)));  // 0 is the finest grain size category: black
-    for ( i = 1; i < 7 ; i++ )
-           ui->GSD_Dash->graph(i)->setPen(QPen(QColor((i * 30), 254 - (i * 30), 113)));
+        // t = ui->selectNode->value();
 
-    ui->GSD_Dash->xAxis->setRange(0, rn->nnodes + 1);
-    ui->GSD_Dash->yAxis->setRange(0, 1);
+        // Longitudinal Plot
 
-    ui->VectorPlot->replot();
-    ui->BankWidthPlot->replot();
-    ui->XSectPlot->replot();
-    ui->BedloadPlot->replot();
-    ui->QwSeries->replot();
-    ui->GSD_Dash->replot();
-    ui->grateDateTime->setDateTime(QDateTime::fromTime_t(rn->cTime.getTime_t()));
+        CursorX[0] = ( wl->Qw[0][0].date_time.secsTo(rn->cTime) / 3600.);
+        CursorX[1] = CursorX[0];
+        CursorY[0] = 0;
+        CursorY[1] = 9999;
 
-    ui->reportQw->setValue(wl->QwCumul[rn->nnodes-1] * rn->qwTweak);
-    ui->reportQs->setValue(sd->Qs[0]);
-    ui->reportStep->setValue(rn->counter);
-    //ui->reportYear->setValue(rn->yearCounter);
+        ui->VectorPlot->graph(2)->clearData();
+        ui->VectorPlot->graph(2)->setData(x, eta);
+        ui->VectorPlot->graph(3)->clearData();
+        ui->VectorPlot->graph(3)->setData(x, WSL);
+        //ui->VectorPlot->graph(1)->setPen(QPen(QColor(rand() % 254, rand() % 254, rand() % 254)));
+        ui->VectorPlot->xAxis->setLabel("Distance Downstream");
+        ui->VectorPlot->yAxis->setLabel("Elevation");
+        ui->VectorPlot->xAxis->setRange(0,rn->nnodes + 1);
+        ui->VectorPlot->yAxis->setRange(round(rn->eta[rn->nnodes-1]-10), round(rn->eta[1]+20));
+        //ui->VectorPlot->setRangeDrag(Qt::Horizontal|Qt::Vertical);
+        //ui->VectorPlot->setRangeZoom(Qt::Horizontal|Qt::Vertical);
 
-    ui->spinBankHt->setValue(rn->RiverXS[n].bankHeight);
-    ui->spinTheta->setValue(rn->RiverXS[n].theta);
-    ui->spinDepth->setValue(rn->RiverXS[n].depth);
-    ui->spinWidth->setValue(rn->RiverXS[n].width);
-    ui->spinNoChnl->setValue(rn->RiverXS[n].noChannels);
-    ui->spinD50->setValue(pow(2, rn->F[n].dsg));
-    ui->spinDcomp->setValue(rn->RiverXS[n].comp_D);
-    ui->spinD90->setValue(pow(2, rn->F[n].d90));
-    ui->spinHmax->setValue(rn->RiverXS[n].Hmax);
+        ui->BedloadPlot->graph(0)->clearData();
+        ui->BedloadPlot->graph(0)->setData( x, Bedload );
+        ui->BedloadPlot->graph(0)->setBrush(QColor(255, 161, 0, 50));
+        ui->BedloadPlot->graph(0)->setChannelFillGraph(nullptr);
+        ui->BedloadPlot->graph(1)->clearData();
+        ui->BedloadPlot->graph(1)->setData( x, Qw_Plot );
+
+        ui->BedloadPlot->xAxis->setLabel("Distance Downstream");
+        ui->BedloadPlot->yAxis->setLabel("Qs, Qw Discharge");
+        ui->BedloadPlot->xAxis->setRange(0, rn->nnodes + 1);
+        ui->BedloadPlot->yAxis->setRange(0, Bedload[3] * 3 ); //round(*max_element(Bedload.constBegin(), Bedload.constEnd()) * 1.5));
+
+        ui->BankWidthPlot->graph(0)->clearData();
+        ui->BankWidthPlot->graph(0)->setData( x, LeftBankLower );
+        ui->BankWidthPlot->graph(1)->clearData();
+        ui->BankWidthPlot->graph(1)->setData( x, RightBankLower );
+        ui->BankWidthPlot->graph(2)->clearData();
+        ui->BankWidthPlot->graph(2)->setData( x, LeftBankTop );
+        ui->BankWidthPlot->graph(3)->clearData();
+        ui->BankWidthPlot->graph(3)->setData( x, RightBankTop );
+
+        ui->BankWidthPlot->xAxis->setLabel("Distance Downstream");
+        ui->BankWidthPlot->yAxis->setLabel("Bank Width");
+        ui->BankWidthPlot->xAxis->setRange(0,rn->nnodes + 1);
+        ui->BankWidthPlot->yAxis->setRange( ( *min_element(RightBankLower.constBegin(), RightBankLower.constEnd()) * 1.5),
+                  ( round(*max_element(LeftBankLower.constBegin(), LeftBankLower.constEnd()) * 1.5 ) ) );
+
+        ui->XSectPlot->xAxis->setRange( -20, 120 );
+        ui->XSectPlot->yAxis->setRange( -7, 7 );
+        ui->XSectPlot->graph(0)->clearData();
+        ui->XSectPlot->graph(0)->setData( XsPlotX, XsPlotY );
+        ui->XSectPlot->graph(1)->clearData();
+        ui->XSectPlot->graph(1)->setData( wsXS_X, wsXS_Y );
+
+        ui->QwSeries->graph(1)->clearData();
+        ui->QwSeries->graph(1)->setData(CursorX, CursorY);
+
+        // Grain Size info
+
+        //2, 8, 32, 128mm fractions at position 0.2, 0.4, 0.6, 0.8
+        if ((GSD_Data[2][rn->nnodes*0.2] > 0.1) && (GSD_Data[2][rn->nnodes*0.2] < 0.95))    // 2mm label
+        {
+            PSI4Label->setText( QString::number(pow(2,rn->F[0].psi[4])) + " mm");
+            PSI4Label->position->setCoords(x[int(rn->nnodes*0.2)], GSD_Data[2][int(rn->nnodes*0.2)]);
+            PSI4Label->setBrush(QColor(QColorConstants::White));
+        }
+        if ((GSD_Data[3][int(rn->nnodes*0.4)] > 0.1) && (GSD_Data[3][int(rn->nnodes*0.4)] < 0.9))    // 8mm label
+        {
+            PSI6Label->setText( QString::number(pow(2,rn->F[0].psi[6])) + " mm");
+            PSI6Label->position->setCoords(x[int(rn->nnodes*0.4)], GSD_Data[3][int(rn->nnodes*0.4)]);
+            PSI6Label->setBrush(QColor(QColorConstants::White));
+        }
+        if ((GSD_Data[4][int(rn->nnodes*0.6)] > 0.1) && (GSD_Data[4][int(rn->nnodes*0.6)] < 0.9))    // 32mm label
+        {
+            PSI8Label->setText( QString::number(pow(2,rn->F[0].psi[8])) + " mm");
+            PSI8Label->position->setCoords(x[int(rn->nnodes*0.6)], GSD_Data[4][int(rn->nnodes*0.6)]);
+            PSI8Label->setBrush(QColor(QColorConstants::White));
+        }
+        if ((GSD_Data[5][int(rn->nnodes*0.8)] > 0.1) && (GSD_Data[5][int(rn->nnodes*0.8)] < 0.9))    // 128mm label
+        {
+            PSI10Label->setText( QString::number(pow(2,rn->F[0].psi[10])) + " mm");
+            PSI10Label->position->setCoords(x[int(rn->nnodes*0.8)], GSD_Data[5][int(rn->nnodes*0.8)]);
+            PSI10Label->setBrush(QColor(QColorConstants::White));
+        }
+
+        //ui->GSD_Dash->graph(0)->clearData();
+        ui->GSD_Dash->graph(0)->setData( x, GSD_Data[0] );
+        ui->GSD_Dash->graph(1)->setData( x, GSD_Data[1] );
+        ui->GSD_Dash->graph(2)->setData( x, GSD_Data[2] );
+        ui->GSD_Dash->graph(3)->setData( x, GSD_Data[3] );
+        ui->GSD_Dash->graph(4)->setData( x, GSD_Data[4] );
+        ui->GSD_Dash->graph(5)->setData( x, GSD_Data[5] );
+        ui->GSD_Dash->graph(6)->setData( x, GSD_Data[6] );
+        ui->GSD_Dash->graph(0)->setPen(QPen(QColor(0,0,0)));  // 0 is the finest grain size category: black
+        for ( i = 1; i < 7 ; i++ )
+               ui->GSD_Dash->graph(i)->setPen(QPen(QColor((i * 30), 254 - (i * 30), 113)));
+
+        ui->GSD_Dash->xAxis->setRange(0, rn->nnodes + 1);
+        ui->GSD_Dash->yAxis->setRange(0, 1);
+
+        ui->VectorPlot->replot();
+        ui->BankWidthPlot->replot();
+        ui->XSectPlot->replot();
+        ui->BedloadPlot->replot();
+        ui->QwSeries->replot();
+        ui->GSD_Dash->replot();
+        ui->grateDateTime->setDateTime(QDateTime::fromTime_t(rn->cTime.getTime_t()));
+
+        ui->reportQw->setValue(wl->QwCumul[rn->nnodes-1] * rn->qwTweak);
+        ui->reportQs->setValue(sd->Qs[0]);
+        ui->reportStep->setValue(rn->counter);
+        //ui->reportYear->setValue(rn->yearCounter);
+
+        ui->spinBankHt->setValue(rn->RiverXS[n].bankHeight);
+        ui->spinTheta->setValue(rn->RiverXS[n].theta);
+        ui->spinDepth->setValue(rn->RiverXS[n].depth);
+        ui->spinWidth->setValue(rn->RiverXS[n].width);
+        ui->spinNoChnl->setValue(rn->RiverXS[n].noChannels);
+        ui->spinD50->setValue(pow(2, rn->F[n].dsg));
+        ui->spinDcomp->setValue(rn->RiverXS[n].comp_D);
+        ui->spinD90->setValue(pow(2, rn->F[n].d90));
+        ui->spinHmax->setValue(rn->RiverXS[n].Hmax);
+
+    }  // End 'Pause Plot' statement
 
     // Update Regime switch
 
     rn->regimeFlag = ui->RegimeButton->isChecked();   // '1' means regime routine is on, else '0'
-
 }
 
 void MainWindow::modelHalt(){    // Graceful exit, here?

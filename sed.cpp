@@ -237,7 +237,7 @@ void sed::computeTransport(RiverProfile *r)
 void sed::exner(RiverProfile *r)
 {
     unsigned int i, j, k, m = 0;
-    double upw = 0.75;                                             // Upwinding constant
+    double upw = r->sedUpw;                                             // Upwinding constant
     double chi = 0.7;                                              // weighting for interfacial exchange
     double dmy;
     vector<double> fullValleyWidth( r->nnodes );

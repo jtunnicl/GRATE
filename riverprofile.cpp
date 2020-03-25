@@ -484,8 +484,6 @@ RiverProfile::RiverProfile(XMLElement* params_root)
     startTime.setTime(12, 0, 0);
     endTime.setDate(2002, 12, 5);
     endTime.setTime(12, 0, 0);
-    cycleTime.setDate(0,0,0);
-    cycleTime.setTime(0,0,0);
 
     counter = 0;
     yearCounter = 0;        // Counter that resets every 5 days
@@ -498,13 +496,13 @@ RiverProfile::RiverProfile(XMLElement* params_root)
                                                  // Random tweak variables are based on logarithmic (e) scaled values
                                                  // Augment the rate of tributary Qs, Qw inputs
     tweakArray = hydroGraph();                        // A gamma-distribution that simulates hydrograph form
-    qsTweak = 1;                                      //rand_nums[1] * 1.5 + 0.5;        // qs between 0.5 and 2
+    qsTweak = 1;                                      // rand_nums[1] * 1.5 + 0.5;        // qs between 0.5 and 2
     qwTweak = 1;                                      // Hydrograph multiplier
     substrDial = 0;                                   // rand_nums[3]  * 3.8 - 1.9;      // Positive (up to +2) makes finer mix, negative (down to -2) coarsens all grain groups
     feedQw =  1;                                      // rand_nums[4]  * 0.5 + 0.75;     // between 0.75 and 1.25
     feedQs =  1;                                      // rand_nums[5] + 0.5;                     // between 0.5 and 1.5
     HmaxTweak = 1;                                    // See line ~750ff
-    randAbr = 0.00001;                               // between 10^-4 and 10^-7
+    randAbr = 0.00001;                                // between 10^-4 and 10^-7
 
     // Set up substrate shift matrix
 
@@ -535,6 +533,9 @@ RiverProfile::RiverProfile(XMLElement* params_root)
 
     if ( ( N[0] + N[1] + N[2] + N[3] + N[4] ) > 1)
        cout << "Interpolation Array is over 1.0";
+
+    sedUpw = 0.75;
+    hydroUpw = 0.75;                        // Upwinding constant for finite difference scheme
 
     initData(params_root);
 

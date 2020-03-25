@@ -27,7 +27,7 @@ using namespace std;
 hydro::hydro(RiverProfile *r, XMLElement *params_root)
 {
     preissTheta = 0.7;
-    hydUpw = 0.3;
+    hydUpw = r->hydroUpw;
     regimeCounter = (r->nnodes-2);
 
     initHydro(r->nnodes, params_root);

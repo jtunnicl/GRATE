@@ -90,6 +90,11 @@ public:
     QLabel *label_15;
     QLabel *loadingAdvice;
     QPushButton *cycleButton;
+    QSlider *hydroUpw_slider;
+    QLabel *label_18;
+    QLabel *label_19;
+    QSlider *sedUpw_slider;
+    QPushButton *pausePlot;
     QMenuBar *menuBar;
     QMenu *menuFile;
     QToolBar *mainToolBar;
@@ -230,21 +235,21 @@ public:
         runProgress->setValue(0);
         reportQw = new QDoubleSpinBox(centralWidget);
         reportQw->setObjectName(QString::fromUtf8("reportQw"));
-        reportQw->setGeometry(QRect(30, 160, 81, 22));
+        reportQw->setGeometry(QRect(30, 180, 81, 22));
         reportQw->setMaximum(9999.989999999999782);
         reportQw->setSingleStep(0.010000000000000);
         label = new QLabel(centralWidget);
         label->setObjectName(QString::fromUtf8("label"));
-        label->setGeometry(QRect(30, 140, 91, 16));
+        label->setGeometry(QRect(30, 160, 91, 16));
         reportStep = new QDoubleSpinBox(centralWidget);
         reportStep->setObjectName(QString::fromUtf8("reportStep"));
-        reportStep->setGeometry(QRect(30, 260, 81, 22));
+        reportStep->setGeometry(QRect(30, 280, 81, 22));
         reportStep->setDecimals(0);
         reportStep->setMaximum(10000000.000000000000000);
         reportStep->setSingleStep(1.000000000000000);
         label_2 = new QLabel(centralWidget);
         label_2->setObjectName(QString::fromUtf8("label_2"));
-        label_2->setGeometry(QRect(30, 240, 91, 16));
+        label_2->setGeometry(QRect(30, 260, 91, 16));
         QwSeries = new QCustomPlot(centralWidget);
         QwSeries->setObjectName(QString::fromUtf8("QwSeries"));
         QwSeries->setGeometry(QRect(730, 50, 351, 201));
@@ -291,7 +296,7 @@ public:
         RegimeButton = new QPushButton(centralWidget);
         RegimeButton->setObjectName(QString::fromUtf8("RegimeButton"));
         RegimeButton->setEnabled(true);
-        RegimeButton->setGeometry(QRect(20, 410, 91, 23));
+        RegimeButton->setGeometry(QRect(20, 390, 91, 23));
         RegimeButton->setCheckable(true);
         RegimeButton->setChecked(false);
         stopRun = new QPushButton(centralWidget);
@@ -299,26 +304,56 @@ public:
         stopRun->setGeometry(QRect(20, 80, 90, 22));
         reportQs = new QDoubleSpinBox(centralWidget);
         reportQs->setObjectName(QString::fromUtf8("reportQs"));
-        reportQs->setGeometry(QRect(30, 210, 81, 22));
+        reportQs->setGeometry(QRect(30, 230, 81, 22));
         reportQs->setDecimals(5);
         reportQs->setMaximum(9999.989999999999782);
         reportQs->setSingleStep(0.010000000000000);
         label_3 = new QLabel(centralWidget);
         label_3->setObjectName(QString::fromUtf8("label_3"));
-        label_3->setGeometry(QRect(30, 190, 91, 16));
+        label_3->setGeometry(QRect(30, 210, 91, 16));
         label_14 = new QLabel(centralWidget);
         label_14->setObjectName(QString::fromUtf8("label_14"));
-        label_14->setGeometry(QRect(20, 440, 91, 16));
+        label_14->setGeometry(QRect(20, 420, 91, 16));
         label_15 = new QLabel(centralWidget);
         label_15->setObjectName(QString::fromUtf8("label_15"));
-        label_15->setGeometry(QRect(20, 460, 111, 16));
+        label_15->setGeometry(QRect(20, 440, 111, 16));
         loadingAdvice = new QLabel(centralWidget);
         loadingAdvice->setObjectName(QString::fromUtf8("loadingAdvice"));
         loadingAdvice->setGeometry(QRect(20, 30, 111, 16));
         cycleButton = new QPushButton(centralWidget);
         cycleButton->setObjectName(QString::fromUtf8("cycleButton"));
-        cycleButton->setGeometry(QRect(30, 300, 71, 51));
+        cycleButton->setGeometry(QRect(20, 320, 91, 51));
         cycleButton->setCheckable(true);
+        hydroUpw_slider = new QSlider(centralWidget);
+        hydroUpw_slider->setObjectName(QString::fromUtf8("hydroUpw_slider"));
+        hydroUpw_slider->setGeometry(QRect(20, 520, 121, 22));
+        hydroUpw_slider->setMaximum(100);
+        hydroUpw_slider->setSingleStep(5);
+        hydroUpw_slider->setPageStep(5);
+        hydroUpw_slider->setValue(75);
+        hydroUpw_slider->setOrientation(Qt::Horizontal);
+        hydroUpw_slider->setTickPosition(QSlider::TicksAbove);
+        hydroUpw_slider->setTickInterval(10);
+        label_18 = new QLabel(centralWidget);
+        label_18->setObjectName(QString::fromUtf8("label_18"));
+        label_18->setGeometry(QRect(20, 500, 131, 16));
+        label_19 = new QLabel(centralWidget);
+        label_19->setObjectName(QString::fromUtf8("label_19"));
+        label_19->setGeometry(QRect(20, 550, 131, 16));
+        sedUpw_slider = new QSlider(centralWidget);
+        sedUpw_slider->setObjectName(QString::fromUtf8("sedUpw_slider"));
+        sedUpw_slider->setGeometry(QRect(20, 570, 121, 22));
+        sedUpw_slider->setMaximum(100);
+        sedUpw_slider->setSingleStep(5);
+        sedUpw_slider->setValue(75);
+        sedUpw_slider->setOrientation(Qt::Horizontal);
+        sedUpw_slider->setTickPosition(QSlider::TicksAbove);
+        sedUpw_slider->setTickInterval(10);
+        pausePlot = new QPushButton(centralWidget);
+        pausePlot->setObjectName(QString::fromUtf8("pausePlot"));
+        pausePlot->setGeometry(QRect(20, 110, 90, 22));
+        pausePlot->setAutoFillBackground(true);
+        pausePlot->setCheckable(true);
         MainWindow->setCentralWidget(centralWidget);
         menuBar = new QMenuBar(MainWindow);
         menuBar->setObjectName(QString::fromUtf8("menuBar"));
@@ -380,6 +415,15 @@ public:
         loadingAdvice->setText(QCoreApplication::translate("MainWindow", "Load file before start", nullptr));
         cycleButton->setText(QCoreApplication::translate("MainWindow", "Cycle\n"
 "Hydrograph", nullptr));
+#if QT_CONFIG(tooltip)
+        hydroUpw_slider->setToolTip(QString());
+#endif // QT_CONFIG(tooltip)
+        label_18->setText(QCoreApplication::translate("MainWindow", "Upwinding Const (Hydro)", nullptr));
+        label_19->setText(QCoreApplication::translate("MainWindow", "Upwinding Const (Sed)", nullptr));
+#if QT_CONFIG(tooltip)
+        sedUpw_slider->setToolTip(QString());
+#endif // QT_CONFIG(tooltip)
+        pausePlot->setText(QCoreApplication::translate("MainWindow", "Pause Plotting", nullptr));
         menuFile->setTitle(QCoreApplication::translate("MainWindow", "File", nullptr));
     } // retranslateUi
 

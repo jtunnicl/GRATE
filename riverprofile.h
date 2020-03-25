@@ -118,7 +118,6 @@ public:
     GrateTime cTime;                           // Current model time
     GrateTime startTime;
     GrateTime endTime;
-    GrateTime cycleTime;                       // When cycling the hydrograph, keep track of surplus model time, as opposed to the hydrograph time series read in
     unsigned int counter;
     unsigned int yearCounter;
     unsigned int dt;                           // Delta t in seconds
@@ -149,6 +148,9 @@ public:
     vector<double> rand_nums;                   // 10 random nums for Monte-Carlo run. Uses rand1().
 
     vector<NodeXSObject> RiverXS;              // Array of river cross-sectional details
+
+    // Numerical constants
+    double sedUpw, hydroUpw;                   // Upwinding constants for sediment transport and hydraulics
 
     // Randomizers
     vector<double> tweakArray;
