@@ -660,25 +660,25 @@ void MainWindow::modelUpdate(){
         {
             PSI4Label->setText( QString::number(pow(2,rn->F[0].psi[4])) + " mm");
             PSI4Label->position->setCoords(x[int(rn->nnodes*0.2)], GSD_Data[2][int(rn->nnodes*0.2)]);
-            PSI4Label->setBrush(QColor(QColorConstants::White));
+            PSI4Label->setBrush(QColor(255, 255, 255, 127));
         }
         if ((GSD_Data[3][int(rn->nnodes*0.4)] > 0.1) && (GSD_Data[3][int(rn->nnodes*0.4)] < 0.9))    // 8mm label
         {
             PSI6Label->setText( QString::number(pow(2,rn->F[0].psi[6])) + " mm");
             PSI6Label->position->setCoords(x[int(rn->nnodes*0.4)], GSD_Data[3][int(rn->nnodes*0.4)]);
-            PSI6Label->setBrush(QColor(QColorConstants::White));
+            PSI6Label->setBrush(QColor(255, 255, 255, 127));
         }
         if ((GSD_Data[4][int(rn->nnodes*0.6)] > 0.1) && (GSD_Data[4][int(rn->nnodes*0.6)] < 0.9))    // 32mm label
         {
             PSI8Label->setText( QString::number(pow(2,rn->F[0].psi[8])) + " mm");
             PSI8Label->position->setCoords(x[int(rn->nnodes*0.6)], GSD_Data[4][int(rn->nnodes*0.6)]);
-            PSI8Label->setBrush(QColor(QColorConstants::White));
+            PSI8Label->setBrush(QColor(255, 255, 255, 127));
         }
         if ((GSD_Data[5][int(rn->nnodes*0.8)] > 0.1) && (GSD_Data[5][int(rn->nnodes*0.8)] < 0.9))    // 128mm label
         {
             PSI10Label->setText( QString::number(pow(2,rn->F[0].psi[10])) + " mm");
             PSI10Label->position->setCoords(x[int(rn->nnodes*0.8)], GSD_Data[5][int(rn->nnodes*0.8)]);
-            PSI10Label->setBrush(QColor(QColorConstants::White));
+            PSI10Label->setBrush(QColor(255, 255, 255, 127));
         }
 
         //ui->GSD_Dash->graph(0)->clearData();
