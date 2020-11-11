@@ -534,8 +534,8 @@ RiverProfile::RiverProfile(XMLElement* params_root)
     if ( ( N[0] + N[1] + N[2] + N[3] + N[4] ) > 1)
        cout << "Interpolation Array is over 1.0";
 
-    sedUpw = 0.75;
-    hydroUpw = 0.75;                        // Upwinding constant for finite difference scheme
+    sedUpw = 1.00;
+    hydroUpw = 0.33;                        // Upwinding constant for finite difference scheme
 
     initData(params_root);
 
@@ -826,16 +826,16 @@ void RiverProfile::getStratigraphy(XMLElement* params_root)
 
     // get the "stratigraphy" element
     XMLElement *stratElem = params_root->FirstChildElement("stratigraphy");
-    if (stratElem == NULL) {
+    if (stratElem == 0) {
         //throw std::string("Error getting stratigraphy element from XML file");
         for (int z = 1; z < (nlayer + 1); z++){
             int st_grp = stgrp[node];      // Build stratigraphy from subsurface information
             for (int j = 0; j < ngsz; j++) {
                 for (int k = 0; k < nlith; k++) {
-                    storedf[node][z-1].pct[k][j] = grp[st_grp-1].pct[k][j];
+                    storedf[node][z-1].pct[k][j] = grp[st_grp].pct[k][j];
                     if (j == 0){
-                        storedf[node][z-1].abrasion[k] = grp[st_grp-1].abrasion[k];
-                        storedf[node][z-1].density[k] = grp[st_grp-1].density[k];
+                        storedf[node][z-1].abrasion[k] = grp[st_grp].abrasion[k];
+                        storedf[node][z-1].density[k] = grp[st_grp].density[k];
                     }
                 }
             }

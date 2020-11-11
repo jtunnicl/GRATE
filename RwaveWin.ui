@@ -547,10 +547,10 @@
       <number>60</number>
      </property>
      <property name="value">
-      <number>12</number>
+      <number>1</number>
      </property>
      <property name="sliderPosition">
-      <number>12</number>
+      <number>1</number>
      </property>
      <property name="tracking">
       <bool>true</bool>
@@ -896,7 +896,7 @@ Hydrograph</string>
      <x>0</x>
      <y>0</y>
      <width>1102</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">

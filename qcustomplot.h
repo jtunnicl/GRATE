@@ -30,6 +30,7 @@
 #include <QPointer>
 #include <QWidget>
 #include <QPainter>
+#include <QtGui/QPainterPath>
 #include <QPaintEvent>
 #include <QMouseEvent>
 #include <QPixmap>

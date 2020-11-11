@@ -79,10 +79,10 @@ void sed::setNodalSedInputs(RiverProfile *r)
             Qs_bc[i].Q = ( Qs_series[i][j-1].Q + ( Qs_series[i][j-1].date_time.secsTo(r->cTime) ) *
                    ( Qs_series[i][j].Q - Qs_series[i][j-1].Q ) /
                    ( Qs_series[i][j-1].date_time.secsTo(Qs_series[i][j].date_time) ));
-            Qs_bc[i].Q *= r->qsTweak;
+            //Qs_bc[i].Q *= r->qsTweak;
             Qs_bc[i].Q *= r->tweakArray[r->yearCounter];                           // Flood = 0.8 to 1.8 mean flow
         }
-    Qs_bc[0].Q *= r->qwTweak;                                         // Feed randomizer
+    //Qs_bc[0].Q *= r->qwTweak;                                         // Feed randomizer
     }
 }
 
@@ -254,12 +254,20 @@ void sed::exner(RiverProfile *r)
     {
         fullValleyWidth[i] = r->RiverXS[i].fpWidth + r->RiverXS[i].width;
 
-        deta[i] = r->dt * ( upw * ( ( Qs[i-1] - Qs[i] ) / ( r->xx[i] - r->xx[i-1] ) )
-            + ( 1 - upw ) * ( ( Qs[i] - Qs[i+1] ) / ( r->xx[i+1] - r->xx[i] ) ) )
-                      / (1.0 - r->poro) / fullValleyWidth[i];
+        if (i==1)
+        {
+            deta[i] = r->dt * ( ( Qs[i] - Qs[i+1] ) / ( r->xx[i+1] - r->xx[i] ) )
+                          / (1.0 - r->poro) / fullValleyWidth[i];
+        }
+        else
+        {
+            deta[i] = r->dt * ( upw * ( ( Qs[i-1] - Qs[i] ) / ( r->xx[i] - r->xx[i-1] ) )
+                + ( 1 - upw ) * ( ( Qs[i] - Qs[i+1] ) / ( r->xx[i+1] - r->xx[i] ) ) )
+                          / (1.0 - r->poro) / fullValleyWidth[i];
+        }
     }
 
-    deta[0] = deta[1]; // ( ( Qs_bc[0].Q - Qs[1] ) / ( r->xx[1] - r->xx[0] ) );
+    deta[0] = ( ( Qs_bc[0].Q - Qs[1] ) / ( r->xx[1] - r->xx[0] ) );
 
     for ( i = 0; i < r->nnodes-1; i++ )                            // Upstream boundary - if floating, i = 0
         r->eta[i] += deta[i];

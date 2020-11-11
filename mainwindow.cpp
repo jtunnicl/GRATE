@@ -165,8 +165,8 @@ void MainWindow::setupChart(){
     QVector<double> wsXS_Y( 2 );
     QVector<double> Bottom_X( 2 );
     QVector<double> Bottom_Y( 2 );
-    QVector<double> Qw_TS( nQw );
-    QVector<double> time( nQw );
+    QVector<double> Qw_TS( 900 );  //nQw );
+    QVector<double> time( 900 );  //nQw );
     QVector<double> CursorX( 2 );
     QVector<double> CursorY( 2 );
     QVector<double> tmp( 8 );
@@ -252,11 +252,11 @@ void MainWindow::setupChart(){
 
     //Temporarily out of action; this will eventually be a tweak/time series switch
 
-    //for ( bc = 0; bc < 899; bc++ )
-    //{
-    //    Qw_TS[bc] = wl->Qw[0][0].Q * rn->tweakArray[bc];
-    //    time[bc] = bc;
-    //}
+    //  for ( bc = 0; bc < 899; bc++ )
+    //  {
+    //      Qw_TS[bc] = wl->Qw[0][0].Q * rn->tweakArray[bc];
+    //      time[bc] = bc;// * 3600;
+    //  }
 
     for ( bc = 0; bc < nQw; bc++ )
     {
@@ -358,10 +358,10 @@ void MainWindow::setupChart(){
     ui->XSectPlot->graph(2)->setBrush(QColor(255, 161, 0, 50));
     ui->XSectPlot->graph(2)->setChannelFillGraph(ui->XSectPlot->graph(0));
 
-    //ui->QwSeries->xAxis->setTickLabelType(QCPAxis::ltDateTime);
+    ui->QwSeries->xAxis->setTickLabelType(QCPAxis::ltDateTime);
     ui->QwSeries->yAxis->setLabel("Discharge");
     ui->QwSeries->xAxis->setLabel("Time");
-    ui->QwSeries->xAxis->setRange( time[0], time[nQw-1] );  // Time is displayed in hours
+    ui->QwSeries->xAxis->setRange( time[0], time[nQw-1] );  //time[899] );   Time is displayed in hours
     ui->QwSeries->yAxis->setRange(round(*min_element(Qw_TS.constBegin(),
             Qw_TS.constEnd()) * 0.75), round(*max_element(Qw_TS.constBegin(), Qw_TS.constEnd()) * 1.5));
 
@@ -549,7 +549,7 @@ void MainWindow::modelUpdate(){
         XsPlotX[10] = XsPlotX[9] + 5 * rn->RiverXS[n].valleyWallSlp;
         XsPlotY[10] = 5;
 
-        XsPlotX[1] = XsPlotX[9] - rn->RiverXS[n].fpWidth;
+        XsPlotX[1] = XsPlotX[2];
         XsPlotY[1] = 0;
         XsPlotX[0] = XsPlotX[1] - ( 5 * rn->RiverXS[n].valleyWallSlp );
         XsPlotY[0] = 5;
@@ -626,7 +626,7 @@ void MainWindow::modelUpdate(){
         ui->BedloadPlot->xAxis->setLabel("Distance Downstream");
         ui->BedloadPlot->yAxis->setLabel("Qs, Qw Discharge");
         ui->BedloadPlot->xAxis->setRange(0, rn->nnodes + 1);
-        ui->BedloadPlot->yAxis->setRange(0, Bedload[3] * 3 ); //round(*max_element(Bedload.constBegin(), Bedload.constEnd()) * 1.5));
+        ui->BedloadPlot->yAxis->setRange(0, Bedload[3] * 10 ); //round(*max_element(Bedload.constBegin(), Bedload.constEnd()) * 1.5));
 
         ui->BankWidthPlot->graph(0)->clearData();
         ui->BankWidthPlot->graph(0)->setData( x, LeftBankLower );
