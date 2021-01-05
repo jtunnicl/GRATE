@@ -191,7 +191,7 @@ void hydro::setQuasiSteadyNodalFlows(RiverProfile *r){
                        ( Qw[i][j].Q - Qw[i][j-1].Q ) /
                        ( Qw[i][j-1].date_time.secsTo(Qw[i][j].date_time) ));
 
-            Qw_Ct[i] *= r->tweakArray[r->yearCounter];             // Flood = 0.8 to 1.8 mean flow
+            //Qw_Ct[i] *= r->tweakArray[r->yearCounter];             // Flood = 0.8 to 1.8 mean flow
         }
         Qw_Ct[0] *= r->feedQw;                                     // Feed randomizer
     }

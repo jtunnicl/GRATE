@@ -495,7 +495,7 @@ RiverProfile::RiverProfile(XMLElement* params_root)
 	    rand_nums.push_back(0);
                                                  // Random tweak variables are based on logarithmic (e) scaled values
                                                  // Augment the rate of tributary Qs, Qw inputs
-    tweakArray = hydroGraph();                        // A gamma-distribution that simulates hydrograph form
+    //tweakArray = hydroGraph();                        // A gamma-distribution that simulates hydrograph form
     qsTweak = 1;                                      // rand_nums[1] * 1.5 + 0.5;        // qs between 0.5 and 2
     qwTweak = 1;                                      // Hydrograph multiplier
     substrDial = 0;                                   // rand_nums[3]  * 3.8 - 1.9;      // Positive (up to +2) makes finer mix, negative (down to -2) coarsens all grain groups

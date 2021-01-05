@@ -80,7 +80,7 @@ void sed::setNodalSedInputs(RiverProfile *r)
                    ( Qs_series[i][j].Q - Qs_series[i][j-1].Q ) /
                    ( Qs_series[i][j-1].date_time.secsTo(Qs_series[i][j].date_time) ));
             //Qs_bc[i].Q *= r->qsTweak;
-            Qs_bc[i].Q *= r->tweakArray[r->yearCounter];                           // Flood = 0.8 to 1.8 mean flow
+            //Qs_bc[i].Q *= r->tweakArray[r->yearCounter];                           // Flood = 0.8 to 1.8 mean flow
         }
     //Qs_bc[0].Q *= r->qwTweak;                                         // Feed randomizer
     }

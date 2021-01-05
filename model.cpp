@@ -34,7 +34,7 @@ void Model::iteration() {
     wl->backWater(rn);
     sd->computeTransport(rn);
     stepTime();
-    rn->qwTweak = rn->tweakArray[rn->yearCounter];
+    rn->qwTweak = 1; //rn->tweakArray[rn->yearCounter];
 
     if ( ( rn->regimeFlag == 1 ) && (rn->counter % 4 == 0) && ( rn->qwTweak < 1 ) )
             wl->setRegimeWidth(rn);         // kick off regime restraints, once hydraulics are working
